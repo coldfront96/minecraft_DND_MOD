@@ -28,9 +28,11 @@ public record SelectClassPayload(int classOrdinal) implements CustomPacketPayloa
     public void handle(IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer serverPlayer) {
+                DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
+                if (data.getDnDClass() != DnDClass.NONE) return;
+
                 DnDClass[] classes = DnDClass.values();
-                if (classOrdinal >= 0 && classOrdinal < classes.length) {
-                    DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
+                if (classOrdinal >= 0 && classOrdinal < classes.length && classes[classOrdinal] != DnDClass.NONE) {
                     data.setDnDClass(classes[classOrdinal]);
                     PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
                 }

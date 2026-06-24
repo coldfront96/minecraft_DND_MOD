@@ -9,12 +9,14 @@ import net.minecraft.world.effect.MobEffects;
 
 public class ArcaneShield extends Ability {
     public ArcaneShield() {
-        super("wizard_arcane_shield", "Arcane Shield", DnDClass.WIZARD, 7, 35, 200);
+        super("wizard_arcane_shield", "Arcane Shield",
+                "Absorb the next 3 hits (absorption hearts)",
+                DnDClass.WIZARD, 7, 35, 200);
     }
 
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
-        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 2));
-        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 100, 2));
+        // Absorption III = 12 absorption hearts (6 full hearts), enough to absorb ~3 moderate hits
+        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 400, 2, false, true));
     }
 }

@@ -69,6 +69,10 @@ public class ClassCommand {
         }
 
         DnDPlayerData data = PlayerDataHelper.get(player);
+        if (data.getDnDClass() != DnDClass.NONE) {
+            player.sendSystemMessage(Component.literal("You have already chosen a class! Your class is " + data.getDnDClass().getDisplayName() + "."));
+            return 0;
+        }
         data.setDnDClass(dndClass);
         PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
 

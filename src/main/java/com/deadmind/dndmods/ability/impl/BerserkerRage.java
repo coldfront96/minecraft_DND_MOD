@@ -9,14 +9,21 @@ import net.minecraft.world.effect.MobEffects;
 
 public class BerserkerRage extends Ability {
     public BerserkerRage() {
-        super("barbarian_berserker_rage", "Berserker Rage", DnDClass.BARBARIAN, 8, 40, 300);
+        super("barbarian_berserker_rage", "Berserker Rage",
+                "Reckless effect + 30% move speed for 8 seconds",
+                DnDClass.BARBARIAN, 8, 40, 300);
     }
 
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
-        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 3));
-        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1));
-        player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, 1));
-        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 0));
+        // Reckless component: +damage, +incoming damage
+        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 160, 2, false, true));
+        player.getPersistentData().putLong("dndmods_reckless_until", player.level().getGameTime() + 160);
+
+        // +30% move speed (Speed I = +20%, Speed II = +40%; use I as closest without overshooting)
+        player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 160, 1, false, true));
+
+        // Regeneration for sustain
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 160, 0, false, true));
     }
 }

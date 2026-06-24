@@ -8,14 +8,16 @@ import net.minecraft.server.level.ServerPlayer;
 public abstract class Ability {
     private final String id;
     private final String name;
+    private final String description;
     private final DnDClass requiredClass;
     private final int requiredLevel;
     private final int resourceCost;
     private final int cooldownTicks;
 
-    protected Ability(String id, String name, DnDClass requiredClass, int requiredLevel, int resourceCost, int cooldownTicks) {
+    protected Ability(String id, String name, String description, DnDClass requiredClass, int requiredLevel, int resourceCost, int cooldownTicks) {
         this.id = id;
         this.name = name;
+        this.description = description;
         this.requiredClass = requiredClass;
         this.requiredLevel = requiredLevel;
         this.resourceCost = resourceCost;
@@ -24,6 +26,7 @@ public abstract class Ability {
 
     public String getId() { return id; }
     public String getName() { return name; }
+    public String getDescription() { return description; }
     public DnDClass getRequiredClass() { return requiredClass; }
     public int getRequiredLevel() { return requiredLevel; }
     public int getResourceCost() { return resourceCost; }

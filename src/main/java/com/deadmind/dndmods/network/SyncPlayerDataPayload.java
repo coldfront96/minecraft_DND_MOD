@@ -1,6 +1,8 @@
 package com.deadmind.dndmods.network;
 
 import com.deadmind.dndmods.DnDMods;
+import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.client.ClassSelectionScreen;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.ModAttachments;
 import net.minecraft.client.Minecraft;
@@ -8,7 +10,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record SyncPlayerDataPayload(CompoundTag data) implements CustomPacketPayload {
@@ -32,9 +33,14 @@ public record SyncPlayerDataPayload(CompoundTag data) implements CustomPacketPay
 
     public void handle(IPayloadContext context) {
         context.enqueueWork(() -> {
-            var player = Minecraft.getInstance().player;
-            if (player != null) {
-                player.getData(ModAttachments.PLAYER_DATA).load(data);
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null) {
+                DnDPlayerData playerData = mc.player.getData(ModAttachments.PLAYER_DATA);
+                playerData.load(data);
+
+                if (playerData.getDnDClass() == DnDClass.NONE && !(mc.screen instanceof ClassSelectionScreen)) {
+                    mc.setScreen(new ClassSelectionScreen());
+                }
             }
         });
     }

@@ -8,12 +8,13 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class HuntersMark extends Ability {
     public HuntersMark() {
-        super("ranger_hunters_mark", "Hunter's Mark", DnDClass.RANGER, 3, 20, 100);
+        super("ranger_hunters_mark", "Hunter's Mark",
+                "Mark target, all damage to marked target +25%",
+                DnDClass.RANGER, 3, 20, 100);
     }
 
     @Override
@@ -37,8 +38,10 @@ public class HuntersMark extends Ability {
         }
 
         if (closest != null) {
-            closest.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0));
-            closest.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0));
+            closest.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, false, true));
+            // Store mark data so CombatEventHandler can apply +25% damage
+            closest.getPersistentData().putUUID("dndmods_marked_by", player.getUUID());
+            closest.getPersistentData().putLong("dndmods_mark_until", player.level().getGameTime() + 200);
         }
     }
 }

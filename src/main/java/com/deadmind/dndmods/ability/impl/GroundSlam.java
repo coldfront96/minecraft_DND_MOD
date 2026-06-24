@@ -3,6 +3,8 @@ package com.deadmind.dndmods.ability.impl;
 import com.deadmind.dndmods.ability.Ability;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,17 +13,26 @@ import net.minecraft.world.phys.Vec3;
 
 public class GroundSlam extends Ability {
     public GroundSlam() {
-        super("barbarian_ground_slam", "Ground Slam", DnDClass.BARBARIAN, 4, 20, 100);
+        super("barbarian_ground_slam", "Ground Slam",
+                "AOE knockback + damage to all mobs within 4 blocks",
+                DnDClass.BARBARIAN, 4, 20, 100);
     }
 
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
-        AABB area = player.getBoundingBox().inflate(5.0);
+        AABB area = player.getBoundingBox().inflate(4.0);
+
+        if (player.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.EXPLOSION, player.getX(), player.getY(), player.getZ(), 5, 2.0, 0.5, 2.0, 0.0);
+            serverLevel.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, player.getX(), player.getY(), player.getZ(), 20, 3.0, 0.2, 3.0, 0.01);
+        }
+
         for (Entity entity : player.level().getEntities(player, area)) {
             if (entity instanceof LivingEntity living) {
                 living.hurt(player.damageSources().playerAttack(player), 6.0f);
                 Vec3 knockback = entity.position().subtract(player.position()).normalize().scale(2.0);
                 living.setDeltaMovement(knockback.x, 0.5, knockback.z);
+                living.hurtMarked = true;
             }
         }
     }

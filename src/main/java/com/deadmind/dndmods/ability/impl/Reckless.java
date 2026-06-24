@@ -9,12 +9,16 @@ import net.minecraft.world.effect.MobEffects;
 
 public class Reckless extends Ability {
     public Reckless() {
-        super("barbarian_reckless", "Reckless Attack", DnDClass.BARBARIAN, 1, 10, 60);
+        super("barbarian_reckless", "Reckless Attack",
+                "Deal +40% damage but take +20% more for 10 seconds",
+                DnDClass.BARBARIAN, 1, 10, 60);
     }
 
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
-        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 100, 2));
-        player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 100, 1));
+        // Strength II for +40% damage approximation
+        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 1, false, true));
+        // Mark as reckless so CombatEventHandler applies +20% incoming damage
+        player.getPersistentData().putLong("dndmods_reckless_until", player.level().getGameTime() + 200);
     }
 }

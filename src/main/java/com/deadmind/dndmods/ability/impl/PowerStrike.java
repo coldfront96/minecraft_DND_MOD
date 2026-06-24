@@ -9,11 +9,14 @@ import net.minecraft.world.effect.MobEffects;
 
 public class PowerStrike extends Ability {
     public PowerStrike() {
-        super("fighter_power_strike", "Power Strike", DnDClass.FIGHTER, 1, 15, 60);
+        super("fighter_power_strike", "Power Strike",
+                "Next attack deals +50% damage",
+                DnDClass.FIGHTER, 1, 15, 60);
     }
 
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
-        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 100, 1));
+        // Strength II (+3 damage, ~50% bonus on a diamond sword's 7 base) for 5 seconds / one hit window
+        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 100, 1, false, true));
     }
 }
