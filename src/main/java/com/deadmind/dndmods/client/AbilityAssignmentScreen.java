@@ -1,18 +1,23 @@
 package com.deadmind.dndmods.client;
 
 import com.deadmind.dndmods.ability.Ability;
-import com.deadmind.dndmods.ability.AbilityBarState;
 import com.deadmind.dndmods.ability.AbilityRegistry;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.network.SyncHotbarPayload;
+import com.deadmind.dndmods.player.AbilityHotbar;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.ModAttachments;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
 
+@OnlyIn(Dist.CLIENT)
 public class AbilityAssignmentScreen extends Screen {
 
     private static final int SLOT_SIZE = 24;
@@ -49,7 +54,8 @@ public class AbilityAssignmentScreen extends Screen {
         if (selectedAbilityId != null) {
             Ability sel = AbilityRegistry.getAbility(selectedAbilityId);
             if (sel != null) {
-                gui.drawCenteredString(this.font, "Selected: " + sel.getName(), this.width / 2, this.height - 25, 0x55FF55);
+                gui.drawCenteredString(this.font, "Selected: " + sel.getName(),
+                        this.width / 2, this.height - 25, 0x55FF55);
             }
         }
 
@@ -61,20 +67,26 @@ public class AbilityAssignmentScreen extends Screen {
         int listX = (this.width - listWidth) / 2;
         int listY = 40;
 
-        gui.fill(listX - 2, listY - 2, listX + listWidth + 2, listY + availableAbilities.size() * ABILITY_ENTRY_HEIGHT + 2, 0xC0111111);
+        gui.fill(listX - 2, listY - 2,
+                listX + listWidth + 2, listY + availableAbilities.size() * ABILITY_ENTRY_HEIGHT + 2,
+                0xC0111111);
+
+        AbilityHotbar hotbar = data.getAbilityHotbar();
 
         for (int i = 0; i < availableAbilities.size(); i++) {
             Ability ability = availableAbilities.get(i);
             int y = listY + i * ABILITY_ENTRY_HEIGHT;
 
-            boolean hovered = mouseX >= listX && mouseX < listX + listWidth && mouseY >= y && mouseY < y + ABILITY_ENTRY_HEIGHT;
+            boolean hovered = mouseX >= listX && mouseX < listX + listWidth
+                    && mouseY >= y && mouseY < y + ABILITY_ENTRY_HEIGHT;
             boolean selected = ability.getId().equals(selectedAbilityId);
-            boolean slotted = isAbilitySlotted(ability.getId());
+            boolean slotted = isAbilitySlotted(hotbar, ability.getId());
 
             int bgColor = selected ? 0xC0225522 : (hovered ? 0xC0333355 : 0xC0222222);
             gui.fill(listX, y, listX + listWidth, y + ABILITY_ENTRY_HEIGHT - 1, bgColor);
 
-            int nameColor = slotted ? 0x55FF55 : (ability.getRequiredLevel() <= data.getLevel() ? 0xFFFFFF : 0x666666);
+            int nameColor = slotted ? 0x55FF55
+                    : (ability.getRequiredLevel() <= data.getLevel() ? 0xFFFFFF : 0x666666);
             gui.drawString(this.font, ability.getName(), listX + 4, y + 2, nameColor);
 
             String info = "Lv" + ability.getRequiredLevel() + " | Cost: " + ability.getResourceCost()
@@ -84,16 +96,19 @@ public class AbilityAssignmentScreen extends Screen {
     }
 
     private void renderSlotBar(GuiGraphics gui, DnDPlayerData data, int mouseX, int mouseY) {
-        int totalWidth = AbilityBarState.SLOTS * (SLOT_SIZE + SLOT_SPACING) - SLOT_SPACING;
+        AbilityHotbar hotbar = data.getAbilityHotbar();
+        int totalWidth = AbilityHotbar.SLOTS * (SLOT_SIZE + SLOT_SPACING) - SLOT_SPACING;
         int startX = (this.width - totalWidth) / 2;
         int y = this.height - 60;
 
-        gui.drawCenteredString(this.font, "Ability Slots (V + 1-9 to activate in-game)", this.width / 2, y - 14, 0xAAAAAA);
+        gui.drawCenteredString(this.font, "Ability Slots (Hold V + Click to activate in-game)",
+                this.width / 2, y - 14, 0xAAAAAA);
 
-        for (int i = 0; i < AbilityBarState.SLOTS; i++) {
+        for (int i = 0; i < AbilityHotbar.SLOTS; i++) {
             int x = startX + i * (SLOT_SIZE + SLOT_SPACING);
 
-            boolean hovered = mouseX >= x && mouseX < x + SLOT_SIZE && mouseY >= y && mouseY < y + SLOT_SIZE;
+            boolean hovered = mouseX >= x && mouseX < x + SLOT_SIZE
+                    && mouseY >= y && mouseY < y + SLOT_SIZE;
             int bgColor = hovered ? 0xC0444466 : 0xC0333333;
             gui.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, bgColor);
 
@@ -102,12 +117,13 @@ public class AbilityAssignmentScreen extends Screen {
             gui.fill(x, y, x + 1, y + SLOT_SIZE, 0xFF666666);
             gui.fill(x + SLOT_SIZE - 1, y, x + SLOT_SIZE, y + SLOT_SIZE, 0xFF666666);
 
-            String slotAbilityId = AbilityBarState.getAbilityInSlot(i);
+            String slotAbilityId = hotbar.getSlotAbility(i);
             if (slotAbilityId != null) {
                 Ability ability = AbilityRegistry.getAbility(slotAbilityId);
                 if (ability != null) {
-                    String initial = ability.getName().substring(0, 2);
-                    gui.drawCenteredString(this.font, initial, x + SLOT_SIZE / 2, y + (SLOT_SIZE - 8) / 2, 0xFFFFFF);
+                    String initial = ability.getName().substring(0, Math.min(2, ability.getName().length()));
+                    gui.drawCenteredString(this.font, initial,
+                            x + SLOT_SIZE / 2, y + (SLOT_SIZE - 8) / 2, 0xFFFFFF);
                 }
             }
 
@@ -117,13 +133,17 @@ public class AbilityAssignmentScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        DnDPlayerData data = Minecraft.getInstance().player.getData(ModAttachments.PLAYER_DATA);
+        AbilityHotbar hotbar = data.getAbilityHotbar();
+
         int listWidth = 200;
         int listX = (this.width - listWidth) / 2;
         int listY = 40;
 
         for (int i = 0; i < availableAbilities.size(); i++) {
             int y = listY + i * ABILITY_ENTRY_HEIGHT;
-            if (mouseX >= listX && mouseX < listX + listWidth && mouseY >= y && mouseY < y + ABILITY_ENTRY_HEIGHT) {
+            if (mouseX >= listX && mouseX < listX + listWidth
+                    && mouseY >= y && mouseY < y + ABILITY_ENTRY_HEIGHT) {
                 if (button == 0) {
                     selectedAbilityId = availableAbilities.get(i).getId();
                     return true;
@@ -131,19 +151,20 @@ public class AbilityAssignmentScreen extends Screen {
             }
         }
 
-        int totalWidth = AbilityBarState.SLOTS * (SLOT_SIZE + SLOT_SPACING) - SLOT_SPACING;
+        int totalWidth = AbilityHotbar.SLOTS * (SLOT_SIZE + SLOT_SPACING) - SLOT_SPACING;
         int startX = (this.width - totalWidth) / 2;
         int slotY = this.height - 60;
 
-        for (int i = 0; i < AbilityBarState.SLOTS; i++) {
+        for (int i = 0; i < AbilityHotbar.SLOTS; i++) {
             int x = startX + i * (SLOT_SIZE + SLOT_SPACING);
-            if (mouseX >= x && mouseX < x + SLOT_SIZE && mouseY >= slotY && mouseY < slotY + SLOT_SIZE) {
+            if (mouseX >= x && mouseX < x + SLOT_SIZE
+                    && mouseY >= slotY && mouseY < slotY + SLOT_SIZE) {
                 if (button == 0 && selectedAbilityId != null) {
-                    AbilityBarState.setAbilityInSlot(i, selectedAbilityId);
+                    hotbar.slotAbility(i, selectedAbilityId);
                     selectedAbilityId = null;
                     return true;
                 } else if (button == 1) {
-                    AbilityBarState.clearSlot(i);
+                    hotbar.clearSlot(i);
                     return true;
                 }
             }
@@ -152,9 +173,21 @@ public class AbilityAssignmentScreen extends Screen {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    private boolean isAbilitySlotted(String abilityId) {
-        for (int i = 0; i < AbilityBarState.SLOTS; i++) {
-            if (abilityId.equals(AbilityBarState.getAbilityInSlot(i))) return true;
+    @Override
+    public void onClose() {
+        DnDPlayerData data = Minecraft.getInstance().player.getData(ModAttachments.PLAYER_DATA);
+        AbilityHotbar hotbar = data.getAbilityHotbar();
+        String[] slotIds = new String[AbilityHotbar.SLOTS];
+        for (int i = 0; i < AbilityHotbar.SLOTS; i++) {
+            slotIds[i] = hotbar.getSlotAbility(i);
+        }
+        PacketDistributor.sendToServer(new SyncHotbarPayload(slotIds));
+        super.onClose();
+    }
+
+    private boolean isAbilitySlotted(AbilityHotbar hotbar, String abilityId) {
+        for (int i = 0; i < AbilityHotbar.SLOTS; i++) {
+            if (abilityId.equals(hotbar.getSlotAbility(i))) return true;
         }
         return false;
     }

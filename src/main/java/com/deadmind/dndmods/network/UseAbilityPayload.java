@@ -35,6 +35,7 @@ public record UseAbilityPayload(String abilityId) implements CustomPacketPayload
                 DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
                 if (ability.canUse(serverPlayer, data)) {
                     ability.execute(serverPlayer, data);
+                    data.startCooldown(abilityId, ability.getCooldownTicks());
                     PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
                 }
             }

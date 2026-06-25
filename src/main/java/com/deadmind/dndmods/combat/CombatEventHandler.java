@@ -28,6 +28,10 @@ public class CombatEventHandler {
     public static void onServerTick(ServerTickEvent.Post event) {
         AbilityCooldownManager.tick();
 
+        for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
+            PlayerDataHelper.get(player).tickCooldowns();
+        }
+
         resourceRegenCounter++;
         if (resourceRegenCounter >= 20) {
             resourceRegenCounter = 0;

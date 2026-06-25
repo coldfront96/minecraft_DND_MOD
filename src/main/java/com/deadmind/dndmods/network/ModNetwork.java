@@ -43,6 +43,12 @@ public class ModNetwork {
                 OpenAbilityBarPayload.STREAM_CODEC,
                 OpenAbilityBarPayload::handle
         );
+
+        registrar.playToServer(
+                SyncHotbarPayload.TYPE,
+                SyncHotbarPayload.STREAM_CODEC,
+                SyncHotbarPayload::handle
+        );
     }
 
     public static ResourceLocation id(String path) {

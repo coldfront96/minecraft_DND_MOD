@@ -2,10 +2,12 @@ package com.deadmind.dndmods.playerdata;
 
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.classes.PrestigeClass;
+import com.deadmind.dndmods.player.AbilityHotbar;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class DnDPlayerData {
@@ -19,6 +21,8 @@ public class DnDPlayerData {
     private final AbilityScores abilityScores = new AbilityScores();
     private int currentHp;
     private final Map<String, Boolean> achievementFlags = new HashMap<>();
+    private final AbilityHotbar abilityHotbar = new AbilityHotbar();
+    private final Map<String, Integer> cooldowns = new HashMap<>();
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -171,6 +175,38 @@ public class DnDPlayerData {
         return achievementFlags;
     }
 
+    // --- Ability Hotbar ---
+
+    public AbilityHotbar getAbilityHotbar() { return abilityHotbar; }
+
+    // --- Cooldowns ---
+
+    public boolean isOnCooldown(String abilityId) {
+        Integer remaining = cooldowns.get(abilityId);
+        return remaining != null && remaining > 0;
+    }
+
+    public int getCooldownRemaining(String abilityId) {
+        return cooldowns.getOrDefault(abilityId, 0);
+    }
+
+    public void startCooldown(String abilityId, int ticks) {
+        cooldowns.put(abilityId, ticks);
+    }
+
+    public void tickCooldowns() {
+        Iterator<Map.Entry<String, Integer>> it = cooldowns.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Integer> entry = it.next();
+            int remaining = entry.getValue() - 1;
+            if (remaining <= 0) {
+                it.remove();
+            } else {
+                entry.setValue(remaining);
+            }
+        }
+    }
+
     // --- XP ---
 
     public void addXp(int amount) {
@@ -209,6 +245,12 @@ public class DnDPlayerData {
         CompoundTag flags = new CompoundTag();
         achievementFlags.forEach(flags::putBoolean);
         tag.put("Achievements", flags);
+
+        tag.put("Hotbar", abilityHotbar.save());
+
+        CompoundTag cdTag = new CompoundTag();
+        cooldowns.forEach(cdTag::putInt);
+        tag.put("Cooldowns", cdTag);
 
         return tag;
     }
@@ -249,6 +291,18 @@ public class DnDPlayerData {
                 achievementFlags.put(key, flags.getBoolean(key));
             }
         }
+
+        if (tag.contains("Hotbar")) {
+            abilityHotbar.load(tag.getCompound("Hotbar"));
+        }
+
+        cooldowns.clear();
+        if (tag.contains("Cooldowns")) {
+            CompoundTag cdTag = tag.getCompound("Cooldowns");
+            for (String key : cdTag.getAllKeys()) {
+                cooldowns.put(key, cdTag.getInt(key));
+            }
+        }
     }
 
     public void copyFrom(DnDPlayerData other) {
@@ -266,5 +320,8 @@ public class DnDPlayerData {
         this.currentHp = other.currentHp;
         this.achievementFlags.clear();
         this.achievementFlags.putAll(other.achievementFlags);
+        this.abilityHotbar.copyFrom(other.abilityHotbar);
+        this.cooldowns.clear();
+        this.cooldowns.putAll(other.cooldowns);
     }
 }
