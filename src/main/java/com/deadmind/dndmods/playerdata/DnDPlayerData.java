@@ -237,6 +237,10 @@ public class DnDPlayerData {
         return totalLevel * 100 + (totalLevel * totalLevel * 50);
     }
 
+    public void resetXpAfterLevelUp() {
+        this.xp = 0;
+    }
+
     // --- Serialization ---
 
     public CompoundTag save() {

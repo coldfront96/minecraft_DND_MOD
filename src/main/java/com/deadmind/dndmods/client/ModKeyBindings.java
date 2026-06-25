@@ -56,7 +56,7 @@ public class ModKeyBindings {
                 && mc.screen == null) {
             DnDPlayerData data = mc.player.getData(ModAttachments.PLAYER_DATA);
             if (data.isLevelUpAvailable()) {
-                mc.setScreen(new LevelUpPlaceholderScreen());
+                mc.setScreen(new com.deadmind.dndmods.client.screen.LevelUpScreen());
                 return;
             }
         }

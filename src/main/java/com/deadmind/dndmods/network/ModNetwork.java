@@ -49,6 +49,12 @@ public class ModNetwork {
                 SyncHotbarPayload.STREAM_CODEC,
                 SyncHotbarPayload::handle
         );
+
+        registrar.playToServer(
+                LevelUpPayload.TYPE,
+                LevelUpPayload.STREAM_CODEC,
+                LevelUpPayload::handle
+        );
     }
 
     public static ResourceLocation id(String path) {
