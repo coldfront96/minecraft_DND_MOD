@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,7 +13,7 @@ public class HealingWord extends Ability {
     public HealingWord() {
         super("cleric_healing_word", "Healing Word",
                 "Restore 40% max HP to self or nearest ally in 10 blocks",
-                DnDClass.CLERIC, 1, 20, 60);
+                DnDClass.CLERIC, 1, 20, 60, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override

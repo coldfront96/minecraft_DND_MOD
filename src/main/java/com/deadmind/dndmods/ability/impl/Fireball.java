@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.core.particles.ParticleTypes;
@@ -15,7 +16,7 @@ public class Fireball extends Ability {
     public Fireball() {
         super("wizard_fireball", "Fireball",
                 "Launch an explosion at your target area, scales with INT",
-                DnDClass.WIZARD, 1, 25, 80);
+                DnDClass.WIZARD, 1, 25, 80, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override

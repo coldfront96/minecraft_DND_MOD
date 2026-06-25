@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.core.particles.ParticleTypes;
@@ -16,7 +17,7 @@ public class FrostNova extends Ability {
     public FrostNova() {
         super("wizard_frost_nova", "Frost Nova",
                 "Freeze all mobs within 5 blocks (Slowness V + particles)",
-                DnDClass.WIZARD, 4, 30, 100);
+                DnDClass.WIZARD, 4, 30, 100, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override

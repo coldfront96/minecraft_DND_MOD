@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,7 +13,7 @@ public class MultiShot extends Ability {
     public MultiShot() {
         super("ranger_multi_shot", "Multi Shot",
                 "Fire 3 arrows in a spread pattern",
-                DnDClass.RANGER, 1, 15, 60);
+                DnDClass.RANGER, 1, 15, 60, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override

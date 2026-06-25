@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.core.particles.ParticleTypes;
@@ -18,7 +19,7 @@ public class SmiteUndead extends Ability {
     public SmiteUndead() {
         super("cleric_smite_undead", "Smite Undead",
                 "Deal holy damage (extra to undead) to mobs in front",
-                DnDClass.CLERIC, 3, 25, 80);
+                DnDClass.CLERIC, 3, 25, 80, ClickBehavior.REPLACES_ATTACK);
     }
 
     @Override

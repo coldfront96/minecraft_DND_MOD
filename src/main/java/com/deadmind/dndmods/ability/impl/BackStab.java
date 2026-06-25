@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +14,7 @@ public class BackStab extends Ability {
     public BackStab() {
         super("rogue_backstab", "Backstab",
                 "Deal 3x damage if target isn't facing you",
-                DnDClass.ROGUE, 1, 15, 40);
+                DnDClass.ROGUE, 1, 15, 40, ClickBehavior.REPLACES_ATTACK);
     }
 
     @Override

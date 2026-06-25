@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.core.BlockPos;
@@ -17,7 +18,7 @@ public class NaturesGrasp extends Ability {
     public NaturesGrasp() {
         super("ranger_natures_grasp", "Nature's Grasp",
                 "Root target in place with web effect for 3 seconds",
-                DnDClass.RANGER, 6, 25, 140);
+                DnDClass.RANGER, 6, 25, 140, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,7 +12,7 @@ public class Evasion extends Ability {
     public Evasion() {
         super("rogue_evasion", "Evasion",
                 "50% chance to dodge incoming damage for 5 seconds",
-                DnDClass.ROGUE, 4, 20, 120);
+                DnDClass.ROGUE, 4, 20, 120, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,7 +12,7 @@ public class ArcaneShield extends Ability {
     public ArcaneShield() {
         super("wizard_arcane_shield", "Arcane Shield",
                 "Absorb the next 3 hits (absorption hearts)",
-                DnDClass.WIZARD, 7, 35, 200);
+                DnDClass.WIZARD, 7, 35, 200, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override

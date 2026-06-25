@@ -13,8 +13,9 @@ public abstract class Ability {
     private final int requiredLevel;
     private final int resourceCost;
     private final int cooldownTicks;
+    private final ClickBehavior clickBehavior;
 
-    protected Ability(String id, String name, String description, DnDClass requiredClass, int requiredLevel, int resourceCost, int cooldownTicks) {
+    protected Ability(String id, String name, String description, DnDClass requiredClass, int requiredLevel, int resourceCost, int cooldownTicks, ClickBehavior clickBehavior) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -22,6 +23,7 @@ public abstract class Ability {
         this.requiredLevel = requiredLevel;
         this.resourceCost = resourceCost;
         this.cooldownTicks = cooldownTicks;
+        this.clickBehavior = clickBehavior;
     }
 
     public String getId() { return id; }
@@ -31,6 +33,7 @@ public abstract class Ability {
     public int getRequiredLevel() { return requiredLevel; }
     public int getResourceCost() { return resourceCost; }
     public int getCooldownTicks() { return cooldownTicks; }
+    public ClickBehavior getClickBehavior() { return clickBehavior; }
 
     public boolean canUse(ServerPlayer player, DnDPlayerData data) {
         if (data.getDnDClass() != requiredClass) return false;

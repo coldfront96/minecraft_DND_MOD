@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.core.particles.ParticleTypes;
@@ -15,7 +16,7 @@ public class GroundSlam extends Ability {
     public GroundSlam() {
         super("barbarian_ground_slam", "Ground Slam",
                 "AOE knockback + damage to all mobs within 4 blocks",
-                DnDClass.BARBARIAN, 4, 20, 100);
+                DnDClass.BARBARIAN, 4, 20, 100, ClickBehavior.REPLACES_ATTACK);
     }
 
     @Override

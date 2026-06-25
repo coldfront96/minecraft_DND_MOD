@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,7 +12,7 @@ public class BerserkerRage extends Ability {
     public BerserkerRage() {
         super("barbarian_berserker_rage", "Berserker Rage",
                 "Reckless effect + 30% move speed for 8 seconds",
-                DnDClass.BARBARIAN, 8, 40, 300);
+                DnDClass.BARBARIAN, 8, 40, 300, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override

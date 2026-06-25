@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,7 +12,7 @@ public class Reckless extends Ability {
     public Reckless() {
         super("barbarian_reckless", "Reckless Attack",
                 "Deal +40% damage but take +20% more for 10 seconds",
-                DnDClass.BARBARIAN, 1, 10, 60);
+                DnDClass.BARBARIAN, 1, 10, 60, ClickBehavior.ENHANCES_ATTACK);
     }
 
     @Override

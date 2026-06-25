@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +16,7 @@ public class ShieldBash extends Ability {
     public ShieldBash() {
         super("fighter_shield_bash", "Shield Bash",
                 "Knockback + stun (Slowness III, 2s) to targets in front",
-                DnDClass.FIGHTER, 3, 20, 80);
+                DnDClass.FIGHTER, 3, 20, 80, ClickBehavior.ENHANCES_ATTACK);
     }
 
     @Override
