@@ -14,5 +14,8 @@
   "container.dndmods.arcane_enchanting_table": "Arcane Enchanting Table",
   "enchantment.dndmods.sharpness_x": "Sharpness X",
   "enchantment.dndmods.protection_v": "Protection V",
-  "enchantment.dndmods.power_vi": "Power VI"
+  "enchantment.dndmods.power_vi": "Power VI",
+  "key.categories.dndmods": "D&D Mods",
+  "key.dndmods.ability_bar": "Ability Bar",
+  "key.dndmods.level_up": "Level Up Menu"
 }

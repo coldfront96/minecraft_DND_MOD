@@ -23,6 +23,7 @@ public class DnDPlayerData {
     private final Map<String, Boolean> achievementFlags = new HashMap<>();
     private final AbilityHotbar abilityHotbar = new AbilityHotbar();
     private final Map<String, Integer> cooldowns = new HashMap<>();
+    private boolean levelUpAvailable = false;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -207,21 +208,28 @@ public class DnDPlayerData {
         }
     }
 
+    // --- Level Up ---
+
+    public boolean isLevelUpAvailable() {
+        return levelUpAvailable;
+    }
+
+    public void clearLevelUpAvailable() {
+        this.levelUpAvailable = false;
+    }
+
     // --- XP ---
 
     public void addXp(int amount) {
+        if (levelUpAvailable) return;
+        if (getTotalLevel() >= MAX_LEVEL) return;
+
         this.xp += amount;
-        if (secondary == null) {
-            while (this.xp >= getXpForNextLevel() && getTotalLevel() < MAX_LEVEL) {
-                this.xp -= getXpForNextLevel();
-                int oldMaxHp = getMaxHp();
-                primary.setLevel(primary.getLevel() + 1);
-                int newMaxHp = getMaxHp();
-                currentHp += (newMaxHp - oldMaxHp);
-                primary.setCurrentResource(primary.getMaxResource());
-            }
+
+        if (this.xp >= getXpForNextLevel()) {
+            this.xp = getXpForNextLevel();
+            this.levelUpAvailable = true;
         }
-        // When multiclassed, XP banks — player must choose via levelUp(boolean)
     }
 
     public int getXpForNextLevel() {
@@ -251,6 +259,8 @@ public class DnDPlayerData {
         CompoundTag cdTag = new CompoundTag();
         cooldowns.forEach(cdTag::putInt);
         tag.put("Cooldowns", cdTag);
+
+        tag.putBoolean("LevelUpAvailable", levelUpAvailable);
 
         return tag;
     }
@@ -303,6 +313,8 @@ public class DnDPlayerData {
                 cooldowns.put(key, cdTag.getInt(key));
             }
         }
+
+        levelUpAvailable = tag.getBoolean("LevelUpAvailable");
     }
 
     public void copyFrom(DnDPlayerData other) {
@@ -323,5 +335,6 @@ public class DnDPlayerData {
         this.abilityHotbar.copyFrom(other.abilityHotbar);
         this.cooldowns.clear();
         this.cooldowns.putAll(other.cooldowns);
+        this.levelUpAvailable = other.levelUpAvailable;
     }
 }

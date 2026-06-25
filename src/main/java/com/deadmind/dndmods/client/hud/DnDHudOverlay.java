@@ -33,6 +33,8 @@ public class DnDHudOverlay {
     private static final int COLOR_NONE = 0xFF606060;
     private static final int COLOR_UNIFIED = 0xFF8020C0;
 
+    private static final int LEVEL_UP_COLOR = 0xFFFFD700;
+
     public static void render(GuiGraphics gui, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
@@ -42,6 +44,10 @@ public class DnDHudOverlay {
 
         DnDPlayerData data = mc.player.getData(ModAttachments.PLAYER_DATA);
         if (data.getDnDClass() == DnDClass.NONE) return;
+
+        if (data.isLevelUpAvailable()) {
+            renderLevelUpNotification(gui, mc, data);
+        }
 
         int screenHeight = mc.getWindow().getGuiScaledHeight();
         int x = MARGIN;
@@ -126,6 +132,27 @@ public class DnDHudOverlay {
                     + data.getSecondary().getDnDClass().getDisplayName();
         }
         return data.getDnDClass().getDisplayName();
+    }
+
+    private static void renderLevelUpNotification(GuiGraphics gui, Minecraft mc, DnDPlayerData data) {
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+        int centerX = screenWidth / 2;
+        int y = screenHeight - 60;
+
+        double pulse = Math.sin(System.currentTimeMillis() / 500.0);
+        int alpha = (int) (180 + 75 * pulse);
+        int color = (alpha << 24) | (LEVEL_UP_COLOR & 0x00FFFFFF);
+
+        gui.drawCenteredString(mc.font, "Level Up Available!", centerX, y, color);
+
+        gui.pose().pushPose();
+        gui.pose().scale(0.75f, 0.75f, 1.0f);
+        int subAlpha = (int) (140 + 60 * pulse);
+        int subColor = (subAlpha << 24) | 0x00FFFFFF;
+        gui.drawCenteredString(mc.font, "Press L to open level up menu",
+                (int) (centerX / 0.75f), (int) ((y + 12) / 0.75f), subColor);
+        gui.pose().popPose();
     }
 
     private static int getResourceColor(ResourceType type) {

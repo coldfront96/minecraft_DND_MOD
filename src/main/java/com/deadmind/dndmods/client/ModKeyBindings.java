@@ -22,6 +22,7 @@ import org.lwjgl.glfw.GLFW;
 public class ModKeyBindings {
 
     public static KeyMapping ABILITY_BAR_KEY;
+    public static KeyMapping LEVEL_UP_KEY;
 
     private static int savedHotbarSlot = -1;
 
@@ -35,6 +36,13 @@ public class ModKeyBindings {
                     "key.categories." + DnDMods.MOD_ID
             );
             event.register(ABILITY_BAR_KEY);
+
+            LEVEL_UP_KEY = new KeyMapping(
+                    "key." + DnDMods.MOD_ID + ".level_up",
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_L,
+                    "key.categories." + DnDMods.MOD_ID
+            );
+            event.register(LEVEL_UP_KEY);
         }
     }
 
@@ -42,6 +50,16 @@ public class ModKeyBindings {
     public static void onKeyInput(InputEvent.Key event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
+
+        if (event.getAction() == GLFW.GLFW_PRESS && LEVEL_UP_KEY != null
+                && event.getKey() == LEVEL_UP_KEY.getKey().getValue()
+                && mc.screen == null) {
+            DnDPlayerData data = mc.player.getData(ModAttachments.PLAYER_DATA);
+            if (data.isLevelUpAvailable()) {
+                mc.setScreen(new LevelUpPlaceholderScreen());
+                return;
+            }
+        }
 
         long window = mc.getWindow().getWindow();
         int vKey = ABILITY_BAR_KEY != null ? ABILITY_BAR_KEY.getKey().getValue() : GLFW.GLFW_KEY_V;
