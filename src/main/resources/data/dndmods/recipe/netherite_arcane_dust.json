@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "dndmods:diamond_arcane_dust" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "minecraft:netherite_ingot" }
+  ],
+  "result": {
+    "id": "dndmods:netherite_arcane_dust",
+    "count": 1
+  }
+}

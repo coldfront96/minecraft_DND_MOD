@@ -2,12 +2,16 @@ package com.deadmind.dndmods.client;
 
 import com.deadmind.dndmods.DnDMods;
 import com.deadmind.dndmods.client.hud.DnDHudOverlay;
+import com.deadmind.dndmods.enchanting.ArcaneEnchantingMenu;
+import com.deadmind.dndmods.enchanting.ArcaneEnchantingScreen;
+import com.deadmind.dndmods.enchanting.ModMenuTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
 @OnlyIn(Dist.CLIENT)
@@ -21,5 +25,10 @@ public class ClientEvents {
                 ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "dnd_hud"),
                 DnDHudOverlay::render
         );
+    }
+
+    @SubscribeEvent
+    public static void registerMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenuTypes.ARCANE_ENCHANTING_TABLE.get(), ArcaneEnchantingScreen::new);
     }
 }
