@@ -20,6 +20,12 @@ public class ModNetwork {
                 SyncPlayerDataPayload::handle
         );
 
+        registrar.playToClient(
+                OpenClassSelectionPayload.TYPE,
+                OpenClassSelectionPayload.STREAM_CODEC,
+                OpenClassSelectionPayload::handle
+        );
+
         registrar.playToServer(
                 SelectClassPayload.TYPE,
                 SelectClassPayload.STREAM_CODEC,

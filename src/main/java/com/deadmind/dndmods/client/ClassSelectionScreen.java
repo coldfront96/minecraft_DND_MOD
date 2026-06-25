@@ -6,8 +6,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+@OnlyIn(Dist.CLIENT)
 public class ClassSelectionScreen extends Screen {
 
     private static final DnDClass[] SELECTABLE_CLASSES = {
@@ -16,13 +19,26 @@ public class ClassSelectionScreen extends Screen {
     };
 
     private static final String[] CLASS_DESCRIPTIONS = {
-            "A master of martial combat. High HP, steady stamina recovery. Excels in melee.",
-            "A cunning striker. Quick focus regen, deadly when behind foes. Hit and run.",
-            "A wielder of arcane power. Devastating spells but fragile. Intelligence scales damage.",
-            "A divine champion. Heals allies, smites undead. Balanced survivability.",
-            "A wilderness warrior. Ranged attacks, marks prey, controls the battlefield.",
-            "A fury-driven berserker. Highest HP, gains rage by attacking. Unstoppable in melee."
+            "Master of martial combat and endurance",
+            "Swift and deadly, striking from the shadows",
+            "Wielder of arcane magic and intellect",
+            "Divine champion of faith and healing",
+            "Hunter and tracker of the wilderness",
+            "Unstoppable force of rage and fury"
     };
+
+    private static final String[] HIT_DICE = {
+            "d10 Hit Die", "d6 Hit Die", "d4 Hit Die",
+            "d8 Hit Die", "d8 Hit Die", "d12 Hit Die"
+    };
+
+    private static final int CARD_WIDTH = 130;
+    private static final int CARD_HEIGHT = 90;
+    private static final int CARD_SPACING = 10;
+    private static final int COLS = 3;
+
+    private int selectedIndex = -1;
+    private Button confirmButton;
 
     public ClassSelectionScreen() {
         super(Component.literal("Choose Your Class"));
@@ -30,88 +46,104 @@ public class ClassSelectionScreen extends Screen {
 
     @Override
     protected void init() {
-        int cardWidth = 120;
-        int cardHeight = 100;
-        int spacing = 8;
-        int cols = 3;
-        int rows = 2;
-
-        int totalWidth = cols * cardWidth + (cols - 1) * spacing;
-        int totalHeight = rows * cardHeight + (rows - 1) * spacing;
-        int startX = (this.width - totalWidth) / 2;
-        int startY = (this.height - totalHeight) / 2 + 10;
-
-        for (int i = 0; i < SELECTABLE_CLASSES.length; i++) {
-            int col = i % cols;
-            int row = i / cols;
-            int x = startX + col * (cardWidth + spacing);
-            int y = startY + row * (cardHeight + spacing);
-
-            final DnDClass dndClass = SELECTABLE_CLASSES[i];
-            Button selectButton = Button.builder(
-                    Component.literal("Select " + dndClass.getDisplayName()),
-                    btn -> selectClass(dndClass)
-            ).bounds(x + 5, y + cardHeight - 25, cardWidth - 10, 20).build();
-
-            this.addRenderableWidget(selectButton);
-        }
+        selectedIndex = -1;
+        confirmButton = Button.builder(
+                Component.literal("Select a class first"),
+                btn -> confirmSelection()
+        ).bounds(this.width / 2 - 80, this.height - 40, 160, 20).build();
+        confirmButton.active = false;
+        this.addRenderableWidget(confirmButton);
     }
 
     @Override
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(gui, mouseX, mouseY, partialTick);
 
-        gui.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFF);
-        gui.drawCenteredString(this.font, "This choice is permanent!", this.width / 2, 28, 0xFF5555);
+        gui.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xFFFFFF);
+        gui.drawCenteredString(this.font, "This choice is permanent!", this.width / 2, 25, 0xFF5555);
 
-        int cardWidth = 120;
-        int cardHeight = 100;
-        int spacing = 8;
-        int cols = 3;
-        int rows = 2;
-
-        int totalWidth = cols * cardWidth + (cols - 1) * spacing;
-        int totalHeight = rows * cardHeight + (rows - 1) * spacing;
+        int totalWidth = COLS * CARD_WIDTH + (COLS - 1) * CARD_SPACING;
         int startX = (this.width - totalWidth) / 2;
-        int startY = (this.height - totalHeight) / 2 + 10;
+        int startY = 42;
 
         for (int i = 0; i < SELECTABLE_CLASSES.length; i++) {
-            int col = i % cols;
-            int row = i / cols;
-            int x = startX + col * (cardWidth + spacing);
-            int y = startY + row * (cardHeight + spacing);
+            int col = i % COLS;
+            int row = i / COLS;
+            int x = startX + col * (CARD_WIDTH + CARD_SPACING);
+            int y = startY + row * (CARD_HEIGHT + CARD_SPACING);
 
             DnDClass dndClass = SELECTABLE_CLASSES[i];
+            boolean hovered = mouseX >= x && mouseX < x + CARD_WIDTH && mouseY >= y && mouseY < y + CARD_HEIGHT;
+            boolean selected = (i == selectedIndex);
 
-            gui.fill(x, y, x + cardWidth, y + cardHeight, 0xC0222222);
-            gui.fill(x, y, x + cardWidth, y + 1, 0xFF666666);
-            gui.fill(x, y + cardHeight - 1, x + cardWidth, y + cardHeight, 0xFF666666);
-            gui.fill(x, y, x + 1, y + cardHeight, 0xFF666666);
-            gui.fill(x + cardWidth - 1, y, x + cardWidth, y + cardHeight, 0xFF666666);
+            int bgColor = selected ? 0xC0224422 : (hovered ? 0xC0333355 : 0xC0222222);
+            int borderColor = selected ? 0xFF44AA44 : (hovered ? 0xFF6666AA : 0xFF555555);
 
-            int resourceColor = 0xFF000000 | dndClass.getResourceType().getColor();
-            gui.drawCenteredString(this.font, dndClass.getDisplayName(), x + cardWidth / 2, y + 6, resourceColor);
+            gui.fill(x, y, x + CARD_WIDTH, y + CARD_HEIGHT, bgColor);
+            gui.fill(x, y, x + CARD_WIDTH, y + 1, borderColor);
+            gui.fill(x, y + CARD_HEIGHT - 1, x + CARD_WIDTH, y + CARD_HEIGHT, borderColor);
+            gui.fill(x, y, x + 1, y + CARD_HEIGHT, borderColor);
+            gui.fill(x + CARD_WIDTH - 1, y, x + CARD_WIDTH, y + CARD_HEIGHT, borderColor);
+
+            int nameColor = 0xFF000000 | dndClass.getResourceType().getColor();
+            gui.drawCenteredString(this.font, dndClass.getDisplayName(), x + CARD_WIDTH / 2, y + 6, nameColor);
 
             String resource = dndClass.getResourceType().getDisplayName() + " (" + dndClass.getBaseMaxResource() + ")";
-            gui.drawCenteredString(this.font, resource, x + cardWidth / 2, y + 18, 0xAAAAAA);
+            gui.drawCenteredString(this.font, resource, x + CARD_WIDTH / 2, y + 19, 0xAAAAAA);
+
+            gui.drawCenteredString(this.font, HIT_DICE[i], x + CARD_WIDTH / 2, y + 32, 0xCC4444);
 
             String hp = "HP: " + dndClass.getBaseHp() + " (+" + dndClass.getHpPerLevel() + "/lvl)";
-            gui.drawCenteredString(this.font, hp, x + cardWidth / 2, y + 30, 0xCC4444);
+            gui.drawCenteredString(this.font, hp, x + CARD_WIDTH / 2, y + 44, 0x888888);
 
             String desc = CLASS_DESCRIPTIONS[i];
-            int descY = y + 44;
-            int maxLineWidth = cardWidth - 10;
-            for (var line : this.font.split(Component.literal(desc), maxLineWidth)) {
-                gui.drawString(this.font, line, x + 5, descY, 0x999999);
-                descY += 10;
+            int descWidth = this.font.width(desc);
+            if (descWidth <= CARD_WIDTH - 10) {
+                gui.drawCenteredString(this.font, desc, x + CARD_WIDTH / 2, y + 60, 0x999999);
+            } else {
+                int descY = y + 58;
+                for (var line : this.font.split(Component.literal(desc), CARD_WIDTH - 10)) {
+                    gui.drawString(this.font, line, x + 5, descY, 0x999999);
+                    descY += 10;
+                }
+            }
+
+            if (selected) {
+                gui.drawCenteredString(this.font, "✔", x + CARD_WIDTH - 10, y + 4, 0x44FF44);
             }
         }
 
         super.render(gui, mouseX, mouseY, partialTick);
     }
 
-    private void selectClass(DnDClass dndClass) {
-        PacketDistributor.sendToServer(new SelectClassPayload(dndClass.ordinal()));
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0) {
+            int totalWidth = COLS * CARD_WIDTH + (COLS - 1) * CARD_SPACING;
+            int startX = (this.width - totalWidth) / 2;
+            int startY = 42;
+
+            for (int i = 0; i < SELECTABLE_CLASSES.length; i++) {
+                int col = i % COLS;
+                int row = i / COLS;
+                int x = startX + col * (CARD_WIDTH + CARD_SPACING);
+                int y = startY + row * (CARD_HEIGHT + CARD_SPACING);
+
+                if (mouseX >= x && mouseX < x + CARD_WIDTH && mouseY >= y && mouseY < y + CARD_HEIGHT) {
+                    selectedIndex = i;
+                    confirmButton.active = true;
+                    confirmButton.setMessage(Component.literal("Become a " + SELECTABLE_CLASSES[i].getDisplayName()));
+                    return true;
+                }
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private void confirmSelection() {
+        if (selectedIndex < 0 || selectedIndex >= SELECTABLE_CLASSES.length) return;
+        DnDClass chosen = SELECTABLE_CLASSES[selectedIndex];
+        PacketDistributor.sendToServer(new SelectClassPayload(chosen.name()));
         this.onClose();
     }
 

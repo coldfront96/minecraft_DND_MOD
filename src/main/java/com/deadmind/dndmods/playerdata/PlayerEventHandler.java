@@ -1,6 +1,8 @@
 package com.deadmind.dndmods.playerdata;
 
 import com.deadmind.dndmods.DnDMods;
+import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.network.OpenClassSelectionPayload;
 import com.deadmind.dndmods.network.SyncPlayerDataPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,6 +18,10 @@ public class PlayerEventHandler {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
             DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
+
+            if (data.getDnDClass() == DnDClass.NONE) {
+                PacketDistributor.sendToPlayer(serverPlayer, new OpenClassSelectionPayload());
+            }
         }
     }
 
