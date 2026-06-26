@@ -1,9 +1,11 @@
 package com.deadmind.dndmods.ability;
 
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.combat.SaveType;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class Ability {
     private final String id;
@@ -34,6 +36,16 @@ public abstract class Ability {
     public int getResourceCost() { return resourceCost; }
     public int getCooldownTicks() { return cooldownTicks; }
     public ClickBehavior getClickBehavior() { return clickBehavior; }
+
+    public float getBaseDamage() { return 0.0f; }
+
+    @Nullable
+    public AbilityScoreType getDamageScalingStat() { return null; }
+
+    @Nullable
+    public SaveType getRequiredSave() { return null; }
+
+    public boolean isHalfOnSave() { return false; }
 
     public boolean canUse(ServerPlayer player, DnDPlayerData data) {
         if (data.getDnDClass() != requiredClass) return false;

@@ -1,6 +1,9 @@
 package com.deadmind.dndmods.client;
 
 import com.deadmind.dndmods.DnDMods;
+import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.AbilityRegistry;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.network.UseAbilityPayload;
 import com.deadmind.dndmods.player.AbilityHotbar;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
@@ -124,9 +127,15 @@ public class ModKeyBindings {
         DnDPlayerData data = mc.player.getData(ModAttachments.PLAYER_DATA);
         String abilityId = data.getAbilityHotbar().getActiveAbility();
         if (abilityId != null) {
+            Ability ability = AbilityRegistry.getAbility(abilityId);
             PacketDistributor.sendToServer(new UseAbilityPayload(abilityId));
-            event.setCanceled(true);
-            event.setSwingHand(false);
+
+            if (ability != null && ability.getClickBehavior() == ClickBehavior.ENHANCES_ATTACK) {
+                // Let the vanilla attack go through — enhancement applies in LivingDamageEvent.Pre
+            } else {
+                event.setCanceled(true);
+                event.setSwingHand(false);
+            }
         }
     }
 

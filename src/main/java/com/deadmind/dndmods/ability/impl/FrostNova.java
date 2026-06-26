@@ -1,8 +1,13 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.AbilityScoreType;
 import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.combat.AbilityDamageCalculator;
+import com.deadmind.dndmods.combat.ModDamageTypes;
+import com.deadmind.dndmods.combat.SaveType;
+import com.deadmind.dndmods.combat.SavingThrowSystem;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -21,6 +26,12 @@ public class FrostNova extends Ability {
     }
 
     @Override
+    public float getBaseDamage() { return 3.0f; }
+
+    @Override
+    public AbilityScoreType getDamageScalingStat() { return AbilityScoreType.INTELLIGENCE; }
+
+    @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
         AABB area = player.getBoundingBox().inflate(5.0);
 
@@ -32,11 +43,23 @@ public class FrostNova extends Ability {
             }
         }
 
+        int dc = SavingThrowSystem.getAbilityDC(this, data);
+
         for (Entity entity : player.level().getEntities(player, area)) {
             if (entity instanceof LivingEntity living) {
-                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 80, 4, false, true));
-                living.setTicksFrozen(200);
-                living.hurt(player.damageSources().freeze(), 4.0f);
+                boolean saved = SavingThrowSystem.rollSave(living, SaveType.REFLEX, dc, player);
+                float damage = AbilityDamageCalculator.calculate(this, data, living, player);
+                float multiplier = SavingThrowSystem.getSaveMultiplier(saved, false);
+                damage *= multiplier;
+
+                if (damage > 0) {
+                    living.hurt(ModDamageTypes.abilityDamage(player.level(), player), damage);
+                }
+
+                if (!saved) {
+                    living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 4, false, true));
+                    living.setTicksFrozen(200);
+                }
             }
         }
     }

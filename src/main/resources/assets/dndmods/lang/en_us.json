@@ -17,5 +17,7 @@
   "enchantment.dndmods.power_vi": "Power VI",
   "key.categories.dndmods": "D&D Mods",
   "key.dndmods.ability_bar": "Ability Bar",
-  "key.dndmods.level_up": "Level Up Menu"
+  "key.dndmods.level_up": "Level Up Menu",
+  "death.attack.dndmods.ability": "%1$s was slain by an ability",
+  "death.attack.dndmods.ability.player": "%1$s was slain by %2$s using an ability"
 }

@@ -3,6 +3,7 @@ package com.deadmind.dndmods.ability.impl;
 import com.deadmind.dndmods.ability.Ability;
 import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.combat.PerPlayerCombatState;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -40,9 +41,7 @@ public class HuntersMark extends Ability {
 
         if (closest != null) {
             closest.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, false, true));
-            // Store mark data so CombatEventHandler can apply +25% damage
-            closest.getPersistentData().putUUID("dndmods_marked_by", player.getUUID());
-            closest.getPersistentData().putLong("dndmods_mark_until", player.level().getGameTime() + 200);
+            PerPlayerCombatState.get(player.getUUID()).setHuntersMark(closest.getUUID(), 200);
         }
     }
 }

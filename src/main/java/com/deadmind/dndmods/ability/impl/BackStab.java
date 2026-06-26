@@ -1,13 +1,16 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.AbilityScoreType;
 import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.combat.AbilityDamageCalculator;
+import com.deadmind.dndmods.combat.ModDamageTypes;
+import com.deadmind.dndmods.combat.PerPlayerCombatState;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class BackStab extends Ability {
@@ -18,7 +21,15 @@ public class BackStab extends Ability {
     }
 
     @Override
+    public float getBaseDamage() { return 4.0f; }
+
+    @Override
+    public AbilityScoreType getDamageScalingStat() { return AbilityScoreType.DEXTERITY; }
+
+    @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
+        PerPlayerCombatState.get(player.getUUID()).setConsumeNextAttack(true);
+
         Vec3 look = player.getLookAngle();
         Vec3 eyePos = player.getEyePosition();
         LivingEntity target = null;
@@ -38,12 +49,17 @@ public class BackStab extends Ability {
         }
 
         if (target != null) {
+            float damage = AbilityDamageCalculator.calculate(this, data, target, player);
+
             Vec3 targetLook = target.getLookAngle();
             Vec3 playerToTarget = target.position().subtract(player.position()).normalize();
             boolean targetFacingAway = targetLook.dot(playerToTarget) > 0.0;
 
-            float damage = targetFacingAway ? 12.0f : 4.0f;
-            target.hurt(player.damageSources().playerAttack(player), damage);
+            if (targetFacingAway) {
+                damage *= 3.0f;
+            }
+
+            target.hurt(ModDamageTypes.abilityDamage(player.level(), player), damage);
         }
     }
 }

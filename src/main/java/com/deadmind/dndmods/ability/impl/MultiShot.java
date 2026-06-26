@@ -1,6 +1,7 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.AbilityScoreType;
 import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
@@ -17,16 +18,34 @@ public class MultiShot extends Ability {
     }
 
     @Override
+    public float getBaseDamage() { return 3.0f; }
+
+    @Override
+    public AbilityScoreType getDamageScalingStat() { return AbilityScoreType.DEXTERITY; }
+
+    @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
         Vec3 look = player.getLookAngle();
         Vec3 right = look.cross(new Vec3(0, 1, 0)).normalize();
 
+        int dexMod = data.getAbilityScores().getDexMod();
+        double arrowDamage = getBaseDamage() + dexMod;
+
+        double spreadAngle = Math.toRadians(15);
+
         for (int i = -1; i <= 1; i++) {
             Arrow arrow = new Arrow(player.level(), player);
-            Vec3 dir = look.add(right.scale(i * 0.15));
+            Vec3 dir;
+            if (i == 0) {
+                dir = look;
+            } else {
+                double cos = Math.cos(spreadAngle * i);
+                double sin = Math.sin(spreadAngle * i);
+                dir = look.scale(cos).add(right.scale(sin));
+            }
             arrow.shoot(dir.x, dir.y, dir.z, 3.0f, 1.0f);
             arrow.setOwner(player);
-            arrow.setBaseDamage(2.5);
+            arrow.setBaseDamage(arrowDamage);
             arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
             player.level().addFreshEntity(arrow);
         }
