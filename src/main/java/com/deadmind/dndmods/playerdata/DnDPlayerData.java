@@ -3,6 +3,8 @@ package com.deadmind.dndmods.playerdata;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.classes.PrestigeClass;
 import com.deadmind.dndmods.player.AbilityHotbar;
+import com.deadmind.dndmods.race.AbilityScoreModifiers;
+import com.deadmind.dndmods.race.DnDRace;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +19,7 @@ public class DnDPlayerData {
     @Nullable
     private ClassEntry secondary = null;
     private PrestigeClass prestigeClass = PrestigeClass.NONE;
+    private DnDRace race = DnDRace.NONE;
     private int xp = 0;
     private final AbilityScores abilityScores = new AbilityScores();
     private int currentHp;
@@ -162,6 +165,36 @@ public class DnDPlayerData {
         this.prestigeClass = prestige;
     }
 
+    // --- Race ---
+
+    public DnDRace getRace() { return race; }
+
+    public void setRace(DnDRace newRace) {
+        if (newRace == null) newRace = DnDRace.NONE;
+
+        if (race != DnDRace.NONE) {
+            AbilityScoreModifiers oldMods = race.getModifiers();
+            abilityScores.setStrength(abilityScores.getStrength() - oldMods.getStrMod());
+            abilityScores.setDexterity(abilityScores.getDexterity() - oldMods.getDexMod());
+            abilityScores.setConstitution(abilityScores.getConstitution() - oldMods.getConMod());
+            abilityScores.setIntelligence(abilityScores.getIntelligence() - oldMods.getIntMod());
+            abilityScores.setWisdom(abilityScores.getWisdom() - oldMods.getWisMod());
+            abilityScores.setCharisma(abilityScores.getCharisma() - oldMods.getChaMod());
+        }
+
+        this.race = newRace;
+
+        if (newRace != DnDRace.NONE) {
+            AbilityScoreModifiers newMods = newRace.getModifiers();
+            abilityScores.setStrength(abilityScores.getStrength() + newMods.getStrMod());
+            abilityScores.setDexterity(abilityScores.getDexterity() + newMods.getDexMod());
+            abilityScores.setConstitution(abilityScores.getConstitution() + newMods.getConMod());
+            abilityScores.setIntelligence(abilityScores.getIntelligence() + newMods.getIntMod());
+            abilityScores.setWisdom(abilityScores.getWisdom() + newMods.getWisMod());
+            abilityScores.setCharisma(abilityScores.getCharisma() + newMods.getChaMod());
+        }
+    }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -250,6 +283,7 @@ public class DnDPlayerData {
             tag.put("Secondary", secondary.save());
         }
         tag.putString("PrestigeClass", prestigeClass.name());
+        tag.putString("Race", race.name());
         tag.putInt("XP", xp);
         tag.put("AbilityScores", abilityScores.save());
         tag.putInt("CurrentHP", currentHp);
@@ -294,6 +328,16 @@ public class DnDPlayerData {
             }
         }
 
+        if (tag.contains("Race")) {
+            try {
+                race = DnDRace.valueOf(tag.getString("Race"));
+            } catch (IllegalArgumentException e) {
+                race = DnDRace.NONE;
+            }
+        } else {
+            race = DnDRace.NONE;
+        }
+
         xp = tag.getInt("XP");
         abilityScores.load(tag.getCompound("AbilityScores"));
         currentHp = tag.getInt("CurrentHP");
@@ -331,6 +375,7 @@ public class DnDPlayerData {
             this.secondary = null;
         }
         this.prestigeClass = other.prestigeClass;
+        this.race = other.race;
         this.xp = other.xp;
         this.abilityScores.copyFrom(other.abilityScores);
         this.currentHp = other.currentHp;
