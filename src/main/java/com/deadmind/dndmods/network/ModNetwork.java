@@ -55,6 +55,18 @@ public class ModNetwork {
                 LevelUpPayload.STREAM_CODEC,
                 LevelUpPayload::handle
         );
+
+        registrar.playToServer(
+                AssignHotbarSlotPayload.TYPE,
+                AssignHotbarSlotPayload.STREAM_CODEC,
+                AssignHotbarSlotPayload::handle
+        );
+
+        registrar.playToServer(
+                ClearHotbarSlotPayload.TYPE,
+                ClearHotbarSlotPayload.STREAM_CODEC,
+                ClearHotbarSlotPayload::handle
+        );
     }
 
     public static ResourceLocation id(String path) {

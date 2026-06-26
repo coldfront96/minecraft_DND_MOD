@@ -3,6 +3,8 @@ package com.deadmind.dndmods.client.screen;
 import com.deadmind.dndmods.ability.Ability;
 import com.deadmind.dndmods.ability.AbilityRegistry;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.network.AssignHotbarSlotPayload;
+import com.deadmind.dndmods.network.ClearHotbarSlotPayload;
 import com.deadmind.dndmods.player.AbilityHotbar;
 import com.deadmind.dndmods.playerdata.ClassEntry;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
@@ -13,6 +15,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -56,6 +59,9 @@ public class AbilityManagerScreen extends Screen {
     private int selectedTab = 0;
     private int scrollOffset = 0;
 
+    @Nullable
+    private AbilityPickerOverlay pickerOverlay = null;
+
     public AbilityManagerScreen() {
         super(Component.literal("Ability Manager"));
     }
@@ -66,6 +72,7 @@ public class AbilityManagerScreen extends Screen {
         buildTabs();
         selectedTab = 0;
         scrollOffset = 0;
+        pickerOverlay = null;
     }
 
     private void buildTabs() {
@@ -96,6 +103,22 @@ public class AbilityManagerScreen extends Screen {
         return mc.player.getData(ModAttachments.PLAYER_DATA);
     }
 
+    private void assignAbilityToSlot(int slotIndex, Ability ability) {
+        DnDPlayerData data = getPlayerData();
+        if (data == null) return;
+
+        data.getAbilityHotbar().slotAbility(slotIndex, ability.getId());
+        PacketDistributor.sendToServer(new AssignHotbarSlotPayload(slotIndex, ability.getId()));
+    }
+
+    private void clearSlot(int slotIndex) {
+        DnDPlayerData data = getPlayerData();
+        if (data == null) return;
+
+        data.getAbilityHotbar().clearSlot(slotIndex);
+        PacketDistributor.sendToServer(new ClearHotbarSlotPayload(slotIndex));
+    }
+
     private List<AbilityDisplayEntry> getAbilitiesForCurrentTab() {
         DnDPlayerData data = getPlayerData();
         if (data == null) return List.of();
@@ -110,10 +133,10 @@ public class AbilityManagerScreen extends Screen {
         List<AbilityDisplayEntry> entries = new ArrayList<>();
 
         if ("All".equals(tab.name)) {
-            addUnlockedAbilities(entries, data, data.getPrimary());
+            addUnlockedAbilities(entries, data.getPrimary());
             ClassEntry secondary = data.getSecondary();
             if (secondary != null && secondary.getDnDClass() != DnDClass.NONE) {
-                addUnlockedAbilities(entries, data, secondary);
+                addUnlockedAbilities(entries, secondary);
             }
         } else if (tab.dndClass != null) {
             ClassEntry classEntry = getClassEntry(data, tab.dndClass);
@@ -125,7 +148,7 @@ public class AbilityManagerScreen extends Screen {
         return entries;
     }
 
-    private void addUnlockedAbilities(List<AbilityDisplayEntry> entries, DnDPlayerData data, ClassEntry classEntry) {
+    private void addUnlockedAbilities(List<AbilityDisplayEntry> entries, ClassEntry classEntry) {
         List<Ability> allForClass = AbilityRegistry.getAbilitiesForClass(classEntry.getDnDClass());
         for (Ability ability : allForClass) {
             if (classEntry.getLevel() >= ability.getRequiredLevel()) {
@@ -163,6 +186,12 @@ public class AbilityManagerScreen extends Screen {
         renderHotbarPanel(graphics, left, top);
         renderTabBar(graphics, left, top, mouseX, mouseY);
         renderTabContent(graphics, left, top, mouseX, mouseY);
+
+        if (pickerOverlay != null && pickerOverlay.isVisible()) {
+            int tabPanelLeft = getTabPanelLeft(left);
+            pickerOverlay.render(graphics, this.font, this.width, this.height,
+                    tabPanelLeft, TAB_PANEL_WIDTH, mouseX, mouseY);
+        }
     }
 
     private void renderPanelBackground(GuiGraphics graphics, int left, int top) {
@@ -229,8 +258,6 @@ public class AbilityManagerScreen extends Screen {
             if (currentX + tabWidth > maxRight) break;
 
             boolean isSelected = i == selectedTab;
-            boolean isHovered = mouseX >= currentX && mouseX < currentX + tabWidth
-                    && mouseY >= tabY && mouseY < tabY + TAB_HEIGHT;
 
             int bgColor = isSelected ? COLOR_TAB_ACTIVE : COLOR_TAB_INACTIVE;
             graphics.fill(currentX, tabY, currentX + tabWidth, tabY + TAB_HEIGHT, bgColor);
@@ -321,11 +348,63 @@ public class AbilityManagerScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button != 0) return super.mouseClicked(mouseX, mouseY, button);
+        if (pickerOverlay != null && pickerOverlay.isVisible()) {
+            int panelLeft = (this.width - PANEL_WIDTH) / 2;
+            int tabPanelLeft = getTabPanelLeft(panelLeft);
+            boolean handled = pickerOverlay.mouseClicked(mouseX, mouseY, button,
+                    this.width, this.height, tabPanelLeft, TAB_PANEL_WIDTH);
+            if (!pickerOverlay.isVisible()) {
+                pickerOverlay = null;
+            }
+            if (handled) return true;
+        }
 
         int panelLeft = (this.width - PANEL_WIDTH) / 2;
         int panelTop = (this.height - PANEL_HEIGHT) / 2;
 
+        if (handleSlotClick(mouseX, mouseY, button, panelLeft, panelTop)) {
+            return true;
+        }
+
+        if (button == 0 && handleTabClick(mouseX, mouseY, panelLeft, panelTop)) {
+            return true;
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private boolean handleSlotClick(double mouseX, double mouseY, int button, int panelLeft, int panelTop) {
+        int startX = panelLeft + 10;
+        int startY = panelTop + 18;
+
+        for (int i = 0; i < 9; i++) {
+            int slotX = startX;
+            int slotY = startY + i * (SLOT_HEIGHT + SLOT_GAP);
+
+            if (mouseX >= slotX && mouseX < slotX + SLOT_WIDTH
+                    && mouseY >= slotY && mouseY < slotY + SLOT_HEIGHT) {
+
+                DnDPlayerData data = getPlayerData();
+                if (data == null) return true;
+
+                AbilityHotbar hotbar = data.getAbilityHotbar();
+                String currentId = hotbar.getSlotAbility(i);
+                boolean occupied = currentId != null && AbilityRegistry.getAbility(currentId) != null;
+
+                if (button == 0) {
+                    pickerOverlay = new AbilityPickerOverlay(i, data, this::assignAbilityToSlot);
+                    return true;
+                } else if (button == 1 && occupied) {
+                    clearSlot(i);
+                    return true;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean handleTabClick(double mouseX, double mouseY, int panelLeft, int panelTop) {
         int tabX = getTabPanelLeft(panelLeft);
         int tabY = panelTop + 18;
         int maxRight = tabX + TAB_PANEL_WIDTH;
@@ -344,12 +423,20 @@ public class AbilityManagerScreen extends Screen {
             }
             currentX += tabWidth + TAB_GAP;
         }
-
-        return super.mouseClicked(mouseX, mouseY, button);
+        return false;
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (pickerOverlay != null && pickerOverlay.isVisible()) {
+            int panelLeft = (this.width - PANEL_WIDTH) / 2;
+            int tabPanelLeft = getTabPanelLeft(panelLeft);
+            if (pickerOverlay.mouseScrolled(mouseX, mouseY, scrollY,
+                    this.width, this.height, tabPanelLeft, TAB_PANEL_WIDTH)) {
+                return true;
+            }
+        }
+
         int panelLeft = (this.width - PANEL_WIDTH) / 2;
         int panelTop = (this.height - PANEL_HEIGHT) / 2;
         int contentLeft = getTabPanelLeft(panelLeft);
@@ -368,6 +455,16 @@ public class AbilityManagerScreen extends Screen {
         }
 
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == 256 && pickerOverlay != null && pickerOverlay.isVisible()) {
+            pickerOverlay.close();
+            pickerOverlay = null;
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
