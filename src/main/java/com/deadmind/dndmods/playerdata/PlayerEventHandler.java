@@ -17,6 +17,9 @@ public class PlayerEventHandler {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
             DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
+
+            data.getAbilityHotbar().validateAndClean(data);
+
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 
             if (data.getDnDClass() == DnDClass.NONE) {

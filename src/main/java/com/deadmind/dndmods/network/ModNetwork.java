@@ -67,6 +67,12 @@ public class ModNetwork {
                 ClearHotbarSlotPayload.STREAM_CODEC,
                 ClearHotbarSlotPayload::handle
         );
+
+        registrar.playToClient(
+                AbilityAssignRejectedPayload.TYPE,
+                AbilityAssignRejectedPayload.STREAM_CODEC,
+                AbilityAssignRejectedPayload::handle
+        );
     }
 
     public static ResourceLocation id(String path) {

@@ -48,10 +48,22 @@ public abstract class Ability {
     public boolean isHalfOnSave() { return false; }
 
     public boolean canUse(ServerPlayer player, DnDPlayerData data) {
-        if (data.getDnDClass() != requiredClass) return false;
-        if (data.getLevel() < requiredLevel) return false;
+        if (!meetsLevelRequirement(data)) return false;
         if (data.getCurrentResource() < resourceCost) return false;
         return !AbilityCooldownManager.isOnCooldown(player, this);
+    }
+
+    public boolean meetsLevelRequirement(DnDPlayerData data) {
+        if (data.getPrimary().getDnDClass() == requiredClass
+                && data.getPrimary().getLevel() >= requiredLevel) {
+            return true;
+        }
+        if (data.getSecondary() != null
+                && data.getSecondary().getDnDClass() == requiredClass
+                && data.getSecondary().getLevel() >= requiredLevel) {
+            return true;
+        }
+        return false;
     }
 
     public void execute(ServerPlayer player, DnDPlayerData data) {

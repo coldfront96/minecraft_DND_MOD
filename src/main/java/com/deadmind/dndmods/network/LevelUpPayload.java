@@ -151,6 +151,8 @@ public record LevelUpPayload(
 
             data.resetXpAfterLevelUp();
 
+            data.getAbilityHotbar().validateAndClean(data);
+
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
         });
     }

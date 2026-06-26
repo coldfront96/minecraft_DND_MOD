@@ -1,5 +1,8 @@
 package com.deadmind.dndmods.player;
 
+import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.AbilityRegistry;
+import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -69,6 +72,18 @@ public class AbilityHotbar {
             }
         }
         activeSlot = tag.getInt("ActiveSlot");
+    }
+
+    public void validateAndClean(DnDPlayerData data) {
+        for (int i = 0; i < SLOTS; i++) {
+            String abilityId = slotAbilityIds[i];
+            if (abilityId == null) continue;
+
+            Ability ability = AbilityRegistry.getAbility(abilityId);
+            if (ability == null || !ability.meetsLevelRequirement(data)) {
+                slotAbilityIds[i] = null;
+            }
+        }
     }
 
     public void copyFrom(AbilityHotbar other) {
