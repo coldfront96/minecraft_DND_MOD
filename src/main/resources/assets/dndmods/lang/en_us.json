@@ -19,5 +19,9 @@
   "key.dndmods.ability_bar": "Ability Bar",
   "key.dndmods.level_up": "Level Up Menu",
   "death.attack.dndmods.ability": "%1$s was slain by an ability",
-  "death.attack.dndmods.ability.player": "%1$s was slain by %2$s using an ability"
+  "death.attack.dndmods.ability.player": "%1$s was slain by %2$s using an ability",
+  "block.dndmods.arcane_phylactery": "Arcane Phylactery",
+  "block.dndmods.arcane_ore": "Arcane Ore",
+  "block.dndmods.deepslate_arcane_ore": "Deepslate Arcane Ore",
+  "item.dndmods.arcane_ore_fragment": "Arcane Ore Fragment"
 }

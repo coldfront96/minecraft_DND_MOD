@@ -37,6 +37,18 @@ public class ModItems {
     public static final DeferredHolder<Item, BlockItem> ARCANE_ENCHANTING_TABLE_ITEM =
             ITEMS.register("arcane_enchanting_table", () -> new BlockItem(ModBlocks.ARCANE_ENCHANTING_TABLE.get(), new Item.Properties()));
 
+    public static final DeferredHolder<Item, Item> ARCANE_ORE_FRAGMENT =
+            ITEMS.register("arcane_ore_fragment", () -> new Item(new Item.Properties()));
+
+    public static final DeferredHolder<Item, BlockItem> ARCANE_PHYLACTERY_ITEM =
+            ITEMS.register("arcane_phylactery", () -> new BlockItem(ModBlocks.ARCANE_PHYLACTERY.get(), new Item.Properties()));
+
+    public static final DeferredHolder<Item, BlockItem> ARCANE_ORE_ITEM =
+            ITEMS.register("arcane_ore", () -> new BlockItem(ModBlocks.ARCANE_ORE.get(), new Item.Properties()));
+
+    public static final DeferredHolder<Item, BlockItem> DEEPSLATE_ARCANE_ORE_ITEM =
+            ITEMS.register("deepslate_arcane_ore", () -> new BlockItem(ModBlocks.DEEPSLATE_ARCANE_ORE.get(), new Item.Properties()));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

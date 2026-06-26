@@ -2,6 +2,7 @@ package com.deadmind.dndmods;
 
 import com.deadmind.dndmods.ability.AbilityRegistry;
 import com.deadmind.dndmods.enchanting.ModMenuTypes;
+import com.deadmind.dndmods.loot.ModLootModifiers;
 import com.deadmind.dndmods.playerdata.ModAttachments;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -21,6 +22,7 @@ public class DnDMods {
         ModCreativeTabs.register(modEventBus);
         ModAttachments.register(modEventBus);
         ModMenuTypes.register(modEventBus);
+        ModLootModifiers.register(modEventBus);
 
         modEventBus.addListener(this::onCommonSetup);
 

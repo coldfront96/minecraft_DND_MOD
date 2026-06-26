@@ -29,6 +29,10 @@ public class ModCreativeTabs {
                         output.accept(ModItems.NETHERITE_ARCANE_DUST.get());
                         output.accept(ModItems.NETHER_STAR_ARCANE_DUST.get());
                         output.accept(ModItems.ARCANE_ENCHANTING_TABLE_ITEM.get());
+                        output.accept(ModItems.ARCANE_ORE_FRAGMENT.get());
+                        output.accept(ModItems.ARCANE_PHYLACTERY_ITEM.get());
+                        output.accept(ModItems.ARCANE_ORE_ITEM.get());
+                        output.accept(ModItems.DEEPSLATE_ARCANE_ORE_ITEM.get());
                     })
                     .build());
 
