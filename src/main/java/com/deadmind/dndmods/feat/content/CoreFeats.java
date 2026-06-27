@@ -77,6 +77,102 @@ public class CoreFeats {
 
         registerCombatFeats();
         registerGeneralFeats();
+        registerSaveFeats();
+        registerMetamagicFeats();
+    }
+
+    // ------------------------------------------------------------------
+    // Saving-throw feats. These were specified in the architecture task
+    // but were absent from the codebase; added here. Each grants a real
+    // numeric bonus read by SavingThrowSystem (and the character sheet).
+    // Toughness raises max HP and stacks via toughnessFeatCount, applied
+    // to the vanilla health bar by FeatEffectHandler.
+    // ------------------------------------------------------------------
+    private static void registerSaveFeats() {
+        FeatRegistry.register(new Feat(
+                "toughness", "Toughness",
+                "+3 hit points permanently.",
+                FeatCategory.GENERAL, FeatSource.PHB,
+                null, 0,
+                List.of(),
+                data -> data.setToughnessFeatCount(data.getToughnessFeatCount() + 1),
+                data -> data.setToughnessFeatCount(data.getToughnessFeatCount() - 1)
+        ));
+
+        FeatRegistry.register(new Feat(
+                "iron_will", "Iron Will",
+                "+2 bonus on Will saving throws.",
+                FeatCategory.GENERAL, FeatSource.PHB,
+                null, 0,
+                List.of(),
+                data -> data.setFeatWillBonus(data.getFeatWillBonus() + 2),
+                data -> data.setFeatWillBonus(data.getFeatWillBonus() - 2)
+        ));
+
+        FeatRegistry.register(new Feat(
+                "lightning_reflexes", "Lightning Reflexes",
+                "+2 bonus on Reflex saving throws.",
+                FeatCategory.GENERAL, FeatSource.PHB,
+                null, 0,
+                List.of(),
+                data -> data.setFeatRefBonus(data.getFeatRefBonus() + 2),
+                data -> data.setFeatRefBonus(data.getFeatRefBonus() - 2)
+        ));
+
+        FeatRegistry.register(new Feat(
+                "great_fortitude", "Great Fortitude",
+                "+2 bonus on Fortitude saving throws.",
+                FeatCategory.GENERAL, FeatSource.PHB,
+                null, 0,
+                List.of(),
+                data -> data.setFeatFortBonus(data.getFeatFortBonus() + 2),
+                data -> data.setFeatFortBonus(data.getFeatFortBonus() - 2)
+        ));
+    }
+
+    // ------------------------------------------------------------------
+    // PHB metamagic feats. All flag only this pass — the spell system
+    // pass will read these flags to gate which metamagic options a
+    // caster may apply. Metamagic feats are parallel entries within the
+    // "metamagic_line" group; chainOrder is for sort/power grouping only,
+    // there is no sequential prerequisite chain between them.
+    // ------------------------------------------------------------------
+    private static void registerMetamagicFeats() {
+        metamagicFeat("enlarge_spell", "Enlarge Spell",
+                "Double the range of a spell. Spell uses a slot one level higher.", 0);
+        metamagicFeat("extend_spell", "Extend Spell",
+                "Double the duration of a spell. Spell uses a slot one level higher.", 0);
+        metamagicFeat("heighten_spell", "Heighten Spell",
+                "Cast a spell as if it were a higher level spell slot.", 0);
+        metamagicFeat("widen_spell", "Widen Spell",
+                "Double the area of effect of a spell. Spell uses a slot three levels higher.", 0);
+        metamagicFeat("silent_spell", "Silent Spell",
+                "Cast a spell without verbal components. Spell uses a slot one level higher.", 0);
+        metamagicFeat("still_spell", "Still Spell",
+                "Cast a spell without somatic components. Spell uses a slot one level higher.", 0);
+        metamagicFeat("cooperative_spell", "Cooperative Spell",
+                "Combine your spell with an ally's spell for increased effect.", 0);
+        metamagicFeat("energy_substitution", "Energy Substitution",
+                "Replace a spell's energy type with a different energy type at no slot cost.", 0);
+
+        metamagicFeat("empower_spell", "Empower Spell",
+                "Increase all variable numeric effects of a spell by 50%. Spell uses a slot two levels higher.", 1);
+        metamagicFeat("repeat_spell", "Repeat Spell",
+                "Automatically cast a spell again on the next round. Spell uses a slot two levels higher.", 1);
+        metamagicFeat("sculpt_spell", "Sculpt Spell",
+                "Change the area of effect shape of a spell. Spell uses a slot one level higher.", 1);
+
+        metamagicFeat("maximize_spell", "Maximize Spell",
+                "Maximize all variable numeric effects of a spell. Spell uses a slot three levels higher.", 2);
+        metamagicFeat("persistent_spell", "Persistent Spell",
+                "Extend a spell's duration to 24 hours. Spell uses a slot six levels higher.", 2);
+        metamagicFeat("chain_spell", "Chain Spell",
+                "Arc a targeted spell to secondary targets. Spell uses a slot three levels higher.", 2);
+
+        metamagicFeat("quicken_spell", "Quicken Spell",
+                "Cast a spell as a free action. Spell uses a slot four levels higher.", 3);
+        metamagicFeat("twin_spell", "Twin Spell",
+                "Cast a spell twice simultaneously affecting the same or different targets. Spell uses a slot four levels higher.", 3);
     }
 
     // ------------------------------------------------------------------
@@ -542,6 +638,19 @@ public class CoreFeats {
                 FeatCategory.GENERAL, FeatSource.PHB,
                 chainGroup, chainOrder,
                 prerequisites,
+                data -> data.setAchievementFlag(flag, true),
+                data -> data.setAchievementFlag(flag, false)
+        ));
+    }
+
+    /** Registers a flag-only PHB metamagic feat in the shared metamagic_line group (no prerequisites). */
+    private static void metamagicFeat(String id, String name, String description, int chainOrder) {
+        String flag = id + "_unlocked";
+        FeatRegistry.register(new Feat(
+                id, name, description,
+                FeatCategory.METAMAGIC, FeatSource.PHB,
+                "metamagic_line", chainOrder,
+                List.of(),
                 data -> data.setAchievementFlag(flag, true),
                 data -> data.setAchievementFlag(flag, false)
         ));

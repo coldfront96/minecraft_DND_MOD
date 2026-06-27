@@ -38,11 +38,11 @@ public final class SavingThrowSystem {
 
         return switch (saveType) {
             case FORTITUDE -> scores.getConMod() + (level / 3) + racialAll
-                    + RacialSaveBonus.getFearBonus(race);
-            case REFLEX -> scores.getDexMod() + (level / 4) + racialAll;
+                    + RacialSaveBonus.getFearBonus(race) + data.getFeatFortBonus();
+            case REFLEX -> scores.getDexMod() + (level / 4) + racialAll + data.getFeatRefBonus();
             case WILL -> scores.getWisMod() + (level / 3) + racialAll
                     + RacialSaveBonus.getEnchantmentBonus(race)
-                    + RacialSaveBonus.getIllusionBonus(race);
+                    + RacialSaveBonus.getIllusionBonus(race) + data.getFeatWillBonus();
         };
     }
 

@@ -35,6 +35,11 @@ public class FeatEffectHandler {
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "run_feat_speed");
     private static final ResourceLocation ATHLETIC_JUMP_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "athletic_feat_jump");
+    private static final ResourceLocation TOUGHNESS_HP_ID =
+            ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "toughness_feat_hp");
+
+    /** Toughness: +3 max HP per stack, applied to the vanilla health bar. */
+    private static final double TOUGHNESS_HP_PER_STACK = 3.0;
 
     /** Run: move at 5x speed instead of 4x — modelled as +25% movement speed. */
     private static final double RUN_SPEED_BONUS = 0.25;
@@ -69,7 +74,38 @@ public class FeatEffectHandler {
         reconcileAttribute(player, Attributes.JUMP_STRENGTH, ATHLETIC_JUMP_ID,
                 ATHLETIC_JUMP_BONUS, data.getAchievementFlag("athletic_unlocked"));
 
+        reconcileToughness(player, data);
+
         handleSelfSufficient(player, data);
+    }
+
+    /**
+     * Applies +3 max HP per Toughness stack to the player's vanilla MAX_HEALTH
+     * attribute. A single ADD_VALUE modifier carries the full stacked amount
+     * (count x 3) — functionally identical to many uniquely keyed +3 modifiers
+     * but simpler to reconcile and remove. When the bonus grows the player is
+     * healed by the delta so the new hit points are immediately usable.
+     */
+    private static void reconcileToughness(ServerPlayer player, DnDPlayerData data) {
+        AttributeInstance instance = player.getAttribute(Attributes.MAX_HEALTH);
+        if (instance == null) return;
+
+        double desired = data.getToughnessFeatCount() * TOUGHNESS_HP_PER_STACK;
+        AttributeModifier existing = instance.getModifier(TOUGHNESS_HP_ID);
+        double current = existing != null ? existing.amount() : 0.0;
+
+        if (desired == current) return;
+
+        if (existing != null) {
+            instance.removeModifier(TOUGHNESS_HP_ID);
+        }
+        if (desired > 0.0) {
+            instance.addTransientModifier(new AttributeModifier(
+                    TOUGHNESS_HP_ID, desired, AttributeModifier.Operation.ADD_VALUE));
+        }
+        if (desired > current) {
+            player.heal((float) (desired - current));
+        }
     }
 
     private static void reconcileAttribute(ServerPlayer player, Holder<Attribute> attribute,

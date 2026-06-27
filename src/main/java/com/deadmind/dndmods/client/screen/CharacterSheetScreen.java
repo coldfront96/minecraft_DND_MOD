@@ -142,11 +142,11 @@ public class CharacterSheetScreen extends Screen {
         drawStatRow(graphics, "Initiative", formatSigned(initiative), x, y, rightEdge);
         y += 19;
 
-        int fortitude = scores.getConMod() + (totalLevel / 3);
+        int fortitude = scores.getConMod() + (totalLevel / 3) + data.getFeatFortBonus();
         drawStatRow(graphics, "Fortitude", formatSigned(fortitude), x, y, rightEdge);
         y += 19;
 
-        int reflex = scores.getDexMod() + (totalLevel / 4);
+        int reflex = scores.getDexMod() + (totalLevel / 4) + data.getFeatRefBonus();
         drawStatRow(graphics, "Reflex", formatSigned(reflex), x, y, rightEdge);
         y += 19;
 

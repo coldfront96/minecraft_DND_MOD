@@ -34,6 +34,9 @@ public class DnDPlayerData {
     private int featInitiativeBonus = 0;
     private int featShieldBonus = 0;
     private int featWillBonus = 0;
+    private int featRefBonus = 0;
+    private int featFortBonus = 0;
+    private int toughnessFeatCount = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -67,6 +70,7 @@ public class DnDPlayerData {
             hp += secondary.getMaxHp();
         }
         hp += abilityScores.getConMod() * getTotalLevel();
+        hp += toughnessFeatCount * 3;
         return hp;
     }
 
@@ -255,6 +259,15 @@ public class DnDPlayerData {
     public int getFeatWillBonus() { return featWillBonus; }
     public void setFeatWillBonus(int bonus) { this.featWillBonus = bonus; }
 
+    public int getFeatRefBonus() { return featRefBonus; }
+    public void setFeatRefBonus(int bonus) { this.featRefBonus = bonus; }
+
+    public int getFeatFortBonus() { return featFortBonus; }
+    public void setFeatFortBonus(int bonus) { this.featFortBonus = bonus; }
+
+    public int getToughnessFeatCount() { return toughnessFeatCount; }
+    public void setToughnessFeatCount(int count) { this.toughnessFeatCount = Math.max(0, count); }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -369,6 +382,9 @@ public class DnDPlayerData {
         featTag.putInt("InitiativeBonus", featInitiativeBonus);
         featTag.putInt("ShieldBonus", featShieldBonus);
         featTag.putInt("WillBonus", featWillBonus);
+        featTag.putInt("RefBonus", featRefBonus);
+        featTag.putInt("FortBonus", featFortBonus);
+        featTag.putInt("ToughnessCount", toughnessFeatCount);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -451,6 +467,9 @@ public class DnDPlayerData {
             featInitiativeBonus = featTag.getInt("InitiativeBonus");
             featShieldBonus = featTag.getInt("ShieldBonus");
             featWillBonus = featTag.getInt("WillBonus");
+            featRefBonus = featTag.getInt("RefBonus");
+            featFortBonus = featTag.getInt("FortBonus");
+            toughnessFeatCount = featTag.getInt("ToughnessCount");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -461,6 +480,9 @@ public class DnDPlayerData {
             featInitiativeBonus = 0;
             featShieldBonus = 0;
             featWillBonus = 0;
+            featRefBonus = 0;
+            featFortBonus = 0;
+            toughnessFeatCount = 0;
         }
     }
 
@@ -494,5 +516,8 @@ public class DnDPlayerData {
         this.featInitiativeBonus = other.featInitiativeBonus;
         this.featShieldBonus = other.featShieldBonus;
         this.featWillBonus = other.featWillBonus;
+        this.featRefBonus = other.featRefBonus;
+        this.featFortBonus = other.featFortBonus;
+        this.toughnessFeatCount = other.toughnessFeatCount;
     }
 }
