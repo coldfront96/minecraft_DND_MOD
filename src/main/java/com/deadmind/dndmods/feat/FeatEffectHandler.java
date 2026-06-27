@@ -1,11 +1,14 @@
 package com.deadmind.dndmods.feat;
 
 import com.deadmind.dndmods.DnDMods;
+import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.ModAttachments;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -13,6 +16,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -147,5 +151,28 @@ public class FeatEffectHandler {
         } else {
             event.setDistance(reduced);
         }
+    }
+
+    /**
+     * Distracting Attack: when a Ranger with the feat lands a hit, the victim
+     * is marked with Glowing for 60 ticks, making it easier for allies to
+     * track and target.
+     */
+    @SubscribeEvent
+    public static void onLivingDamage(LivingDamageEvent.Post event) {
+        if (!(event.getSource().getEntity() instanceof ServerPlayer attacker)) return;
+
+        DnDPlayerData data = attacker.getData(ModAttachments.PLAYER_DATA);
+        if (data == null) return;
+        if (!data.getAchievementFlag("distracting_attack_unlocked")) return;
+        if (!isRanger(data)) return;
+
+        LivingEntity victim = event.getEntity();
+        victim.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, false, true));
+    }
+
+    private static boolean isRanger(DnDPlayerData data) {
+        if (data.getPrimary().getDnDClass() == DnDClass.RANGER) return true;
+        return data.getSecondary() != null && data.getSecondary().getDnDClass() == DnDClass.RANGER;
     }
 }

@@ -79,6 +79,140 @@ public class CoreFeats {
         registerGeneralFeats();
         registerSaveFeats();
         registerMetamagicFeats();
+        registerDivineFeats();
+    }
+
+    // ------------------------------------------------------------------
+    // PHB divine feats. Most are flag only — the active turning/domain/
+    // cure mechanics arrive in the Cleric ability pass. A few feed real
+    // int fields read by other systems (extraTurningCharges, devotion
+    // damage/healing bonuses). distracting_attack is the only runtime
+    // effect this pass and lives in FeatEffectHandler. insightful_reflexes
+    // is gated by a flag and applied directly in SavingThrowSystem.
+    // ------------------------------------------------------------------
+    private static void registerDivineFeats() {
+
+        // --- TURN UNDEAD LINE (extra_turning is the chainOrder-0 root) ---
+        FeatRegistry.register(new Feat(
+                "extra_turning", "Extra Turning",
+                "Four additional turning attempts per day.",
+                FeatCategory.DIVINE, FeatSource.PHB,
+                "turning_line", 0,
+                List.of(cls(DnDClass.CLERIC)),
+                data -> {
+                    data.setAchievementFlag("extra_turning_unlocked", true);
+                    data.setExtraTurningCharges(data.getExtraTurningCharges() + 4);
+                },
+                data -> {
+                    data.setAchievementFlag("extra_turning_unlocked", false);
+                    data.setExtraTurningCharges(data.getExtraTurningCharges() - 4);
+                }
+        ));
+
+        divineFeat("divine_might", "Divine Might",
+                "Spend a turning attempt to add CHA modifier to weapon damage for one minute.",
+                "turning_line", 1,
+                List.of(cls(DnDClass.CLERIC), reqFeat("extra_turning", "Extra Turning"), cha(13)));
+
+        divineFeat("divine_shield", "Divine Shield",
+                "Spend a turning attempt to add CHA modifier to AC for one minute.",
+                "turning_line", 1,
+                List.of(cls(DnDClass.CLERIC), reqFeat("extra_turning", "Extra Turning"), cha(13)));
+
+        divineFeat("sacred_vengeance", "Sacred Vengeance",
+                "Spend a turning attempt to deal extra radiant damage on melee attacks for one minute.",
+                "turning_line", 1,
+                List.of(cls(DnDClass.CLERIC), reqFeat("extra_turning", "Extra Turning")));
+
+        // --- DOMAIN FEATS ---
+        divineFeat("extra_domain", "Extra Domain",
+                "Gain access to one additional cleric domain.",
+                null, 0,
+                List.of(cls(DnDClass.CLERIC)));
+
+        divineFeat("domain_spontaneity", "Domain Spontaneity",
+                "Convert prepared spells into domain spells spontaneously.",
+                null, 0,
+                List.of(cls(DnDClass.CLERIC)));
+
+        // --- DEVOTION LINE (parallel roots; grant real int bonuses) ---
+        FeatRegistry.register(new Feat(
+                "warrior_of_darkness", "Warrior of Darkness",
+                "Channel negative energy more effectively. +2 to negative energy damage rolls.",
+                FeatCategory.DIVINE, FeatSource.PHB,
+                "devotion_line", 0,
+                List.of(cls(DnDClass.CLERIC), level(5)),
+                data -> data.setDevotionDamageBonus(data.getDevotionDamageBonus() + 2),
+                data -> data.setDevotionDamageBonus(data.getDevotionDamageBonus() - 2)
+        ));
+
+        FeatRegistry.register(new Feat(
+                "servant_of_the_heavens", "Servant of the Heavens",
+                "Channel positive energy more effectively. +2 to positive energy healing rolls.",
+                FeatCategory.DIVINE, FeatSource.PHB,
+                "devotion_line", 0,
+                List.of(cls(DnDClass.CLERIC), level(5)),
+                data -> data.setDevotionHealingBonus(data.getDevotionHealingBonus() + 2),
+                data -> data.setDevotionHealingBonus(data.getDevotionHealingBonus() - 2)
+        ));
+
+        // --- HOLY WARRIOR LINE (sequential) ---
+        divineFeat("sacred_boost", "Sacred Boost",
+                "Maximize the healing of your next cure spell by spending a turning attempt.",
+                "holy_warrior_line", 0,
+                List.of(cls(DnDClass.CLERIC), wis(13)));
+
+        divineFeat("divine_ward", "Divine Ward",
+                "Protect an ally from the next attack that would hit them once per day.",
+                "holy_warrior_line", 1,
+                List.of(reqFeat("sacred_boost", "Sacred Boost"), cls(DnDClass.CLERIC), wis(13)));
+
+        // --- RANGER DIVINE FEATS ---
+        divineFeat("swift_hunter", "Swift Hunter",
+                "Stack Ranger and Rogue levels for sneak attack and favored enemy bonuses.",
+                null, 0,
+                List.of(cls(DnDClass.RANGER)));
+
+        divineFeat("distracting_attack", "Distracting Attack",
+                "Your attack makes it easier for allies to hit the same target. Applies Glowing on hit.",
+                null, 0,
+                List.of(cls(DnDClass.RANGER), bab(4)));
+
+        // --- STANDALONE DIVINE FEATS ---
+        divineFeat("divine_vengeance", "Divine Vengeance",
+                "Spend a turning attempt to deal bonus fire or cold damage against undead.",
+                null, 0,
+                List.of(cls(DnDClass.CLERIC), reqFeat("extra_turning", "Extra Turning")));
+
+        divineFeat("divine_resistance", "Divine Resistance",
+                "Spend a turning attempt to grant yourself and allies resistance to a chosen energy type for one minute.",
+                null, 0,
+                List.of(cls(DnDClass.CLERIC), reqFeat("extra_turning", "Extra Turning")));
+
+        divineFeat("zen_archery", "Zen Archery",
+                "Use WIS modifier instead of DEX for ranged attack rolls.",
+                null, 0,
+                List.of(cls(DnDClass.RANGER), wis(13), bab(1)));
+
+        divineFeat("insightful_reflexes", "Insightful Reflexes",
+                "Use INT modifier instead of DEX for Reflex saving throws.",
+                null, 0,
+                List.of());
+
+        divineFeat("holy_radiance", "Holy Radiance",
+                "Emit a burst of holy light dealing radiant damage to undead in a 10 block radius once per day.",
+                null, 0,
+                List.of(cls(DnDClass.CLERIC), cha(15), level(10)));
+
+        divineFeatFlag("sanctify_martial_strike", "sanctify_martial_unlocked", "Sanctify Martial Strike",
+                "Your unarmed strikes deal radiant damage against evil outsiders.",
+                null, 0,
+                List.of(cls(DnDClass.CLERIC), bab(3)));
+
+        divineFeat("battle_blessing", "Battle Blessing",
+                "Cast swift action spells as free actions when you confirm a critical hit.",
+                null, 0,
+                List.of(cls(DnDClass.CLERIC), bab(1)));
     }
 
     // ------------------------------------------------------------------
@@ -576,9 +710,9 @@ public class CoreFeats {
                 "Two additional smite attempts per day.",
                 null, 0, List.of(cls(DnDClass.CLERIC)));
 
-        flagFeat("extra_turning", "Extra Turning",
-                "Four additional turning attempts per day.",
-                null, 0, List.of(cls(DnDClass.CLERIC)));
+        // NOTE: extra_turning is registered in the divine feat pass
+        // (registerDivineFeats) as the turning_line root, where it also
+        // grants extraTurningCharges and several divine feats depend on it.
 
         flagFeat("improved_counterspell", "Improved Counterspell",
                 "Counterspell with a spell of the same school rather than the same spell.",
@@ -643,6 +777,27 @@ public class CoreFeats {
         ));
     }
 
+    /** Registers a PHB divine flag feat (flag = id + "_unlocked"). */
+    private static void divineFeat(String id, String name, String description,
+                                   String chainGroup, int chainOrder,
+                                   List<FeatPrerequisite> prerequisites) {
+        divineFeatFlag(id, id + "_unlocked", name, description, chainGroup, chainOrder, prerequisites);
+    }
+
+    /** Registers a PHB divine flag feat with an explicit unlock-flag key. */
+    private static void divineFeatFlag(String id, String flag, String name, String description,
+                                       String chainGroup, int chainOrder,
+                                       List<FeatPrerequisite> prerequisites) {
+        FeatRegistry.register(new Feat(
+                id, name, description,
+                FeatCategory.DIVINE, FeatSource.PHB,
+                chainGroup, chainOrder,
+                prerequisites,
+                data -> data.setAchievementFlag(flag, true),
+                data -> data.setAchievementFlag(flag, false)
+        ));
+    }
+
     /** Registers a flag-only PHB metamagic feat in the shared metamagic_line group (no prerequisites). */
     private static void metamagicFeat(String id, String name, String description, int chainOrder) {
         String flag = id + "_unlocked";
@@ -690,5 +845,9 @@ public class CoreFeats {
 
     private static FeatPrerequisite wis(int minimum) {
         return new FeatPrerequisite.AbilityScorePrerequisite(AbilityScoreType.WISDOM, minimum);
+    }
+
+    private static FeatPrerequisite cha(int minimum) {
+        return new FeatPrerequisite.AbilityScorePrerequisite(AbilityScoreType.CHARISMA, minimum);
     }
 }

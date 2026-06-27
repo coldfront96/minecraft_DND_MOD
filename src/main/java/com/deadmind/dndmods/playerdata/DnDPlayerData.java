@@ -37,6 +37,9 @@ public class DnDPlayerData {
     private int featRefBonus = 0;
     private int featFortBonus = 0;
     private int toughnessFeatCount = 0;
+    private int extraTurningCharges = 0;
+    private int devotionDamageBonus = 0;
+    private int devotionHealingBonus = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -268,6 +271,15 @@ public class DnDPlayerData {
     public int getToughnessFeatCount() { return toughnessFeatCount; }
     public void setToughnessFeatCount(int count) { this.toughnessFeatCount = Math.max(0, count); }
 
+    public int getExtraTurningCharges() { return extraTurningCharges; }
+    public void setExtraTurningCharges(int charges) { this.extraTurningCharges = Math.max(0, charges); }
+
+    public int getDevotionDamageBonus() { return devotionDamageBonus; }
+    public void setDevotionDamageBonus(int bonus) { this.devotionDamageBonus = bonus; }
+
+    public int getDevotionHealingBonus() { return devotionHealingBonus; }
+    public void setDevotionHealingBonus(int bonus) { this.devotionHealingBonus = bonus; }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -385,6 +397,9 @@ public class DnDPlayerData {
         featTag.putInt("RefBonus", featRefBonus);
         featTag.putInt("FortBonus", featFortBonus);
         featTag.putInt("ToughnessCount", toughnessFeatCount);
+        featTag.putInt("ExtraTurningCharges", extraTurningCharges);
+        featTag.putInt("DevotionDamageBonus", devotionDamageBonus);
+        featTag.putInt("DevotionHealingBonus", devotionHealingBonus);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -470,6 +485,9 @@ public class DnDPlayerData {
             featRefBonus = featTag.getInt("RefBonus");
             featFortBonus = featTag.getInt("FortBonus");
             toughnessFeatCount = featTag.getInt("ToughnessCount");
+            extraTurningCharges = featTag.getInt("ExtraTurningCharges");
+            devotionDamageBonus = featTag.getInt("DevotionDamageBonus");
+            devotionHealingBonus = featTag.getInt("DevotionHealingBonus");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -483,6 +501,9 @@ public class DnDPlayerData {
             featRefBonus = 0;
             featFortBonus = 0;
             toughnessFeatCount = 0;
+            extraTurningCharges = 0;
+            devotionDamageBonus = 0;
+            devotionHealingBonus = 0;
         }
     }
 
@@ -519,5 +540,8 @@ public class DnDPlayerData {
         this.featRefBonus = other.featRefBonus;
         this.featFortBonus = other.featFortBonus;
         this.toughnessFeatCount = other.toughnessFeatCount;
+        this.extraTurningCharges = other.extraTurningCharges;
+        this.devotionDamageBonus = other.devotionDamageBonus;
+        this.devotionHealingBonus = other.devotionHealingBonus;
     }
 }

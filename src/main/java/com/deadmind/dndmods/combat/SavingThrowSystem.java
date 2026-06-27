@@ -39,11 +39,23 @@ public final class SavingThrowSystem {
         return switch (saveType) {
             case FORTITUDE -> scores.getConMod() + (level / 3) + racialAll
                     + RacialSaveBonus.getFearBonus(race) + data.getFeatFortBonus();
-            case REFLEX -> scores.getDexMod() + (level / 4) + racialAll + data.getFeatRefBonus();
+            case REFLEX -> getReflexAbilityMod(data, scores) + (level / 4) + racialAll + data.getFeatRefBonus();
             case WILL -> scores.getWisMod() + (level / 3) + racialAll
                     + RacialSaveBonus.getEnchantmentBonus(race)
                     + RacialSaveBonus.getIllusionBonus(race) + data.getFeatWillBonus();
         };
+    }
+
+    /**
+     * Reflex saves normally key off DEX. The Insightful Reflexes feat lets a
+     * player use their INT modifier instead when it is higher.
+     */
+    private static int getReflexAbilityMod(DnDPlayerData data, AbilityScores scores) {
+        int dexMod = scores.getDexMod();
+        if (data.getAchievementFlag("insightful_reflexes_unlocked")) {
+            return Math.max(dexMod, scores.getIntMod());
+        }
+        return dexMod;
     }
 
     public static int getMobSaveBonus(LivingEntity entity, SaveType saveType) {
