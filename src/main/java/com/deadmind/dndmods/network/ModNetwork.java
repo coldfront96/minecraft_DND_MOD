@@ -85,6 +85,12 @@ public class ModNetwork {
                 SelectRacePayload.STREAM_CODEC,
                 SelectRacePayload::handle
         );
+
+        registrar.playToServer(
+                SelectFeatPayload.TYPE,
+                SelectFeatPayload.STREAM_CODEC,
+                SelectFeatPayload::handle
+        );
     }
 
     public static ResourceLocation id(String path) {

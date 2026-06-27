@@ -1,5 +1,6 @@
 package com.deadmind.dndmods.race;
 
+import com.deadmind.dndmods.feat.FeatSourceConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.ModContainer;
@@ -22,6 +23,9 @@ public class RaceConfig {
         UNDEAD_ENABLED = BUILDER.comment("Enable undead races (Revenant, Dhampir, Shadar-Kai, Vampire Spawn, Skeleton Warrior)")
                 .define("undead", true);
         BUILDER.pop();
+
+        FeatSourceConfig.build(BUILDER);
+
         SPEC = BUILDER.build();
     }
 

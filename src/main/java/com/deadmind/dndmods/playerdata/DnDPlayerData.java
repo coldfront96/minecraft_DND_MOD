@@ -8,9 +8,7 @@ import com.deadmind.dndmods.race.DnDRace;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class DnDPlayerData {
     public static final int MAX_LEVEL = 20;
@@ -30,6 +28,9 @@ public class DnDPlayerData {
     private boolean humanBonusFeatAvailable = false;
     private long undyingResolveLastUsed = -1L;
     private int racialAcBonus = 0;
+    private final List<String> grantedFeats = new ArrayList<>();
+    private int featSlotsAvailable = 0;
+    private int featAcBonus = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -214,6 +215,34 @@ public class DnDPlayerData {
     public int getRacialAcBonus() { return racialAcBonus; }
     public void setRacialAcBonus(int bonus) { this.racialAcBonus = bonus; }
 
+    // --- Feats ---
+
+    public List<String> getGrantedFeats() { return grantedFeats; }
+    public boolean hasFeat(String featId) { return grantedFeats.contains(featId); }
+
+    public void grantFeat(String featId) {
+        if (!grantedFeats.contains(featId)) {
+            grantedFeats.add(featId);
+        }
+    }
+
+    public void revokeFeat(String featId) {
+        grantedFeats.remove(featId);
+    }
+
+    public int getFeatSlotsAvailable() { return featSlotsAvailable; }
+
+    public void setFeatSlotsAvailable(int slots) { this.featSlotsAvailable = slots; }
+
+    public void spendFeatSlot() {
+        if (featSlotsAvailable > 0) featSlotsAvailable--;
+    }
+
+    public void addFeatSlot() { featSlotsAvailable++; }
+
+    public int getFeatAcBonus() { return featAcBonus; }
+    public void setFeatAcBonus(int bonus) { this.featAcBonus = bonus; }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -322,6 +351,16 @@ public class DnDPlayerData {
         tag.putLong("UndyingResolveLastUsed", undyingResolveLastUsed);
         tag.putInt("RacialAcBonus", racialAcBonus);
 
+        CompoundTag featTag = new CompoundTag();
+        featTag.putInt("SlotsAvailable", featSlotsAvailable);
+        featTag.putInt("AcBonus", featAcBonus);
+        net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
+        for (String featId : grantedFeats) {
+            featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
+        }
+        featTag.put("Granted", featList);
+        tag.put("Feats", featTag);
+
         return tag;
     }
 
@@ -388,6 +427,20 @@ public class DnDPlayerData {
         humanBonusFeatAvailable = tag.getBoolean("HumanBonusFeatAvailable");
         undyingResolveLastUsed = tag.contains("UndyingResolveLastUsed") ? tag.getLong("UndyingResolveLastUsed") : -1L;
         racialAcBonus = tag.getInt("RacialAcBonus");
+
+        grantedFeats.clear();
+        if (tag.contains("Feats")) {
+            CompoundTag featTag = tag.getCompound("Feats");
+            featSlotsAvailable = featTag.getInt("SlotsAvailable");
+            featAcBonus = featTag.getInt("AcBonus");
+            net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
+            for (int i = 0; i < featList.size(); i++) {
+                grantedFeats.add(featList.getString(i));
+            }
+        } else {
+            featSlotsAvailable = 0;
+            featAcBonus = 0;
+        }
     }
 
     public void copyFrom(DnDPlayerData other) {
@@ -413,5 +466,9 @@ public class DnDPlayerData {
         this.humanBonusFeatAvailable = other.humanBonusFeatAvailable;
         this.undyingResolveLastUsed = other.undyingResolveLastUsed;
         this.racialAcBonus = other.racialAcBonus;
+        this.grantedFeats.clear();
+        this.grantedFeats.addAll(other.grantedFeats);
+        this.featSlotsAvailable = other.featSlotsAvailable;
+        this.featAcBonus = other.featAcBonus;
     }
 }

@@ -9,6 +9,7 @@ import com.deadmind.dndmods.playerdata.ClassEntry;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.ModAttachments;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -62,6 +63,8 @@ public class LevelUpScreen extends Screen {
     private int panelTop;
     private int panelWidth;
     private int panelHeight;
+
+    private int featBtnX, featBtnY, featBtnW, featBtnH;
 
     public LevelUpScreen() {
         super(Component.literal("Level Up"));
@@ -120,7 +123,7 @@ public class LevelUpScreen extends Screen {
             asiAllocations = new int[6];
         }
 
-        int[] featLevels = {1, 3, 6, 9, 12, 15, 18};
+        int[] featLevels = {1, 3, 6, 9, 12, 15, 18, 20};
         for (int fl : featLevels) {
             if (newLevel == fl) {
                 featRequired = true;
@@ -318,10 +321,13 @@ public class LevelUpScreen extends Screen {
             y += 70;
         }
 
-        // Feat stub
+        // Feat section
         if (featRequired) {
             y += 2;
             renderFeatStub(gui, x, y, panelW);
+        } else if (data.getFeatSlotsAvailable() > 0) {
+            y += 2;
+            renderExistingFeatSlots(gui, x, y, panelW);
         }
     }
 
@@ -375,14 +381,51 @@ public class LevelUpScreen extends Screen {
     }
 
     private void renderFeatStub(GuiGraphics gui, int x, int y, int panelW) {
-        gui.drawString(this.font, "Feat Available", x, y, GOLD);
+        gui.drawString(this.font, "Feat Slot Earned!", x, y, GOLD);
         y += 11;
-        gui.drawString(this.font, "Coming in a future update", x, y, GRAY);
-        y += 12;
 
-        String ackText = featAcknowledged ? "✔ Acknowledged" : "Click to acknowledge";
-        int ackColor = featAcknowledged ? 0xFF44FF44 : 0xFFFF8844;
-        gui.drawString(this.font, ackText, x, y, ackColor);
+        int slotsAvailable = data.getFeatSlotsAvailable() + 1;
+        gui.drawString(this.font, "Slots available: " + slotsAvailable, x, y, WHITE);
+        y += 14;
+
+        int btnW = Math.min(panelW, 140);
+        int btnH = 16;
+        featBtnX = x;
+        featBtnY = y;
+        featBtnW = btnW;
+        featBtnH = btnH;
+
+        int bgColor = 0xFF1A3A1A;
+        gui.fill(x, y, x + btnW, y + btnH, bgColor);
+        drawBorder(gui, x, y, btnW, btnH, 0xFF40C040);
+        String btnText = "Open Feat Selection";
+        int textX = x + (btnW - this.font.width(btnText)) / 2;
+        gui.drawString(this.font, btnText, textX, y + 4, WHITE);
+        y += btnH + 4;
+
+        if (data.isHumanBonusFeatAvailable()) {
+            gui.drawString(this.font, "Racial Bonus Feat Available!", x, y, 0xFF44FF44);
+        }
+
+        featAcknowledged = true;
+    }
+
+    private void renderExistingFeatSlots(GuiGraphics gui, int x, int y, int panelW) {
+        gui.drawString(this.font, "Unspent Feat Slots: " + data.getFeatSlotsAvailable(), x, y, 0xFFFF8844);
+        y += 14;
+
+        int btnW = Math.min(panelW, 140);
+        int btnH = 16;
+        featBtnX = x;
+        featBtnY = y;
+        featBtnW = btnW;
+        featBtnH = btnH;
+
+        gui.fill(x, y, x + btnW, y + btnH, 0xFF1A3A1A);
+        drawBorder(gui, x, y, btnW, btnH, 0xFF40C040);
+        String btnText = "Open Feat Selection";
+        int textX = x + (btnW - this.font.width(btnText)) / 2;
+        gui.drawString(this.font, btnText, textX, y + 4, WHITE);
     }
 
     private void renderMulticlassPanel(GuiGraphics gui, int mouseX, int mouseY) {
@@ -567,45 +610,16 @@ public class LevelUpScreen extends Screen {
             }
         }
 
-        // Feat acknowledge click
-        if (featRequired && !featAcknowledged) {
-            int rx = panelLeft + panelWidth / 2 + 10;
-            int ackY = estimateFeatY();
-            if (mouseX >= rx && mouseX < rx + 150 && mouseY >= ackY && mouseY < ackY + 12) {
-                featAcknowledged = true;
-                updateConfirmButton();
+        // Feat selection button click
+        if (featBtnW > 0) {
+            if (mouseX >= featBtnX && mouseX < featBtnX + featBtnW
+                    && mouseY >= featBtnY && mouseY < featBtnY + featBtnH) {
+                Minecraft.getInstance().setScreen(new FeatSelectionScreen(false));
                 return true;
             }
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    private int estimateFeatY() {
-        int y = panelTop + 46 + 14 + 12 + 14;
-        ClassEntry advancing = getAdvancingEntry();
-        if (advancing != null) {
-            DnDClass cls = advancing.getDnDClass();
-            int newLevel = advancing.getLevel() + 1;
-
-            List<Ability> newAbilities = AbilityRegistry.getAbilitiesForClass(cls).stream()
-                    .filter(a -> a.getRequiredLevel() == newLevel).toList();
-            if (!newAbilities.isEmpty()) {
-                y += 11;
-                for (Ability a : newAbilities) y += 20;
-            }
-
-            if (cls == DnDClass.WIZARD || cls == DnDClass.CLERIC) {
-                int oldSl = (int) Math.ceil(advancing.getLevel() / 2.0);
-                int newSl = (int) Math.ceil(newLevel / 2.0);
-                if (newSl > oldSl) y += 27;
-            }
-
-            if (asiRequired) y += 72;
-
-            y += 2 + 11 + 12;
-        }
-        return y;
     }
 
     private void handleAsiClick(int index) {

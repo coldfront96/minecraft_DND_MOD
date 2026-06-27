@@ -3,6 +3,9 @@ package com.deadmind.dndmods.client.screen;
 import com.deadmind.dndmods.ability.Ability;
 import com.deadmind.dndmods.ability.AbilityRegistry;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.feat.Feat;
+import com.deadmind.dndmods.feat.FeatChainHelper;
+import com.deadmind.dndmods.feat.FeatRegistry;
 import com.deadmind.dndmods.network.AssignHotbarSlotPayload;
 import com.deadmind.dndmods.network.ClearHotbarSlotPayload;
 import com.deadmind.dndmods.player.AbilityHotbar;
@@ -282,7 +285,7 @@ public class AbilityManagerScreen extends Screen {
         TabEntry tab = tabs.get(selectedTab);
 
         if ("Feats".equals(tab.name)) {
-            graphics.drawString(this.font, "No feats assigned yet", contentLeft + 4, contentTop + 4, TEXT_GRAY, false);
+            renderFeatsTab(graphics, contentLeft, contentTop, contentBottom);
             return;
         }
         if ("Skills".equals(tab.name)) {
@@ -465,6 +468,52 @@ public class AbilityManagerScreen extends Screen {
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    private void renderFeatsTab(GuiGraphics graphics, int left, int top, int bottom) {
+        DnDPlayerData data = getPlayerData();
+        if (data == null) return;
+
+        int y = top + 2;
+
+        int slotsAvailable = data.getFeatSlotsAvailable();
+        String slotText = "Feat Slots Available: " + slotsAvailable;
+        int slotColor = slotsAvailable > 0 ? 0xFF44FF44 : TEXT_GRAY;
+        graphics.drawString(this.font, slotText, left + 4, y, slotColor, false);
+        y += 14;
+
+        List<String> grantedIds = data.getGrantedFeats();
+        if (grantedIds.isEmpty()) {
+            graphics.drawString(this.font, "No feats granted yet", left + 4, y, TEXT_GRAY, false);
+            return;
+        }
+
+        List<Feat> grantedFeats = new ArrayList<>();
+        for (String id : grantedIds) {
+            Feat feat = FeatRegistry.get(id);
+            if (feat != null) grantedFeats.add(feat);
+        }
+
+        List<FeatChainHelper.FeatChain> chains = FeatChainHelper.buildChains(grantedFeats);
+
+        for (FeatChainHelper.FeatChain chain : chains) {
+            if (chain.chainGroup() != null && chain.feats().size() > 1) {
+                if (y + 14 > bottom) break;
+                String headerName = FeatChainHelper.chainGroupToDisplayName(chain.chainGroup());
+                graphics.fill(left, y, left + TAB_PANEL_WIDTH, y + 14, 0xFF303030);
+                graphics.drawString(this.font, headerName, left + 4, y + 3, TEXT_GRAY, false);
+                y += 16;
+            }
+
+            for (Feat feat : chain.feats()) {
+                if (y + ABILITY_ROW_HEIGHT > bottom) break;
+                int indent = chain.chainGroup() != null ? 8 : 0;
+                graphics.fill(left + indent, y, left + TAB_PANEL_WIDTH, y + ABILITY_ROW_HEIGHT, 0xFF1A1A2A);
+                graphics.drawString(this.font, "✓ " + feat.getDisplayName(), left + indent + 4, y + 5, 0xFF6060C0, false);
+                y += ABILITY_ROW_HEIGHT + ABILITY_ROW_GAP;
+            }
+            y += 2;
+        }
     }
 
     @Override

@@ -129,16 +129,14 @@ public record LevelUpPayload(
                     }
                 }
 
-                int[] featLevels = {1, 3, 6, 9, 12, 15, 18};
-                boolean isFeatLevel = false;
+                int totalLevel = data.getTotalLevel();
+                int[] featLevels = {1, 3, 6, 9, 12, 15, 18, 20};
                 for (int fl : featLevels) {
-                    if (newLevel == fl) {
-                        isFeatLevel = true;
+                    if (totalLevel == fl) {
+                        data.addFeatSlot();
+                        LOGGER.info("Player {} gained a feat slot at level {}", player.getName().getString(), totalLevel);
                         break;
                     }
-                }
-                if (isFeatLevel) {
-                    data.setAchievementFlag("feat_slot_" + data.getTotalLevel(), true);
                 }
 
                 data.clearLevelUpAvailable();

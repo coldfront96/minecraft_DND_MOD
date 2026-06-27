@@ -1,6 +1,7 @@
 package com.deadmind.dndmods;
 
 import com.deadmind.dndmods.ability.AbilityRegistry;
+import com.deadmind.dndmods.feat.content.CoreFeats;
 import com.deadmind.dndmods.enchanting.ModMenuTypes;
 import com.deadmind.dndmods.loot.ModLootModifiers;
 import com.deadmind.dndmods.playerdata.ModAttachments;
@@ -33,6 +34,9 @@ public class DnDMods {
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(AbilityRegistry::init);
+        event.enqueueWork(() -> {
+            AbilityRegistry.init();
+            CoreFeats.register();
+        });
     }
 }
