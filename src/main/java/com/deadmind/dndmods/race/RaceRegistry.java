@@ -7,29 +7,29 @@ public class RaceRegistry {
 
     static {
         register(DnDRace.HUMAN, "Versatile and ambitious, humans adapt to any environment.",
-                List.of());
+                List.of("bonus_feat"));
         register(DnDRace.ELF, "Graceful and long-lived, elves possess keen senses and a deep connection to nature.",
-                List.of());
+                List.of("darkvision", "sleep_immunity", "enchantment_save"));
         register(DnDRace.DWARF, "Stout and resilient, dwarves are master crafters who thrive underground.",
-                List.of());
+                List.of("darkvision", "poison_resistance"));
         register(DnDRace.HALFLING, "Small and nimble, halflings rely on luck and stealth to survive.",
-                List.of());
+                List.of("fear_resist", "all_saves_bonus"));
         register(DnDRace.GNOME, "Curious and inventive, gnomes possess a natural affinity for illusion and tinkering.",
-                List.of());
+                List.of("darkvision", "illusion_save"));
         register(DnDRace.HALF_ELF, "Blending human ambition with elven grace, half-elves walk between two worlds.",
-                List.of());
+                List.of("darkvision", "sleep_immunity", "enchantment_save"));
         register(DnDRace.HALF_ORC, "Fierce and powerful, half-orcs channel their orcish fury with surprising cunning.",
-                List.of());
+                List.of("darkvision"));
         register(DnDRace.DRAGONBORN, "Proud descendants of dragons, dragonborn carry the might of their draconic heritage.",
-                List.of());
+                List.of("darkvision", "breath_weapon"));
         register(DnDRace.GOLIATH, "Towering and powerful, goliaths thrive in harsh mountain environments.",
-                List.of());
+                List.of("powerful_build", "cold_resistance"));
         register(DnDRace.WARFORGED, "Constructed for war, warforged are sentient beings of wood, metal, and magic.",
-                List.of());
+                List.of("darkvision", "poison_resistance", "disease_immunity", "hunger_immunity", "slow_regen"));
         register(DnDRace.TIEFLING, "Bearing an infernal bloodline, tieflings possess innate arcane talents.",
-                List.of());
+                List.of("darkvision", "fire_resistance", "darkness_ability"));
         register(DnDRace.AASIMAR, "Touched by celestial power, aasimar are champions of light and healing.",
-                List.of());
+                List.of("darkvision", "acid_cold_elec_resistance", "light_ability"));
         register(DnDRace.REVENANT, "Risen from death by sheer willpower, revenants are driven by unfinished purpose.",
                 List.of());
         register(DnDRace.DHAMPIR, "Half-vampire outcasts who straddle the line between life and undeath.",

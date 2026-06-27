@@ -6,6 +6,8 @@ import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.AbilityScores;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.PlayerDataHelper;
+import com.deadmind.dndmods.race.DnDRace;
+import com.deadmind.dndmods.race.RacialSaveBonus;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,10 +33,16 @@ public final class SavingThrowSystem {
     public static int getPlayerSaveBonus(DnDPlayerData data, SaveType saveType) {
         AbilityScores scores = data.getAbilityScores();
         int level = data.getTotalLevel();
+        DnDRace race = data.getRace();
+        int racialAll = RacialSaveBonus.getAllSavesBonus(race);
+
         return switch (saveType) {
-            case FORTITUDE -> scores.getConMod() + (level / 3);
-            case REFLEX -> scores.getDexMod() + (level / 4);
-            case WILL -> scores.getWisMod() + (level / 3);
+            case FORTITUDE -> scores.getConMod() + (level / 3) + racialAll
+                    + RacialSaveBonus.getFearBonus(race);
+            case REFLEX -> scores.getDexMod() + (level / 4) + racialAll;
+            case WILL -> scores.getWisMod() + (level / 3) + racialAll
+                    + RacialSaveBonus.getEnchantmentBonus(race)
+                    + RacialSaveBonus.getIllusionBonus(race);
         };
     }
 

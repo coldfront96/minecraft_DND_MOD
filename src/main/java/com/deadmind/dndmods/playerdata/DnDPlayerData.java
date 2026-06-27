@@ -27,6 +27,7 @@ public class DnDPlayerData {
     private final AbilityHotbar abilityHotbar = new AbilityHotbar();
     private final Map<String, Integer> cooldowns = new HashMap<>();
     private boolean levelUpAvailable = false;
+    private boolean humanBonusFeatAvailable = false;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -195,6 +196,11 @@ public class DnDPlayerData {
         }
     }
 
+    // --- Human Bonus Feat ---
+
+    public boolean isHumanBonusFeatAvailable() { return humanBonusFeatAvailable; }
+    public void setHumanBonusFeatAvailable(boolean available) { this.humanBonusFeatAvailable = available; }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -299,6 +305,7 @@ public class DnDPlayerData {
         tag.put("Cooldowns", cdTag);
 
         tag.putBoolean("LevelUpAvailable", levelUpAvailable);
+        tag.putBoolean("HumanBonusFeatAvailable", humanBonusFeatAvailable);
 
         return tag;
     }
@@ -363,6 +370,7 @@ public class DnDPlayerData {
         }
 
         levelUpAvailable = tag.getBoolean("LevelUpAvailable");
+        humanBonusFeatAvailable = tag.getBoolean("HumanBonusFeatAvailable");
     }
 
     public void copyFrom(DnDPlayerData other) {
@@ -385,5 +393,6 @@ public class DnDPlayerData {
         this.cooldowns.clear();
         this.cooldowns.putAll(other.cooldowns);
         this.levelUpAvailable = other.levelUpAvailable;
+        this.humanBonusFeatAvailable = other.humanBonusFeatAvailable;
     }
 }

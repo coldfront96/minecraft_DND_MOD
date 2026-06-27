@@ -1,6 +1,9 @@
 package com.deadmind.dndmods.network;
 
+import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.AbilityRegistry;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.player.AbilityHotbar;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.PlayerDataHelper;
 import com.deadmind.dndmods.race.DnDRace;
@@ -56,6 +59,24 @@ public record SelectRacePayload(String raceName) implements CustomPacketPayload 
 
             DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
             data.setRace(race);
+
+            if (race == DnDRace.HUMAN) {
+                data.setHumanBonusFeatAvailable(true);
+            }
+
+            for (Ability ability : AbilityRegistry.getRacialAbilities(race)) {
+                AbilityHotbar hotbar = data.getAbilityHotbar();
+                if (hotbar.getSlotAbility(8) == null) {
+                    hotbar.slotAbility(8, ability.getId());
+                } else {
+                    for (int i = 0; i < AbilityHotbar.SLOTS; i++) {
+                        if (hotbar.getSlotAbility(i) == null) {
+                            hotbar.slotAbility(i, ability.getId());
+                            break;
+                        }
+                    }
+                }
+            }
 
             LOGGER.info("Player {} selected race: {}", serverPlayer.getName().getString(), race.getDisplayName());
 
