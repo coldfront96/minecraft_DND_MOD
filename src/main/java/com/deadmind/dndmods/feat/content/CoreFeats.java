@@ -76,6 +76,163 @@ public class CoreFeats {
         ));
 
         registerCombatFeats();
+        registerGeneralFeats();
+    }
+
+    // ------------------------------------------------------------------
+    // PHB general feat content pass. Most are flag only — their effects
+    // are wired up in future system passes (companions, crafting,
+    // enchanting, loot, stealth). The handful with mechanical impact in
+    // this pass either feed a real int field (Negotiator -> featWillBonus)
+    // or are driven by FeatEffectHandler reading their unlock flags
+    // (Run, Athletic, Acrobatic, Self-Sufficient).
+    // ------------------------------------------------------------------
+    private static void registerGeneralFeats() {
+
+        // --- LEADERSHIP LINE ---
+        generalFeat("leadership", "Leadership",
+                "Attract a cohort and followers based on your Leadership score.",
+                "leadership_line", 0,
+                List.of(level(6)));
+
+        generalFeat("legendary_leader", "Legendary Leader",
+                "Gain a bonus to your Leadership score when leading from the front.",
+                "leadership_line", 1,
+                List.of(reqFeat("leadership", "Leadership"), level(6)));
+
+        // --- SPELLCASTING UTILITY FEATS ---
+        generalFeat("spell_mastery", "Spell Mastery",
+                "Prepare a small number of spells without a spellbook.",
+                null, 0,
+                List.of(cls(DnDClass.WIZARD)));
+
+        generalFeat("augment_summoning", "Augment Summoning",
+                "Summoned creatures gain +4 STR and +4 CON.",
+                "summoning_line", 0,
+                List.of());
+
+        generalFeat("natural_spell", "Natural Spell",
+                "Cast spells while in wild shape form.",
+                null, 0,
+                List.of(wis(13)));
+
+        generalFeat("extra_wild_shape", "Extra Wild Shape",
+                "Use wild shape two additional times per day.",
+                null, 0,
+                List.of(cls(DnDClass.RANGER), level(5)));
+
+        generalFeat("combat_casting", "Combat Casting",
+                "+4 bonus on concentration checks when casting defensively or while grappled.",
+                null, 0,
+                List.of());
+
+        generalFeat("eschew_materials", "Eschew Materials",
+                "Cast spells without material components worth 1 gold or less.",
+                null, 0,
+                List.of());
+
+        // --- ITEM CREATION LINE (parallel roots at chainOrder 0) ---
+        generalFeat("scribe_scroll", "Scribe Scroll",
+                "Create scrolls of spells you know.",
+                "crafting_line", 0,
+                List.of(casterLevel(1)));
+
+        generalFeat("brew_potion", "Brew Potion",
+                "Create potions of spells you know of up to 3rd level.",
+                "crafting_line", 0,
+                List.of(casterLevel(3)));
+
+        generalFeatFlag("craft_wondrous_item", "craft_wondrous_unlocked", "Craft Wondrous Item",
+                "Create wondrous magic items.",
+                "crafting_line", 0,
+                List.of(casterLevel(3)));
+
+        generalFeatFlag("craft_magic_arms_armor", "craft_magic_arms_unlocked", "Craft Magic Arms and Armor",
+                "Create magic weapons and armor.",
+                "crafting_line", 0,
+                List.of(casterLevel(5)));
+
+        generalFeat("craft_rod", "Craft Rod",
+                "Create magic rods.",
+                "crafting_line", 0,
+                List.of(casterLevel(9)));
+
+        generalFeat("craft_staff", "Craft Staff",
+                "Create magic staffs.",
+                "crafting_line", 0,
+                List.of(casterLevel(12)));
+
+        generalFeat("forge_ring", "Forge Ring",
+                "Create magic rings.",
+                "crafting_line", 0,
+                List.of(casterLevel(12)));
+
+        // --- RESERVE / SKILL-BOOST FEATS ---
+        generalFeat("run", "Run",
+                "Run at five times normal speed instead of four. Retain DEX bonus to AC while running.",
+                null, 0,
+                List.of());
+
+        generalFeat("athletic", "Athletic",
+                "+2 bonus on Climb and Jump checks. Grants a +10% jump height bonus.",
+                null, 0,
+                List.of());
+
+        generalFeat("acrobatic", "Acrobatic",
+                "+2 bonus on Jump and Tumble checks. Negates the first 4 blocks of fall damage.",
+                null, 0,
+                List.of());
+
+        generalFeat("animal_affinity", "Animal Affinity",
+                "+2 bonus on Handle Animal and Ride checks. Tamed animals gain +20% max HP.",
+                null, 0,
+                List.of());
+
+        // Negotiator grants a real, stackable Will save bonus.
+        FeatRegistry.register(new Feat(
+                "negotiator", "Negotiator",
+                "+2 on Diplomacy and Sense Motive. Grants +1 to all Will saves.",
+                FeatCategory.GENERAL, FeatSource.PHB,
+                null, 0,
+                List.of(),
+                data -> data.setFeatWillBonus(data.getFeatWillBonus() + 1),
+                data -> data.setFeatWillBonus(data.getFeatWillBonus() - 1)
+        ));
+
+        generalFeat("self_sufficient", "Self-Sufficient",
+                "+2 on Heal and Survival checks. Natural health regeneration is 25% faster.",
+                null, 0,
+                List.of());
+
+        generalFeat("stealthy", "Stealthy",
+                "+2 on Hide and Move Silently. Reduces mob detection range by 15%.",
+                null, 0,
+                List.of());
+
+        generalFeat("diligent", "Diligent",
+                "+2 on Appraise and Decipher Script. +1 to INT modifier for bonus feat calculation.",
+                null, 0,
+                List.of());
+
+        generalFeat("investigator", "Investigator",
+                "+2 on Gather Information and Search. One extra roll on chest loot.",
+                null, 0,
+                List.of());
+
+        generalFeat("magical_aptitude", "Magical Aptitude",
+                "+2 on Spellcraft and Use Magic Device. Reduces arcane dust cost for enchanting by one tier.",
+                null, 0,
+                List.of());
+
+        generalFeat("persuasive", "Persuasive",
+                "+2 on Bluff and Intimidate. +1 to CHA modifier for class resource maximum.",
+                null, 0,
+                List.of());
+
+        generalFeat("nimble_fingers", "Nimble Fingers",
+                "+2 on Disable Device and Open Lock. 20% faster block interaction speed.",
+                null, 0,
+                List.of());
     }
 
     // ------------------------------------------------------------------
@@ -369,8 +526,37 @@ public class CoreFeats {
         ));
     }
 
+    /** Registers a PHB general feat whose only effect is setting an unlock flag (flag = id + "_unlocked"). */
+    private static void generalFeat(String id, String name, String description,
+                                    String chainGroup, int chainOrder,
+                                    List<FeatPrerequisite> prerequisites) {
+        generalFeatFlag(id, id + "_unlocked", name, description, chainGroup, chainOrder, prerequisites);
+    }
+
+    /** Registers a PHB general flag feat with an explicit unlock-flag key (for ids whose flag name differs). */
+    private static void generalFeatFlag(String id, String flag, String name, String description,
+                                        String chainGroup, int chainOrder,
+                                        List<FeatPrerequisite> prerequisites) {
+        FeatRegistry.register(new Feat(
+                id, name, description,
+                FeatCategory.GENERAL, FeatSource.PHB,
+                chainGroup, chainOrder,
+                prerequisites,
+                data -> data.setAchievementFlag(flag, true),
+                data -> data.setAchievementFlag(flag, false)
+        ));
+    }
+
     private static FeatPrerequisite reqFeat(String id, String name) {
         return new FeatPrerequisite.RequiredFeatPrerequisite(id, name);
+    }
+
+    private static FeatPrerequisite level(int minimum) {
+        return new FeatPrerequisite.LevelPrerequisite(minimum);
+    }
+
+    private static FeatPrerequisite casterLevel(int minimum) {
+        return new FeatPrerequisite.CasterLevelPrerequisite(minimum);
     }
 
     private static FeatPrerequisite bab(int minimum) {

@@ -33,6 +33,7 @@ public class DnDPlayerData {
     private int featAcBonus = 0;
     private int featInitiativeBonus = 0;
     private int featShieldBonus = 0;
+    private int featWillBonus = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -251,6 +252,9 @@ public class DnDPlayerData {
     public int getFeatShieldBonus() { return featShieldBonus; }
     public void setFeatShieldBonus(int bonus) { this.featShieldBonus = bonus; }
 
+    public int getFeatWillBonus() { return featWillBonus; }
+    public void setFeatWillBonus(int bonus) { this.featWillBonus = bonus; }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -364,6 +368,7 @@ public class DnDPlayerData {
         featTag.putInt("AcBonus", featAcBonus);
         featTag.putInt("InitiativeBonus", featInitiativeBonus);
         featTag.putInt("ShieldBonus", featShieldBonus);
+        featTag.putInt("WillBonus", featWillBonus);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -445,6 +450,7 @@ public class DnDPlayerData {
             featAcBonus = featTag.getInt("AcBonus");
             featInitiativeBonus = featTag.getInt("InitiativeBonus");
             featShieldBonus = featTag.getInt("ShieldBonus");
+            featWillBonus = featTag.getInt("WillBonus");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -454,6 +460,7 @@ public class DnDPlayerData {
             featAcBonus = 0;
             featInitiativeBonus = 0;
             featShieldBonus = 0;
+            featWillBonus = 0;
         }
     }
 
@@ -486,5 +493,6 @@ public class DnDPlayerData {
         this.featAcBonus = other.featAcBonus;
         this.featInitiativeBonus = other.featInitiativeBonus;
         this.featShieldBonus = other.featShieldBonus;
+        this.featWillBonus = other.featWillBonus;
     }
 }

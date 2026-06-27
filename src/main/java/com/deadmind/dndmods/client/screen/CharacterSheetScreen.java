@@ -150,7 +150,7 @@ public class CharacterSheetScreen extends Screen {
         drawStatRow(graphics, "Reflex", formatSigned(reflex), x, y, rightEdge);
         y += 19;
 
-        int will = scores.getWisMod() + (totalLevel / 3);
+        int will = scores.getWisMod() + (totalLevel / 3) + data.getFeatWillBonus();
         drawStatRow(graphics, "Will", formatSigned(will), x, y, rightEdge);
         y += 19;
 
