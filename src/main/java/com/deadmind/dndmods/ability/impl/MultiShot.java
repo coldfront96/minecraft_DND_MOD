@@ -1,26 +1,56 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.AbilityScoreType;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.phys.Vec3;
 
 public class MultiShot extends Ability {
     public MultiShot() {
-        super("ranger_multi_shot", "Multi Shot", DnDClass.RANGER, 1, 15, 60);
+        super("ranger_multi_shot", "Multi Shot",
+                "Fire 3 arrows in a spread pattern",
+                DnDClass.RANGER, 1, 15, 60, ClickBehavior.CONSUMES_CLICK);
     }
+
+    @Override
+    public float getBaseDamage() { return 3.0f; }
+
+    @Override
+    public AbilityScoreType getDamageScalingStat() { return AbilityScoreType.DEXTERITY; }
 
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
         Vec3 look = player.getLookAngle();
+        // Derive the horizontal "right" vector from yaw so the spread is stable
+        // even when the player looks straight up or down (a cross product with
+        // the up vector would collapse to zero in those cases).
+        float yawRad = player.getYRot() * ((float) Math.PI / 180F);
+        Vec3 right = new Vec3(-Math.cos(yawRad), 0.0, -Math.sin(yawRad));
+
+        int dexMod = data.getAbilityScores().getDexMod();
+        double arrowDamage = getBaseDamage() + dexMod;
+
+        double spreadAngle = Math.toRadians(15);
+
         for (int i = -1; i <= 1; i++) {
             Arrow arrow = new Arrow(player.level(), player);
-            double spread = i * 0.15;
-            arrow.shoot(look.x + spread, look.y, look.z + spread, 3.0f, 1.0f);
+            Vec3 dir;
+            if (i == 0) {
+                dir = look;
+            } else {
+                double cos = Math.cos(spreadAngle * i);
+                double sin = Math.sin(spreadAngle * i);
+                dir = look.scale(cos).add(right.scale(sin));
+            }
+            arrow.shoot(dir.x, dir.y, dir.z, 3.0f, 1.0f);
             arrow.setOwner(player);
-            arrow.setBaseDamage(2.5);
+            arrow.setBaseDamage(arrowDamage);
+            arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
             player.level().addFreshEntity(arrow);
         }
     }

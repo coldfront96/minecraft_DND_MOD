@@ -1,19 +1,22 @@
 package com.deadmind.dndmods.ability.impl;
 
 import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.combat.PerPlayerCombatState;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class HuntersMark extends Ability {
     public HuntersMark() {
-        super("ranger_hunters_mark", "Hunter's Mark", DnDClass.RANGER, 3, 20, 100);
+        super("ranger_hunters_mark", "Hunter's Mark",
+                "Mark target, all damage to marked target +25%",
+                DnDClass.RANGER, 3, 20, 100, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override
@@ -37,8 +40,8 @@ public class HuntersMark extends Ability {
         }
 
         if (closest != null) {
-            closest.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0));
-            closest.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0));
+            closest.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, false, true));
+            PerPlayerCombatState.get(player.getUUID()).setHuntersMark(closest.getUUID(), 200);
         }
     }
 }

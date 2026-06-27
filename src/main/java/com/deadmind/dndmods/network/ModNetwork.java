@@ -20,6 +20,12 @@ public class ModNetwork {
                 SyncPlayerDataPayload::handle
         );
 
+        registrar.playToClient(
+                OpenClassSelectionPayload.TYPE,
+                OpenClassSelectionPayload.STREAM_CODEC,
+                OpenClassSelectionPayload::handle
+        );
+
         registrar.playToServer(
                 SelectClassPayload.TYPE,
                 SelectClassPayload.STREAM_CODEC,
@@ -36,6 +42,54 @@ public class ModNetwork {
                 OpenAbilityBarPayload.TYPE,
                 OpenAbilityBarPayload.STREAM_CODEC,
                 OpenAbilityBarPayload::handle
+        );
+
+        registrar.playToServer(
+                SyncHotbarPayload.TYPE,
+                SyncHotbarPayload.STREAM_CODEC,
+                SyncHotbarPayload::handle
+        );
+
+        registrar.playToServer(
+                LevelUpPayload.TYPE,
+                LevelUpPayload.STREAM_CODEC,
+                LevelUpPayload::handle
+        );
+
+        registrar.playToServer(
+                AssignHotbarSlotPayload.TYPE,
+                AssignHotbarSlotPayload.STREAM_CODEC,
+                AssignHotbarSlotPayload::handle
+        );
+
+        registrar.playToServer(
+                ClearHotbarSlotPayload.TYPE,
+                ClearHotbarSlotPayload.STREAM_CODEC,
+                ClearHotbarSlotPayload::handle
+        );
+
+        registrar.playToClient(
+                AbilityAssignRejectedPayload.TYPE,
+                AbilityAssignRejectedPayload.STREAM_CODEC,
+                AbilityAssignRejectedPayload::handle
+        );
+
+        registrar.playToClient(
+                OpenRaceSelectionPayload.TYPE,
+                OpenRaceSelectionPayload.STREAM_CODEC,
+                OpenRaceSelectionPayload::handle
+        );
+
+        registrar.playToServer(
+                SelectRacePayload.TYPE,
+                SelectRacePayload.STREAM_CODEC,
+                SelectRacePayload::handle
+        );
+
+        registrar.playToServer(
+                SelectFeatPayload.TYPE,
+                SelectFeatPayload.STREAM_CODEC,
+                SelectFeatPayload::handle
         );
     }
 

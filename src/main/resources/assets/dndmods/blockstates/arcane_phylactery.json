@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "tier=1": { "model": "dndmods:block/arcane_phylactery" },
+    "tier=2": { "model": "dndmods:block/arcane_phylactery" },
+    "tier=3": { "model": "dndmods:block/arcane_phylactery" },
+    "tier=4": { "model": "dndmods:block/arcane_phylactery" }
+  }
+}

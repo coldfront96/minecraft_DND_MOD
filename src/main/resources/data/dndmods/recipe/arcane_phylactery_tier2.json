@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "dndmods:arcane_phylactery" },
+    { "item": "dndmods:lapis_arcane_dust" },
+    { "item": "dndmods:lapis_arcane_dust" },
+    { "item": "dndmods:lapis_arcane_dust" },
+    { "item": "dndmods:lapis_arcane_dust" }
+  ],
+  "result": {
+    "id": "dndmods:arcane_phylactery",
+    "count": 1
+  }
+}

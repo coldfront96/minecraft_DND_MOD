@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "dndmods:iron_arcane_dust" },
+    { "item": "minecraft:lapis_lazuli" },
+    { "item": "minecraft:lapis_lazuli" },
+    { "item": "minecraft:lapis_lazuli" },
+    { "item": "minecraft:lapis_lazuli" }
+  ],
+  "result": {
+    "id": "dndmods:lapis_arcane_dust",
+    "count": 1
+  }
+}

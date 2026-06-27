@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FDF",
+    "DNF",
+    "FDF"
+  ],
+  "key": {
+    "F": {
+      "item": "dndmods:arcane_ore_fragment"
+    },
+    "D": {
+      "item": "dndmods:copper_arcane_dust"
+    },
+    "N": {
+      "item": "minecraft:nether_bricks"
+    }
+  },
+  "result": {
+    "id": "dndmods:arcane_phylactery",
+    "count": 1
+  }
+}

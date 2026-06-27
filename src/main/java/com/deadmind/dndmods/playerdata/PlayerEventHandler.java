@@ -1,7 +1,11 @@
 package com.deadmind.dndmods.playerdata;
 
 import com.deadmind.dndmods.DnDMods;
+import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.network.OpenClassSelectionPayload;
+import com.deadmind.dndmods.network.OpenRaceSelectionPayload;
 import com.deadmind.dndmods.network.SyncPlayerDataPayload;
+import com.deadmind.dndmods.race.DnDRace;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -15,7 +19,23 @@ public class PlayerEventHandler {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
             DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
+
+            data.getAbilityHotbar().validateAndClean(data);
+
+            // Daily racial-feat resources reset on login.
+            data.setHalfOrcFerocityAvailable(true);
+            data.setAchievementFlag("dwarven_resilience_used", false);
+            if (data.hasFeat("halfling_luck")) {
+                data.setHalflingLuckCharges(1);
+            }
+
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
+
+            if (data.getRace() == DnDRace.NONE) {
+                PacketDistributor.sendToPlayer(serverPlayer, new OpenRaceSelectionPayload());
+            } else if (data.getDnDClass() == DnDClass.NONE) {
+                PacketDistributor.sendToPlayer(serverPlayer, new OpenClassSelectionPayload());
+            }
         }
     }
 

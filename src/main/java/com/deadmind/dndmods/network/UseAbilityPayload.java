@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record UseAbilityPayload(int slotIndex) implements CustomPacketPayload {
+public record UseAbilityPayload(String abilityId) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<UseAbilityPayload> TYPE =
             new CustomPacketPayload.Type<>(ModNetwork.id("use_ability"));
 
@@ -19,24 +19,31 @@ public record UseAbilityPayload(int slotIndex) implements CustomPacketPayload {
             StreamCodec.of(UseAbilityPayload::write, UseAbilityPayload::read);
 
     private static UseAbilityPayload read(FriendlyByteBuf buf) {
-        return new UseAbilityPayload(buf.readVarInt());
+        return new UseAbilityPayload(buf.readUtf(64));
     }
 
     private static void write(FriendlyByteBuf buf, UseAbilityPayload payload) {
-        buf.writeVarInt(payload.slotIndex);
+        buf.writeUtf(payload.abilityId, 64);
     }
 
     public void handle(IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer serverPlayer) {
+                Ability ability = AbilityRegistry.getAbility(abilityId);
+                if (ability == null) return;
+
                 DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
-                var abilities = AbilityRegistry.getAbilitiesForClass(data.getDnDClass());
-                if (slotIndex >= 0 && slotIndex < abilities.size()) {
-                    Ability ability = abilities.get(slotIndex);
-                    if (ability.canUse(serverPlayer, data)) {
-                        ability.execute(serverPlayer, data);
-                        PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
-                    }
+
+                // Verify the ability is actually assigned to one of the player's
+                // server-side hotbar slots. Slotting is authoritative on the
+                // server, so this prevents a hacked client from firing any
+                // class-appropriate ability without slotting it.
+                if (!data.getAbilityHotbar().isAbilitySlotted(abilityId)) return;
+
+                if (ability.canUse(serverPlayer, data)) {
+                    ability.execute(serverPlayer, data);
+                    data.startCooldown(abilityId, ability.getCooldownTicks());
+                    PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
                 }
             }
         });

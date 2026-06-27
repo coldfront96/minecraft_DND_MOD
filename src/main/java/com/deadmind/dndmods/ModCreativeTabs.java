@@ -18,7 +18,21 @@ public class ModCreativeTabs {
                     .title(Component.translatable("itemGroup." + DnDMods.MOD_ID + ".dnd_tab"))
                     .icon(() -> new ItemStack(Items.DIAMOND_SWORD))
                     .displayItems((parameters, output) -> {
-                        // Items will be added here as they are created
+                        output.accept(ModItems.COPPER_ARCANE_DUST.get());
+                        output.accept(ModItems.IRON_ARCANE_DUST.get());
+                        output.accept(ModItems.LAPIS_ARCANE_DUST.get());
+                        output.accept(ModItems.GOLD_ARCANE_DUST.get());
+                        output.accept(ModItems.EMERALD_ARCANE_DUST.get());
+                        output.accept(ModItems.BLAZE_ARCANE_DUST.get());
+                        output.accept(ModItems.GHAST_ARCANE_DUST.get());
+                        output.accept(ModItems.DIAMOND_ARCANE_DUST.get());
+                        output.accept(ModItems.NETHERITE_ARCANE_DUST.get());
+                        output.accept(ModItems.NETHER_STAR_ARCANE_DUST.get());
+                        output.accept(ModItems.ARCANE_ENCHANTING_TABLE_ITEM.get());
+                        output.accept(ModItems.ARCANE_ORE_FRAGMENT.get());
+                        output.accept(ModItems.ARCANE_PHYLACTERY_ITEM.get());
+                        output.accept(ModItems.ARCANE_ORE_ITEM.get());
+                        output.accept(ModItems.DEEPSLATE_ARCANE_ORE_ITEM.get());
                     })
                     .build());
 
