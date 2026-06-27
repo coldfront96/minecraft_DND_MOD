@@ -33,6 +33,13 @@ public record UseAbilityPayload(String abilityId) implements CustomPacketPayload
                 if (ability == null) return;
 
                 DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
+
+                // Verify the ability is actually assigned to one of the player's
+                // server-side hotbar slots. Slotting is authoritative on the
+                // server, so this prevents a hacked client from firing any
+                // class-appropriate ability without slotting it.
+                if (!data.getAbilityHotbar().isAbilitySlotted(abilityId)) return;
+
                 if (ability.canUse(serverPlayer, data)) {
                     ability.execute(serverPlayer, data);
                     data.startCooldown(abilityId, ability.getCooldownTicks());

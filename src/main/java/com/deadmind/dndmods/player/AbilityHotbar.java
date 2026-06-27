@@ -52,6 +52,15 @@ public class AbilityHotbar {
         return getSlotAbility(activeSlot);
     }
 
+    /** True if the given ability id currently occupies one of the hotbar slots. */
+    public boolean isAbilitySlotted(String abilityId) {
+        if (abilityId == null) return false;
+        for (int i = 0; i < SLOTS; i++) {
+            if (abilityId.equals(slotAbilityIds[i])) return true;
+        }
+        return false;
+    }
+
     public CompoundTag save() {
         CompoundTag tag = new CompoundTag();
         ListTag list = new ListTag();
