@@ -46,6 +46,8 @@ public class AbilityRegistry {
         registerRacial(DnDRace.DRAGONBORN, new DragonBreathAbility());
         registerRacial(DnDRace.TIEFLING, new TieflingDarknessAbility());
         registerRacial(DnDRace.AASIMAR, new AasimarLightAbility());
+        registerRacial(DnDRace.SHADAR_KAI, new ShadarKaiPhaseStepAbility());
+        registerRacial(DnDRace.VAMPIRE_SPAWN, new VampireCharmGazeAbility());
     }
 
     private static void register(Ability ability) {

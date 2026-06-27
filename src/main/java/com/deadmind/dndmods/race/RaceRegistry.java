@@ -31,15 +31,20 @@ public class RaceRegistry {
         register(DnDRace.AASIMAR, "Touched by celestial power, aasimar are champions of light and healing.",
                 List.of("darkvision", "acid_cold_elec_resistance", "light_ability"));
         register(DnDRace.REVENANT, "Risen from death by sheer willpower, revenants are driven by unfinished purpose.",
-                List.of());
+                List.of("hunger_immunity", "poison_immunity", "disease_immunity", "negative_energy_healing",
+                        "undying_resolve", "slow_regen"));
         register(DnDRace.DHAMPIR, "Half-vampire outcasts who straddle the line between life and undeath.",
-                List.of());
+                List.of("hunger_immunity", "partial_poison_resist", "disease_immunity", "negative_energy_healing",
+                        "blood_drain", "sunlight_sensitivity_minor"));
         register(DnDRace.SHADAR_KAI, "Shadow-touched elves bound to the Shadowfell, masters of stealth and shadow magic.",
-                List.of());
+                List.of("hunger_immunity", "poison_immunity", "disease_immunity", "negative_energy_healing",
+                        "phase_step", "necrotic_resistance"));
         register(DnDRace.VAMPIRE_SPAWN, "Lesser vampires retaining a spark of their mortal selves, empowered by dark blood.",
-                List.of());
+                List.of("hunger_immunity", "poison_immunity", "disease_immunity", "negative_energy_healing",
+                        "sunlight_damage", "spider_climb", "charm_gaze"));
         register(DnDRace.SKELETON_WARRIOR, "Animated warriors sustained by necromantic energy, tireless and unyielding.",
-                List.of());
+                List.of("hunger_immunity", "poison_immunity", "disease_immunity", "negative_energy_healing",
+                        "arrow_resistance", "blunt_vulnerability", "bone_armor"));
     }
 
     private static void register(DnDRace race, String description, List<String> traitKeys) {

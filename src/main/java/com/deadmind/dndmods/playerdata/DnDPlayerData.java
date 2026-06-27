@@ -28,6 +28,8 @@ public class DnDPlayerData {
     private final Map<String, Integer> cooldowns = new HashMap<>();
     private boolean levelUpAvailable = false;
     private boolean humanBonusFeatAvailable = false;
+    private long undyingResolveLastUsed = -1L;
+    private int racialAcBonus = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -184,6 +186,7 @@ public class DnDPlayerData {
         }
 
         this.race = newRace;
+        this.racialAcBonus = (newRace == DnDRace.SKELETON_WARRIOR) ? 1 : 0;
 
         if (newRace != DnDRace.NONE) {
             AbilityScoreModifiers newMods = newRace.getModifiers();
@@ -200,6 +203,16 @@ public class DnDPlayerData {
 
     public boolean isHumanBonusFeatAvailable() { return humanBonusFeatAvailable; }
     public void setHumanBonusFeatAvailable(boolean available) { this.humanBonusFeatAvailable = available; }
+
+    // --- Undying Resolve (Revenant) ---
+
+    public long getUndyingResolveLastUsed() { return undyingResolveLastUsed; }
+    public void setUndyingResolveLastUsed(long time) { this.undyingResolveLastUsed = time; }
+
+    // --- Racial AC Bonus (Skeleton Warrior) ---
+
+    public int getRacialAcBonus() { return racialAcBonus; }
+    public void setRacialAcBonus(int bonus) { this.racialAcBonus = bonus; }
 
     // --- Achievement flags ---
 
@@ -306,6 +319,8 @@ public class DnDPlayerData {
 
         tag.putBoolean("LevelUpAvailable", levelUpAvailable);
         tag.putBoolean("HumanBonusFeatAvailable", humanBonusFeatAvailable);
+        tag.putLong("UndyingResolveLastUsed", undyingResolveLastUsed);
+        tag.putInt("RacialAcBonus", racialAcBonus);
 
         return tag;
     }
@@ -371,6 +386,8 @@ public class DnDPlayerData {
 
         levelUpAvailable = tag.getBoolean("LevelUpAvailable");
         humanBonusFeatAvailable = tag.getBoolean("HumanBonusFeatAvailable");
+        undyingResolveLastUsed = tag.contains("UndyingResolveLastUsed") ? tag.getLong("UndyingResolveLastUsed") : -1L;
+        racialAcBonus = tag.getInt("RacialAcBonus");
     }
 
     public void copyFrom(DnDPlayerData other) {
@@ -394,5 +411,7 @@ public class DnDPlayerData {
         this.cooldowns.putAll(other.cooldowns);
         this.levelUpAvailable = other.levelUpAvailable;
         this.humanBonusFeatAvailable = other.humanBonusFeatAvailable;
+        this.undyingResolveLastUsed = other.undyingResolveLastUsed;
+        this.racialAcBonus = other.racialAcBonus;
     }
 }
