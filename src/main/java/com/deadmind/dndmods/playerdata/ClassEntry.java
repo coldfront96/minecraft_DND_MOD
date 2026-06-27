@@ -60,9 +60,16 @@ public class ClassEntry {
     }
 
     public void load(CompoundTag tag) {
-        dndClass = DnDClass.valueOf(tag.getString("Class"));
-        level = tag.getInt("Level");
-        currentResource = tag.getInt("Resource");
+        try {
+            dndClass = DnDClass.valueOf(tag.getString("Class"));
+        } catch (IllegalArgumentException e) {
+            // Missing/corrupt or renamed enum value — fall back rather than
+            // throwing and breaking the whole player-data load.
+            dndClass = DnDClass.NONE;
+        }
+        // Route through the setters so level/resource get clamped to valid ranges.
+        setLevel(tag.getInt("Level"));
+        setCurrentResource(tag.getInt("Resource"));
     }
 
     public void copyFrom(ClassEntry other) {

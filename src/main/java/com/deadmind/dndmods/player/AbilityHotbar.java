@@ -80,7 +80,8 @@ public class AbilityHotbar {
                 slotAbilityIds[i] = id.isEmpty() ? null : id;
             }
         }
-        activeSlot = tag.getInt("ActiveSlot");
+        // Clamp in case a corrupt/outdated save stored an out-of-range slot.
+        activeSlot = Math.max(0, Math.min(SLOTS - 1, tag.getInt("ActiveSlot")));
     }
 
     public void validateAndClean(DnDPlayerData data) {

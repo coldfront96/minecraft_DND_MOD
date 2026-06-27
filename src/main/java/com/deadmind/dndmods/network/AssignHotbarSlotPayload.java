@@ -38,10 +38,19 @@ public record AssignHotbarSlotPayload(int slotIndex, String abilityId) implement
             if (!(context.player() instanceof ServerPlayer serverPlayer)) return;
             if (slotIndex < 0 || slotIndex >= AbilityHotbar.SLOTS) return;
 
-            Ability ability = AbilityRegistry.getAbility(abilityId);
-            if (ability == null) return;
-
             DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
+
+            Ability ability = AbilityRegistry.getAbility(abilityId);
+            if (ability == null) {
+                // Unknown/typo'd id: tell the client it was rejected and resync
+                // so the client's view of the slot can't drift from the server.
+                LOGGER.warn("Player {} attempted to assign unknown ability id {}",
+                        serverPlayer.getName().getString(), abilityId);
+                PacketDistributor.sendToPlayer(serverPlayer,
+                        new AbilityAssignRejectedPayload(slotIndex, "Unknown ability."));
+                PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
+                return;
+            }
 
             boolean unlocked = false;
             if (data.getPrimary().getDnDClass() == ability.getRequiredClass()
