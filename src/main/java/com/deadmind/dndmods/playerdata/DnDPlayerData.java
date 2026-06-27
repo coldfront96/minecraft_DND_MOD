@@ -31,6 +31,8 @@ public class DnDPlayerData {
     private final List<String> grantedFeats = new ArrayList<>();
     private int featSlotsAvailable = 0;
     private int featAcBonus = 0;
+    private int featInitiativeBonus = 0;
+    private int featShieldBonus = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -243,6 +245,12 @@ public class DnDPlayerData {
     public int getFeatAcBonus() { return featAcBonus; }
     public void setFeatAcBonus(int bonus) { this.featAcBonus = bonus; }
 
+    public int getFeatInitiativeBonus() { return featInitiativeBonus; }
+    public void setFeatInitiativeBonus(int bonus) { this.featInitiativeBonus = bonus; }
+
+    public int getFeatShieldBonus() { return featShieldBonus; }
+    public void setFeatShieldBonus(int bonus) { this.featShieldBonus = bonus; }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -354,6 +362,8 @@ public class DnDPlayerData {
         CompoundTag featTag = new CompoundTag();
         featTag.putInt("SlotsAvailable", featSlotsAvailable);
         featTag.putInt("AcBonus", featAcBonus);
+        featTag.putInt("InitiativeBonus", featInitiativeBonus);
+        featTag.putInt("ShieldBonus", featShieldBonus);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -433,6 +443,8 @@ public class DnDPlayerData {
             CompoundTag featTag = tag.getCompound("Feats");
             featSlotsAvailable = featTag.getInt("SlotsAvailable");
             featAcBonus = featTag.getInt("AcBonus");
+            featInitiativeBonus = featTag.getInt("InitiativeBonus");
+            featShieldBonus = featTag.getInt("ShieldBonus");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -440,6 +452,8 @@ public class DnDPlayerData {
         } else {
             featSlotsAvailable = 0;
             featAcBonus = 0;
+            featInitiativeBonus = 0;
+            featShieldBonus = 0;
         }
     }
 
@@ -470,5 +484,7 @@ public class DnDPlayerData {
         this.grantedFeats.addAll(other.grantedFeats);
         this.featSlotsAvailable = other.featSlotsAvailable;
         this.featAcBonus = other.featAcBonus;
+        this.featInitiativeBonus = other.featInitiativeBonus;
+        this.featShieldBonus = other.featShieldBonus;
     }
 }

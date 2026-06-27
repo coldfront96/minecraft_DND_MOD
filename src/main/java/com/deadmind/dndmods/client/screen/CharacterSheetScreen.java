@@ -133,11 +133,12 @@ public class CharacterSheetScreen extends Screen {
 
         Minecraft mc = Minecraft.getInstance();
         int armorValue = mc.player != null ? mc.player.getArmorValue() : 0;
-        int ac = Math.max(10, 10 + scores.getDexMod() + armorValue + data.getRacialAcBonus() + data.getFeatAcBonus());
+        int ac = Math.max(10, 10 + scores.getDexMod() + armorValue + data.getRacialAcBonus()
+                + data.getFeatAcBonus() + data.getFeatShieldBonus());
         drawStatRow(graphics, "Armor Class", String.valueOf(ac), x, y, rightEdge);
         y += 19;
 
-        int initiative = scores.getDexMod();
+        int initiative = scores.getDexMod() + data.getFeatInitiativeBonus();
         drawStatRow(graphics, "Initiative", formatSigned(initiative), x, y, rightEdge);
         y += 19;
 
