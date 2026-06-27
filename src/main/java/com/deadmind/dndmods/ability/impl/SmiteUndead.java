@@ -54,13 +54,19 @@ public class SmiteUndead extends Ability {
             if (entity instanceof LivingEntity living) {
                 Vec3 toEntity = entity.position().subtract(eyePos).normalize();
                 if (look.dot(toEntity) > 0.5) {
+                    // Holy damage hits everything in front; undead take extra and
+                    // are set alight by the holy fire (matches the ability text).
                     boolean isUndead = living.getMobType() == MobType.UNDEAD;
-                    if (!isUndead) continue;
 
                     float damage = AbilityDamageCalculator.calculate(this, data, living, player);
+                    if (isUndead) {
+                        damage *= 1.5f;
+                    }
                     living.hurt(ModDamageTypes.abilityDamage(player.level(), player), damage);
                     living.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0));
-                    living.setRemainingFireTicks(60);
+                    if (isUndead) {
+                        living.setRemainingFireTicks(60);
+                    }
                 }
             }
         }

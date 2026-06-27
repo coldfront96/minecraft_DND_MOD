@@ -31,6 +31,7 @@ public class PerPlayerCombatState {
         private UUID huntersMarkTarget;
         private int huntersMarkTicksRemaining;
         private boolean consumeNextAttack;
+        private int consumeNextAttackTicks;
 
         @Nullable
         public String getPendingEnhancement() { return pendingEnhancement; }
@@ -64,11 +65,17 @@ public class PerPlayerCombatState {
 
         public void setConsumeNextAttack(boolean consume) {
             this.consumeNextAttack = consume;
+            // Bound how long the flag survives. It exists to swallow the single
+            // vanilla attack that immediately follows an ability use; without an
+            // expiry an AOE ability (e.g. Ground Slam) that never produces an
+            // AttackEntityEvent would leave it set and cancel a later real attack.
+            this.consumeNextAttackTicks = consume ? 5 : 0;
         }
 
         public boolean consumeNextAttack() {
             boolean val = this.consumeNextAttack;
             this.consumeNextAttack = false;
+            this.consumeNextAttackTicks = 0;
             return val;
         }
 
@@ -83,6 +90,12 @@ public class PerPlayerCombatState {
                 huntersMarkTicksRemaining--;
                 if (huntersMarkTicksRemaining <= 0) {
                     huntersMarkTarget = null;
+                }
+            }
+            if (consumeNextAttack && consumeNextAttackTicks > 0) {
+                consumeNextAttackTicks--;
+                if (consumeNextAttackTicks <= 0) {
+                    consumeNextAttack = false;
                 }
             }
         }

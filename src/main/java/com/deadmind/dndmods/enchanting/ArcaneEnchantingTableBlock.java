@@ -44,7 +44,7 @@ public class ArcaneEnchantingTableBlock extends Block implements EntityBlock {
             serverPlayer.openMenu(new SimpleMenuProvider(
                     (containerId, playerInv, p) -> new ArcaneEnchantingMenu(containerId, playerInv, pos),
                     TITLE
-            ));
+            ), buf -> buf.writeBlockPos(pos));
         }
 
         return InteractionResult.CONSUME;

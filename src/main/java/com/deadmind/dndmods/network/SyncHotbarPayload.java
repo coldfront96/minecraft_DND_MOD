@@ -44,6 +44,12 @@ public record SyncHotbarPayload(String[] slotIds) implements CustomPacketPayload
                         hotbar.clearSlot(i);
                     }
                 }
+                // The client supplies these ids, so strip out anything that
+                // doesn't exist or that the player hasn't unlocked (wrong class
+                // or insufficient level) — a modified client must not be able to
+                // slot abilities it shouldn't have. validateAndClean honours the
+                // race-based unlock checks for racial abilities too.
+                hotbar.validateAndClean(data);
                 PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
             }
         });

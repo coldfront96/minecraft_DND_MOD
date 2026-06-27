@@ -1,5 +1,6 @@
 package com.deadmind.dndmods.enchanting;
 
+import com.deadmind.dndmods.ModBlocks;
 import com.deadmind.dndmods.items.enchanting.ArcaneDust;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,7 +25,7 @@ public class ArcaneEnchantingMenu extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
 
     public ArcaneEnchantingMenu(int containerId, Inventory playerInv, FriendlyByteBuf buf) {
-        this(containerId, playerInv, BlockPos.ZERO);
+        this(containerId, playerInv, buf.readBlockPos());
     }
 
     public ArcaneEnchantingMenu(int containerId, Inventory playerInv, BlockPos pos) {
@@ -100,7 +101,7 @@ public class ArcaneEnchantingMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return true;
+        return stillValid(access, player, ModBlocks.ARCANE_ENCHANTING_TABLE.get());
     }
 
     @Override

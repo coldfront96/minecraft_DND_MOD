@@ -58,6 +58,16 @@ public record SelectRacePayload(String raceName) implements CustomPacketPayload 
             }
 
             DnDPlayerData data = PlayerDataHelper.get(serverPlayer);
+
+            // Race is chosen once. Reject any further selection so a modified
+            // client cannot resend this packet to re-roll ability score
+            // modifiers or reset race-specific state.
+            if (data.getRace() != DnDRace.NONE) {
+                LOGGER.warn("Player {} attempted to change race after one was already set",
+                        serverPlayer.getName().getString());
+                return;
+            }
+
             data.setRace(race);
 
             if (race == DnDRace.HUMAN) {
