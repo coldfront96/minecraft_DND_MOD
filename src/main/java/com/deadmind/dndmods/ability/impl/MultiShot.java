@@ -26,7 +26,11 @@ public class MultiShot extends Ability {
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
         Vec3 look = player.getLookAngle();
-        Vec3 right = look.cross(new Vec3(0, 1, 0)).normalize();
+        // Derive the horizontal "right" vector from yaw so the spread is stable
+        // even when the player looks straight up or down (a cross product with
+        // the up vector would collapse to zero in those cases).
+        float yawRad = player.getYRot() * ((float) Math.PI / 180F);
+        Vec3 right = new Vec3(-Math.cos(yawRad), 0.0, -Math.sin(yawRad));
 
         int dexMod = data.getAbilityScores().getDexMod();
         double arrowDamage = getBaseDamage() + dexMod;

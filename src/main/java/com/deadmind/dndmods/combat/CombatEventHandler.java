@@ -53,20 +53,25 @@ public class CombatEventHandler {
             }
         }
 
-        for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
-            for (var entity : player.level().getEntities(player, player.getBoundingBox().inflate(20.0))) {
-                if (entity instanceof LivingEntity living) {
-                    CompoundTag tags = living.getPersistentData();
-                    if (tags.contains("dndmods_web_remove_at")) {
-                        long removeAt = tags.getLong("dndmods_web_remove_at");
-                        if (living.level().getGameTime() >= removeAt) {
-                            long posLong = tags.getLong("dndmods_web_pos");
-                            BlockPos pos = BlockPos.of(posLong);
-                            if (living.level().getBlockState(pos).is(Blocks.COBWEB)) {
-                                living.level().removeBlock(pos, false);
+        // Throttle the Nature's Grasp web cleanup scan: a 20-block entity
+        // search every tick for every player is a needless TPS drain. Once
+        // every 10 ticks (0.5s) is more than precise enough for web expiry.
+        if (event.getServer().getTickCount() % 10 == 0) {
+            for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
+                for (var entity : player.level().getEntities(player, player.getBoundingBox().inflate(20.0))) {
+                    if (entity instanceof LivingEntity living) {
+                        CompoundTag tags = living.getPersistentData();
+                        if (tags.contains("dndmods_web_remove_at")) {
+                            long removeAt = tags.getLong("dndmods_web_remove_at");
+                            if (living.level().getGameTime() >= removeAt) {
+                                long posLong = tags.getLong("dndmods_web_pos");
+                                BlockPos pos = BlockPos.of(posLong);
+                                if (living.level().getBlockState(pos).is(Blocks.COBWEB)) {
+                                    living.level().removeBlock(pos, false);
+                                }
+                                tags.remove("dndmods_web_remove_at");
+                                tags.remove("dndmods_web_pos");
                             }
-                            tags.remove("dndmods_web_remove_at");
-                            tags.remove("dndmods_web_pos");
                         }
                     }
                 }

@@ -38,7 +38,7 @@ public class BackStab extends Ability {
         for (Entity entity : player.level().getEntities(player, player.getBoundingBox().inflate(5.0))) {
             if (entity instanceof LivingEntity living) {
                 Vec3 toEntity = entity.position().subtract(eyePos).normalize();
-                if (look.dot(toEntity) > 0.7) {
+                if (look.dot(toEntity) > 0.7 && player.hasLineOfSight(living)) {
                     double dist = entity.distanceTo(player);
                     if (dist < closestDist) {
                         closestDist = dist;
