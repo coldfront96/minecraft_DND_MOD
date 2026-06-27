@@ -1,5 +1,6 @@
 package com.deadmind.dndmods.client;
 
+import com.deadmind.dndmods.client.screen.RaceSelectionScreen;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.ModAttachments;
 import net.minecraft.client.Minecraft;
@@ -15,6 +16,13 @@ public class ClientPacketHandler {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null && !(mc.screen instanceof ClassSelectionScreen)) {
             mc.setScreen(new ClassSelectionScreen());
+        }
+    }
+
+    public static void openRaceSelection() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null && !(mc.screen instanceof RaceSelectionScreen)) {
+            mc.setScreen(new RaceSelectionScreen());
         }
     }
 

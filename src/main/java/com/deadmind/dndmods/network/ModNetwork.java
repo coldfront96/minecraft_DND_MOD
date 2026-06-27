@@ -73,6 +73,18 @@ public class ModNetwork {
                 AbilityAssignRejectedPayload.STREAM_CODEC,
                 AbilityAssignRejectedPayload::handle
         );
+
+        registrar.playToClient(
+                OpenRaceSelectionPayload.TYPE,
+                OpenRaceSelectionPayload.STREAM_CODEC,
+                OpenRaceSelectionPayload::handle
+        );
+
+        registrar.playToServer(
+                SelectRacePayload.TYPE,
+                SelectRacePayload.STREAM_CODEC,
+                SelectRacePayload::handle
+        );
     }
 
     public static ResourceLocation id(String path) {
