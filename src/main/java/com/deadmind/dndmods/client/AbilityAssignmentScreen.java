@@ -5,8 +5,10 @@ import com.deadmind.dndmods.ability.AbilityRegistry;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.network.SyncHotbarPayload;
 import com.deadmind.dndmods.player.AbilityHotbar;
+import com.deadmind.dndmods.playerdata.ClassEntry;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.ModAttachments;
+import com.deadmind.dndmods.race.DnDRace;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -15,6 +17,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
@@ -34,7 +37,36 @@ public class AbilityAssignmentScreen extends Screen {
     @Override
     protected void init() {
         DnDPlayerData data = Minecraft.getInstance().player.getData(ModAttachments.PLAYER_DATA);
-        availableAbilities = AbilityRegistry.getAvailableAbilities(data.getDnDClass(), data.getLevel());
+
+        // Show every ability the player has actually unlocked: primary class,
+        // secondary (multiclass), and racial abilities — otherwise multiclass
+        // and racial abilities can't be assigned from this screen.
+        List<Ability> abilities = new ArrayList<>(
+                AbilityRegistry.getAvailableAbilities(data.getPrimary().getDnDClass(), data.getPrimary().getLevel()));
+
+        ClassEntry secondary = data.getSecondary();
+        if (secondary != null && secondary.getDnDClass() != DnDClass.NONE) {
+            for (Ability a : AbilityRegistry.getAvailableAbilities(secondary.getDnDClass(), secondary.getLevel())) {
+                if (!containsAbility(abilities, a.getId())) abilities.add(a);
+            }
+        }
+
+        if (data.getRace() != DnDRace.NONE) {
+            for (Ability a : AbilityRegistry.getRacialAbilities(data.getRace())) {
+                if (a.meetsLevelRequirement(data) && !containsAbility(abilities, a.getId())) {
+                    abilities.add(a);
+                }
+            }
+        }
+
+        availableAbilities = abilities;
+    }
+
+    private static boolean containsAbility(List<Ability> list, String id) {
+        for (Ability a : list) {
+            if (a.getId().equals(id)) return true;
+        }
+        return false;
     }
 
     @Override
@@ -86,7 +118,7 @@ public class AbilityAssignmentScreen extends Screen {
             gui.fill(listX, y, listX + listWidth, y + ABILITY_ENTRY_HEIGHT - 1, bgColor);
 
             int nameColor = slotted ? 0x55FF55
-                    : (ability.getRequiredLevel() <= data.getLevel() ? 0xFFFFFF : 0x666666);
+                    : (ability.meetsLevelRequirement(data) ? 0xFFFFFF : 0x666666);
             gui.drawString(this.font, ability.getName(), listX + 4, y + 2, nameColor);
 
             String info = "Lv" + ability.getRequiredLevel() + " | Cost: " + ability.getResourceCost()
