@@ -4,7 +4,9 @@ import com.deadmind.dndmods.DnDMods;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.ModAttachments;
+import com.deadmind.dndmods.race.DnDRace;
 import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -17,6 +19,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -41,9 +44,24 @@ public class FeatEffectHandler {
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "athletic_feat_jump");
     private static final ResourceLocation TOUGHNESS_HP_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "toughness_feat_hp");
+    private static final ResourceLocation DWARVEN_TOUGHNESS_HP_ID =
+            ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "dwarven_toughness_feat_hp");
+    private static final ResourceLocation NATURAL_ATHLETE_SPEED_ID =
+            ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "natural_athlete_speed");
+    private static final ResourceLocation NATURAL_ATHLETE_JUMP_ID =
+            ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "natural_athlete_jump");
 
     /** Toughness: +3 max HP per stack, applied to the vanilla health bar. */
     private static final double TOUGHNESS_HP_PER_STACK = 3.0;
+
+    /** Natural Athlete (Goliath): +15% movement speed, +20% jump height. */
+    private static final double NATURAL_ATHLETE_SPEED_BONUS = 0.15;
+    private static final double NATURAL_ATHLETE_JUMP_BONUS = 0.20;
+
+    /** Warforged Resilience: flat damage reduction per hit. */
+    private static final float WARFORGED_DAMAGE_REDUCTION = 1.0f;
+    /** Dwarven Resilience: proc when current HP drops below this fraction of max. */
+    private static final float DWARVEN_RESILIENCE_HP_FRACTION = 0.25f;
 
     /** Run: move at 5x speed instead of 4x — modelled as +25% movement speed. */
     private static final double RUN_SPEED_BONUS = 0.25;
@@ -80,7 +98,43 @@ public class FeatEffectHandler {
 
         reconcileToughness(player, data);
 
+        // Natural Athlete (Goliath): movement speed and jump height boosts.
+        boolean naturalAthlete = data.getAchievementFlag("natural_athlete_unlocked");
+        reconcileAttribute(player, Attributes.MOVEMENT_SPEED, NATURAL_ATHLETE_SPEED_ID,
+                NATURAL_ATHLETE_SPEED_BONUS, naturalAthlete);
+        reconcileAttribute(player, Attributes.JUMP_STRENGTH, NATURAL_ATHLETE_JUMP_ID,
+                NATURAL_ATHLETE_JUMP_BONUS, naturalAthlete);
+
+        reconcileDwarvenToughness(player, data);
+
         handleSelfSufficient(player, data);
+    }
+
+    /**
+     * Dwarven Toughness: +1 max HP per character level, applied to the vanilla
+     * health bar from the level-scaled dwarvenToughnessHp value (kept current
+     * by the level-up handler). Heals the player by the delta when it grows.
+     */
+    private static void reconcileDwarvenToughness(ServerPlayer player, DnDPlayerData data) {
+        AttributeInstance instance = player.getAttribute(Attributes.MAX_HEALTH);
+        if (instance == null) return;
+
+        double desired = data.getDwarvenToughnessHp();
+        AttributeModifier existing = instance.getModifier(DWARVEN_TOUGHNESS_HP_ID);
+        double current = existing != null ? existing.amount() : 0.0;
+
+        if (desired == current) return;
+
+        if (existing != null) {
+            instance.removeModifier(DWARVEN_TOUGHNESS_HP_ID);
+        }
+        if (desired > 0.0) {
+            instance.addTransientModifier(new AttributeModifier(
+                    DWARVEN_TOUGHNESS_HP_ID, desired, AttributeModifier.Operation.ADD_VALUE));
+        }
+        if (desired > current) {
+            player.heal((float) (desired - current));
+        }
     }
 
     /**
@@ -154,21 +208,79 @@ public class FeatEffectHandler {
     }
 
     /**
-     * Distracting Attack: when a Ranger with the feat lands a hit, the victim
-     * is marked with Glowing for 60 ticks, making it easier for allies to
-     * track and target.
+     * Warforged Resilience: the chassis shrugs off minor hits, reducing all
+     * incoming damage by a flat amount (minimum 0).
+     */
+    @SubscribeEvent
+    public static void onLivingDamagePre(LivingDamageEvent.Pre event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+
+        DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
+        if (data == null) return;
+        if (data.getRace() != DnDRace.WARFORGED) return;
+        if (!data.getAchievementFlag("warforged_resilience_unlocked")) return;
+
+        float reduced = Math.max(0.0f, event.getNewDamage() - WARFORGED_DAMAGE_REDUCTION);
+        event.setNewDamage(reduced);
+    }
+
+    /**
+     * Post-damage hooks: Distracting Attack (attacker-side Glowing) and
+     * Dwarven Resilience (victim-side daily resistance proc).
      */
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent.Post event) {
-        if (!(event.getSource().getEntity() instanceof ServerPlayer attacker)) return;
-
-        DnDPlayerData data = attacker.getData(ModAttachments.PLAYER_DATA);
-        if (data == null) return;
-        if (!data.getAchievementFlag("distracting_attack_unlocked")) return;
-        if (!isRanger(data)) return;
-
         LivingEntity victim = event.getEntity();
-        victim.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, false, true));
+
+        // Dwarven Resilience — victim side.
+        if (victim instanceof ServerPlayer victimPlayer) {
+            DnDPlayerData victimData = victimPlayer.getData(ModAttachments.PLAYER_DATA);
+            if (victimData != null) {
+                handleDwarvenResilience(victimPlayer, victimData);
+            }
+        }
+
+        // Distracting Attack — attacker side.
+        if (event.getSource().getEntity() instanceof ServerPlayer attacker) {
+            DnDPlayerData data = attacker.getData(ModAttachments.PLAYER_DATA);
+            if (data != null
+                    && data.getAchievementFlag("distracting_attack_unlocked")
+                    && isRanger(data)) {
+                victim.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, false, true));
+            }
+        }
+    }
+
+    private static void handleDwarvenResilience(ServerPlayer player, DnDPlayerData data) {
+        if (data.getRace() != DnDRace.DWARF) return;
+        if (!data.getAchievementFlag("dwarven_resilience_unlocked")) return;
+        if (data.getAchievementFlag("dwarven_resilience_used")) return;
+        if (player.getHealth() <= 0.0f) return;
+        if (player.getHealth() >= player.getMaxHealth() * DWARVEN_RESILIENCE_HP_FRACTION) return;
+
+        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 1, false, true));
+        data.setAchievementFlag("dwarven_resilience_used", true);
+    }
+
+    /**
+     * Half-Orc Ferocity: once per day, the first blow that would kill the
+     * half-orc instead leaves them at 1 HP with Wither for a brief last stand.
+     */
+    @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+
+        DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
+        if (data == null) return;
+        if (data.getRace() != DnDRace.HALF_ORC) return;
+        if (!data.getAchievementFlag("half_orc_ferocity_unlocked")) return;
+        if (!data.isHalfOrcFerocityAvailable()) return;
+
+        event.setCanceled(true);
+        player.setHealth(1.0f);
+        player.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 1, false, true));
+        data.setHalfOrcFerocityAvailable(false);
+        player.sendSystemMessage(Component.literal("§6[DnDMods] §cFerocity — you fight on through death!"));
     }
 
     private static boolean isRanger(DnDPlayerData data) {

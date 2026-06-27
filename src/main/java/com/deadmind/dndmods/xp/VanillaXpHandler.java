@@ -42,6 +42,9 @@ public class VanillaXpHandler {
         int xpAmount = MobXpRewardSystem.getXpForEntity(victim);
         if (xpAmount <= 0) return;
 
+        // Racial XP feats (e.g. Quick Learner) scale all DnD XP gains.
+        xpAmount = Math.round(xpAmount * (1.0f + data.getRacialXpBonus()));
+
         boolean wasAvailable = data.isLevelUpAvailable();
         data.addXp(xpAmount);
 

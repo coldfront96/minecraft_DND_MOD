@@ -40,6 +40,11 @@ public class DnDPlayerData {
     private int extraTurningCharges = 0;
     private int devotionDamageBonus = 0;
     private int devotionHealingBonus = 0;
+    private float racialXpBonus = 0.0f;
+    private int dwarvenToughnessHp = 0;
+    private int halflingLuckCharges = 0;
+    private boolean halfOrcFerocityAvailable = true;
+    private int naturalArmorBonus = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -280,6 +285,21 @@ public class DnDPlayerData {
     public int getDevotionHealingBonus() { return devotionHealingBonus; }
     public void setDevotionHealingBonus(int bonus) { this.devotionHealingBonus = bonus; }
 
+    public float getRacialXpBonus() { return racialXpBonus; }
+    public void setRacialXpBonus(float bonus) { this.racialXpBonus = Math.max(0.0f, bonus); }
+
+    public int getDwarvenToughnessHp() { return dwarvenToughnessHp; }
+    public void setDwarvenToughnessHp(int hp) { this.dwarvenToughnessHp = Math.max(0, hp); }
+
+    public int getHalflingLuckCharges() { return halflingLuckCharges; }
+    public void setHalflingLuckCharges(int charges) { this.halflingLuckCharges = Math.max(0, charges); }
+
+    public boolean isHalfOrcFerocityAvailable() { return halfOrcFerocityAvailable; }
+    public void setHalfOrcFerocityAvailable(boolean available) { this.halfOrcFerocityAvailable = available; }
+
+    public int getNaturalArmorBonus() { return naturalArmorBonus; }
+    public void setNaturalArmorBonus(int bonus) { this.naturalArmorBonus = bonus; }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -400,6 +420,11 @@ public class DnDPlayerData {
         featTag.putInt("ExtraTurningCharges", extraTurningCharges);
         featTag.putInt("DevotionDamageBonus", devotionDamageBonus);
         featTag.putInt("DevotionHealingBonus", devotionHealingBonus);
+        featTag.putFloat("RacialXpBonus", racialXpBonus);
+        featTag.putInt("DwarvenToughnessHp", dwarvenToughnessHp);
+        featTag.putInt("HalflingLuckCharges", halflingLuckCharges);
+        featTag.putBoolean("HalfOrcFerocityAvailable", halfOrcFerocityAvailable);
+        featTag.putInt("NaturalArmorBonus", naturalArmorBonus);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -488,6 +513,12 @@ public class DnDPlayerData {
             extraTurningCharges = featTag.getInt("ExtraTurningCharges");
             devotionDamageBonus = featTag.getInt("DevotionDamageBonus");
             devotionHealingBonus = featTag.getInt("DevotionHealingBonus");
+            racialXpBonus = featTag.getFloat("RacialXpBonus");
+            dwarvenToughnessHp = featTag.getInt("DwarvenToughnessHp");
+            halflingLuckCharges = featTag.getInt("HalflingLuckCharges");
+            halfOrcFerocityAvailable = !featTag.contains("HalfOrcFerocityAvailable")
+                    || featTag.getBoolean("HalfOrcFerocityAvailable");
+            naturalArmorBonus = featTag.getInt("NaturalArmorBonus");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -504,6 +535,11 @@ public class DnDPlayerData {
             extraTurningCharges = 0;
             devotionDamageBonus = 0;
             devotionHealingBonus = 0;
+            racialXpBonus = 0.0f;
+            dwarvenToughnessHp = 0;
+            halflingLuckCharges = 0;
+            halfOrcFerocityAvailable = true;
+            naturalArmorBonus = 0;
         }
     }
 
@@ -543,5 +579,10 @@ public class DnDPlayerData {
         this.extraTurningCharges = other.extraTurningCharges;
         this.devotionDamageBonus = other.devotionDamageBonus;
         this.devotionHealingBonus = other.devotionHealingBonus;
+        this.racialXpBonus = other.racialXpBonus;
+        this.dwarvenToughnessHp = other.dwarvenToughnessHp;
+        this.halflingLuckCharges = other.halflingLuckCharges;
+        this.halfOrcFerocityAvailable = other.halfOrcFerocityAvailable;
+        this.naturalArmorBonus = other.naturalArmorBonus;
     }
 }

@@ -3,6 +3,7 @@ package com.deadmind.dndmods.feat.content;
 import com.deadmind.dndmods.ability.AbilityScoreType;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.feat.*;
+import com.deadmind.dndmods.race.DnDRace;
 
 import java.util.List;
 
@@ -80,6 +81,245 @@ public class CoreFeats {
         registerSaveFeats();
         registerMetamagicFeats();
         registerDivineFeats();
+        registerRacialFeats();
+    }
+
+    // ------------------------------------------------------------------
+    // PHB racial feats. Every feat is gated by a RacePrerequisite. Most
+    // are flag only — the cooldown/range/resistance tweaks they describe
+    // are applied later in the relevant ability or RacialTraitHandler by
+    // checking the unlock flag. A handful feed real fields or have active
+    // effects in FeatEffectHandler (quick_learner XP, dwarven_toughness,
+    // natural armor, save bonuses, racialAcBonus, warforged/dwarf/half-orc
+    // combat procs, natural_athlete attributes).
+    // ------------------------------------------------------------------
+    private static void registerRacialFeats() {
+
+        // --- HUMAN LINE ---
+        FeatRegistry.register(new Feat(
+                "quick_learner", "Quick Learner",
+                "Gain an additional skill point per level. Grants +5% bonus DnD XP from all sources.",
+                FeatCategory.RACIAL, FeatSource.PHB,
+                "human_line", 0,
+                List.of(race(DnDRace.HUMAN)),
+                data -> data.setRacialXpBonus(data.getRacialXpBonus() + 0.05f),
+                data -> data.setRacialXpBonus(data.getRacialXpBonus() - 0.05f)
+        ));
+
+        racialFeat("human_adaptability", "Human Adaptability",
+                "Humans may retrain one feat selection once per level up.",
+                "human_line", 1,
+                List.of(race(DnDRace.HUMAN), reqFeat("quick_learner", "Quick Learner")));
+
+        // --- ELF LINE ---
+        racialFeat("elven_accuracy", "Elven Accuracy",
+                "Reroll one ranged attack roll per round, taking the better result.",
+                "elf_line", 0,
+                List.of(race(DnDRace.ELF)));
+
+        racialFeat("elven_archery", "Elven Archery",
+                "+2 damage with longbows and shortbows.",
+                "elf_line", 1,
+                List.of(race(DnDRace.ELF), reqFeat("elven_accuracy", "Elven Accuracy"), bab(6)));
+
+        racialFeat("city_elf_grace", "City Elf Grace",
+                "+2 bonus to AC in urban and indoor environments.",
+                "elf_line", 0,
+                List.of(race(DnDRace.ELF)));
+
+        // --- DWARF LINE ---
+        FeatRegistry.register(new Feat(
+                "dwarven_toughness", "Dwarven Toughness",
+                "+1 HP per character level.",
+                FeatCategory.RACIAL, FeatSource.PHB,
+                "dwarf_line", 0,
+                List.of(race(DnDRace.DWARF)),
+                data -> data.setDwarvenToughnessHp(data.getTotalLevel()),
+                data -> data.setDwarvenToughnessHp(0)
+        ));
+
+        racialFeat("dwarven_resilience", "Dwarven Resilience",
+                "Once per day, when reduced below 25% HP, gain resistance to all damage for 5 seconds.",
+                "dwarf_line", 1,
+                List.of(race(DnDRace.DWARF), reqFeat("dwarven_toughness", "Dwarven Toughness")));
+
+        racialFeatFlag("stonecunning_feat", "stonecunning_unlocked", "Stonecunning",
+                "Automatically detect unusual stonework within 10 feet. Highlights nearby ore blocks.",
+                "dwarf_line", 0,
+                List.of(race(DnDRace.DWARF)));
+
+        // --- HALFLING LINE ---
+        racialFeat("halfling_agility", "Halfling Agility",
+                "+2 to AC and Reflex saves when adjacent to a larger creature.",
+                "halfling_line", 0,
+                List.of(race(DnDRace.HALFLING)));
+
+        FeatRegistry.register(new Feat(
+                "halfling_luck", "Halfling Luck",
+                "Once per day, reroll any saving throw, taking the better result.",
+                FeatCategory.RACIAL, FeatSource.PHB,
+                "halfling_line", 1,
+                List.of(race(DnDRace.HALFLING), reqFeat("halfling_agility", "Halfling Agility")),
+                data -> {
+                    data.setAchievementFlag("halfling_luck_unlocked", true);
+                    data.setHalflingLuckCharges(1);
+                },
+                data -> {
+                    data.setAchievementFlag("halfling_luck_unlocked", false);
+                    data.setHalflingLuckCharges(0);
+                }
+        ));
+
+        // --- GNOME LINE ---
+        FeatRegistry.register(new Feat(
+                "gnome_cunning", "Gnome Cunning",
+                "+2 to Will saves vs illusions and mind-affecting spells.",
+                FeatCategory.RACIAL, FeatSource.PHB,
+                "gnome_line", 0,
+                List.of(race(DnDRace.GNOME)),
+                data -> data.setFeatWillBonus(data.getFeatWillBonus() + 2),
+                data -> data.setFeatWillBonus(data.getFeatWillBonus() - 2)
+        ));
+
+        racialFeat("gnome_trickery", "Gnome Trickery",
+                "Once per day, cast Minor Illusion as a free action, drawing nearby mob attention.",
+                "gnome_line", 1,
+                List.of(race(DnDRace.GNOME), reqFeat("gnome_cunning", "Gnome Cunning")));
+
+        // --- HALF-ORC LINE ---
+        racialFeat("half_orc_ferocity", "Half-Orc Ferocity",
+                "Once per day, when reduced to 0 HP, remain conscious and fight for 5 more seconds.",
+                "half_orc_line", 0,
+                List.of(race(DnDRace.HALF_ORC)));
+
+        racialFeat("orc_blood", "Orc Blood",
+                "Count as both Human and Orc for feat and effect prerequisites.",
+                "half_orc_line", 1,
+                List.of(race(DnDRace.HALF_ORC), reqFeat("half_orc_ferocity", "Half-Orc Ferocity")));
+
+        // --- HALF-ELF LINE ---
+        racialFeat("half_elf_versatility", "Half-Elf Versatility",
+                "Choose one feat from either the Human or Elf racial feat lists, ignoring race prerequisite.",
+                "half_elf_line", 0,
+                List.of(race(DnDRace.HALF_ELF)));
+
+        FeatRegistry.register(new Feat(
+                "social_intuition", "Social Intuition",
+                "+2 to all saving throws vs charm and fear effects.",
+                FeatCategory.RACIAL, FeatSource.PHB,
+                "half_elf_line", 1,
+                List.of(race(DnDRace.HALF_ELF), reqFeat("half_elf_versatility", "Half-Elf Versatility")),
+                data -> {
+                    data.setFeatWillBonus(data.getFeatWillBonus() + 1);
+                    data.setFeatFortBonus(data.getFeatFortBonus() + 1);
+                },
+                data -> {
+                    data.setFeatWillBonus(data.getFeatWillBonus() - 1);
+                    data.setFeatFortBonus(data.getFeatFortBonus() - 1);
+                }
+        ));
+
+        // --- DRAGONBORN LINE ---
+        racialFeatFlag("draconic_breath_mastery", "breath_mastery_unlocked", "Draconic Breath Mastery",
+                "Reduce breath weapon cooldown by 50 ticks and increase damage by 2.",
+                "dragonborn_line", 0,
+                List.of(race(DnDRace.DRAGONBORN)));
+
+        FeatRegistry.register(new Feat(
+                "draconic_resilience", "Draconic Resilience",
+                "Gain natural armor +2 AC from draconic scales.",
+                FeatCategory.RACIAL, FeatSource.PHB,
+                "dragonborn_line", 1,
+                List.of(race(DnDRace.DRAGONBORN), reqFeat("draconic_breath_mastery", "Draconic Breath Mastery")),
+                data -> data.setNaturalArmorBonus(data.getNaturalArmorBonus() + 2),
+                data -> data.setNaturalArmorBonus(data.getNaturalArmorBonus() - 2)
+        ));
+
+        // --- GOLIATH LINE ---
+        racialFeat("mountain_born", "Mountain Born",
+                "Ignore movement penalties in mountains and ignore cold weather damage.",
+                "goliath_line", 0,
+                List.of(race(DnDRace.GOLIATH)));
+
+        racialFeat("natural_athlete", "Natural Athlete",
+                "+4 to Athletics checks. Grants +15% movement speed and +20% jump height.",
+                "goliath_line", 1,
+                List.of(race(DnDRace.GOLIATH), reqFeat("mountain_born", "Mountain Born")));
+
+        // --- WARFORGED LINE ---
+        racialFeatFlag("warforged_resilience_feat", "warforged_resilience_unlocked", "Warforged Resilience",
+                "Reduce all incoming damage by 1 (minimum 0). The warforged chassis absorbs minor hits.",
+                "warforged_line", 0,
+                List.of(race(DnDRace.WARFORGED)));
+
+        FeatRegistry.register(new Feat(
+                "integrated_protection", "Integrated Protection",
+                "+2 natural armor AC from integrated plating.",
+                FeatCategory.RACIAL, FeatSource.PHB,
+                "warforged_line", 1,
+                List.of(race(DnDRace.WARFORGED), reqFeat("warforged_resilience_feat", "Warforged Resilience")),
+                data -> data.setNaturalArmorBonus(data.getNaturalArmorBonus() + 2),
+                data -> data.setNaturalArmorBonus(data.getNaturalArmorBonus() - 2)
+        ));
+
+        // --- TIEFLING LINE ---
+        racialFeat("infernal_heritage", "Infernal Heritage",
+                "Gain resistance to fire damage, increasing from 50% to 75%.",
+                "tiefling_line", 0,
+                List.of(race(DnDRace.TIEFLING)));
+
+        racialFeat("darkness_mastery", "Darkness Mastery",
+                "Reduce Tiefling Darkness ability cooldown by 100 ticks and extend blindness to 8 seconds.",
+                "tiefling_line", 1,
+                List.of(race(DnDRace.TIEFLING), reqFeat("infernal_heritage", "Infernal Heritage")));
+
+        // --- AASIMAR LINE ---
+        racialFeat("celestial_heritage", "Celestial Heritage",
+                "Increase acid, cold, and lightning resistance from 25% to 50%.",
+                "aasimar_line", 0,
+                List.of(race(DnDRace.AASIMAR)));
+
+        racialFeat("radiance_mastery", "Radiance Mastery",
+                "Reduce Aasimar Radiant Burst cooldown by 100 ticks and extend the Strength buff to 10 seconds.",
+                "aasimar_line", 1,
+                List.of(race(DnDRace.AASIMAR), reqFeat("celestial_heritage", "Celestial Heritage")));
+
+        // --- UNDEAD RACIAL FEATS (parallel roots, all chainOrder 0) ---
+        racialFeat("undying_fortitude", "Undying Fortitude",
+                "Reduce the cooldown on Undying Resolve from 1 hour to 30 minutes.",
+                "undead_racial_line", 0,
+                List.of(race(DnDRace.REVENANT)));
+
+        racialFeat("shadow_step_mastery", "Shadow Step Mastery",
+                "Reduce Phase Step cooldown by 100 ticks and increase teleport range to 12 blocks.",
+                "undead_racial_line", 0,
+                List.of(race(DnDRace.SHADAR_KAI)));
+
+        racialFeat("blood_drain_mastery", "Blood Drain Mastery",
+                "Blood drain heals 2 HP per hit instead of 1.",
+                "undead_racial_line", 0,
+                List.of(race(DnDRace.DHAMPIR)));
+
+        racialFeatFlag("vampire_lord_ascension", "vampire_lord_unlocked", "Vampire Lord Ascension",
+                "Charm Gaze cooldown reduced by 200 ticks and affects two targets simultaneously.",
+                "undead_racial_line", 0,
+                List.of(race(DnDRace.VAMPIRE_SPAWN), level(10)));
+
+        FeatRegistry.register(new Feat(
+                "bone_lord", "Bone Lord",
+                "Arrow resistance increases from 50% to 75%. Bone Armor AC bonus increases from +1 to +3.",
+                FeatCategory.RACIAL, FeatSource.PHB,
+                "undead_racial_line", 0,
+                List.of(race(DnDRace.SKELETON_WARRIOR), level(10)),
+                data -> {
+                    data.setAchievementFlag("bone_lord_unlocked", true);
+                    data.setRacialAcBonus(data.getRacialAcBonus() + 2);
+                },
+                data -> {
+                    data.setAchievementFlag("bone_lord_unlocked", false);
+                    data.setRacialAcBonus(data.getRacialAcBonus() - 2);
+                }
+        ));
     }
 
     // ------------------------------------------------------------------
@@ -775,6 +1015,31 @@ public class CoreFeats {
                 data -> data.setAchievementFlag(flag, true),
                 data -> data.setAchievementFlag(flag, false)
         ));
+    }
+
+    /** Registers a PHB racial flag feat (flag = id + "_unlocked"). */
+    private static void racialFeat(String id, String name, String description,
+                                   String chainGroup, int chainOrder,
+                                   List<FeatPrerequisite> prerequisites) {
+        racialFeatFlag(id, id + "_unlocked", name, description, chainGroup, chainOrder, prerequisites);
+    }
+
+    /** Registers a PHB racial flag feat with an explicit unlock-flag key. */
+    private static void racialFeatFlag(String id, String flag, String name, String description,
+                                       String chainGroup, int chainOrder,
+                                       List<FeatPrerequisite> prerequisites) {
+        FeatRegistry.register(new Feat(
+                id, name, description,
+                FeatCategory.RACIAL, FeatSource.PHB,
+                chainGroup, chainOrder,
+                prerequisites,
+                data -> data.setAchievementFlag(flag, true),
+                data -> data.setAchievementFlag(flag, false)
+        ));
+    }
+
+    private static FeatPrerequisite race(DnDRace requiredRace) {
+        return new FeatPrerequisite.RacePrerequisite(requiredRace);
     }
 
     /** Registers a PHB divine flag feat (flag = id + "_unlocked"). */

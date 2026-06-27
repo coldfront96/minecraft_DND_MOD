@@ -149,6 +149,12 @@ public record LevelUpPayload(
 
             data.resetXpAfterLevelUp();
 
+            // Dwarven Toughness grants +1 HP per character level — rescale to
+            // the new total level so FeatEffectHandler applies the right bonus.
+            if (data.hasFeat("dwarven_toughness")) {
+                data.setDwarvenToughnessHp(data.getTotalLevel());
+            }
+
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

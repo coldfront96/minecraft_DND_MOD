@@ -22,6 +22,13 @@ public class PlayerEventHandler {
 
             data.getAbilityHotbar().validateAndClean(data);
 
+            // Daily racial-feat resources reset on login.
+            data.setHalfOrcFerocityAvailable(true);
+            data.setAchievementFlag("dwarven_resilience_used", false);
+            if (data.hasFeat("halfling_luck")) {
+                data.setHalflingLuckCharges(1);
+            }
+
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 
             if (data.getRace() == DnDRace.NONE) {
