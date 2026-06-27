@@ -155,6 +155,26 @@ public record LevelUpPayload(
                 data.setDwarvenToughnessHp(data.getTotalLevel());
             }
 
+            // Battle Hardened (Complete Warrior) grants +2 max HP per hit die —
+            // rescale to the new total level so FeatEffectHandler applies the
+            // right bonus on the next tick.
+            if (data.hasFeat("battle_hardened")) {
+                data.setBattleHardenedHp(data.getTotalLevel() * 2);
+            }
+
+            // Improved Toughness (Complete Warrior) grants +1 HP per character
+            // level via the shared toughness stacking system — gaining a level
+            // adds one more stack so the MAX_HEALTH reconcile keeps pace.
+            if (data.hasFeat("improved_toughness")) {
+                data.setToughnessFeatCount(data.getToughnessFeatCount() + 1);
+            }
+
+            // Blade of Force (Complete Warrior) deals flat force damage equal to
+            // the INT modifier — recalculate in case an ASI changed INT.
+            if (data.hasFeat("blade_of_force")) {
+                data.setBladeOfForceBonus(data.getAbilityScores().getIntMod());
+            }
+
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

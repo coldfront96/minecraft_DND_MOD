@@ -45,6 +45,8 @@ public class DnDPlayerData {
     private int halflingLuckCharges = 0;
     private boolean halfOrcFerocityAvailable = true;
     private int naturalArmorBonus = 0;
+    private int bladeOfForceBonus = 0;
+    private int battleHardenedHp = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -300,6 +302,16 @@ public class DnDPlayerData {
     public int getNaturalArmorBonus() { return naturalArmorBonus; }
     public void setNaturalArmorBonus(int bonus) { this.naturalArmorBonus = bonus; }
 
+    // Blade of Force (Complete Warrior): flat force damage equal to INT modifier,
+    // recalculated whenever the feat is granted or the INT score changes.
+    public int getBladeOfForceBonus() { return bladeOfForceBonus; }
+    public void setBladeOfForceBonus(int bonus) { this.bladeOfForceBonus = Math.max(0, bonus); }
+
+    // Battle Hardened (Complete Warrior): +2 max HP per hit die, scaled with total
+    // level and applied to the vanilla health bar by FeatEffectHandler.
+    public int getBattleHardenedHp() { return battleHardenedHp; }
+    public void setBattleHardenedHp(int hp) { this.battleHardenedHp = Math.max(0, hp); }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -425,6 +437,8 @@ public class DnDPlayerData {
         featTag.putInt("HalflingLuckCharges", halflingLuckCharges);
         featTag.putBoolean("HalfOrcFerocityAvailable", halfOrcFerocityAvailable);
         featTag.putInt("NaturalArmorBonus", naturalArmorBonus);
+        featTag.putInt("BladeOfForceBonus", bladeOfForceBonus);
+        featTag.putInt("BattleHardenedHp", battleHardenedHp);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -519,6 +533,8 @@ public class DnDPlayerData {
             halfOrcFerocityAvailable = !featTag.contains("HalfOrcFerocityAvailable")
                     || featTag.getBoolean("HalfOrcFerocityAvailable");
             naturalArmorBonus = featTag.getInt("NaturalArmorBonus");
+            bladeOfForceBonus = featTag.getInt("BladeOfForceBonus");
+            battleHardenedHp = featTag.getInt("BattleHardenedHp");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -540,6 +556,8 @@ public class DnDPlayerData {
             halflingLuckCharges = 0;
             halfOrcFerocityAvailable = true;
             naturalArmorBonus = 0;
+            bladeOfForceBonus = 0;
+            battleHardenedHp = 0;
         }
     }
 
@@ -584,5 +602,7 @@ public class DnDPlayerData {
         this.halflingLuckCharges = other.halflingLuckCharges;
         this.halfOrcFerocityAvailable = other.halfOrcFerocityAvailable;
         this.naturalArmorBonus = other.naturalArmorBonus;
+        this.bladeOfForceBonus = other.bladeOfForceBonus;
+        this.battleHardenedHp = other.battleHardenedHp;
     }
 }

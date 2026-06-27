@@ -46,6 +46,8 @@ public class FeatEffectHandler {
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "toughness_feat_hp");
     private static final ResourceLocation DWARVEN_TOUGHNESS_HP_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "dwarven_toughness_feat_hp");
+    private static final ResourceLocation BATTLE_HARDENED_HP_ID =
+            ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "battle_hardened_feat");
     private static final ResourceLocation NATURAL_ATHLETE_SPEED_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "natural_athlete_speed");
     private static final ResourceLocation NATURAL_ATHLETE_JUMP_ID =
@@ -107,7 +109,37 @@ public class FeatEffectHandler {
 
         reconcileDwarvenToughness(player, data);
 
+        reconcileBattleHardened(player, data);
+
         handleSelfSufficient(player, data);
+    }
+
+    /**
+     * Battle Hardened (Complete Warrior): +2 max HP per hit die, applied to the
+     * vanilla health bar from the level-scaled battleHardenedHp value (kept
+     * current by the level-up handler). Heals the player by the delta when it
+     * grows. Mirrors {@link #reconcileDwarvenToughness}.
+     */
+    private static void reconcileBattleHardened(ServerPlayer player, DnDPlayerData data) {
+        AttributeInstance instance = player.getAttribute(Attributes.MAX_HEALTH);
+        if (instance == null) return;
+
+        double desired = data.getBattleHardenedHp();
+        AttributeModifier existing = instance.getModifier(BATTLE_HARDENED_HP_ID);
+        double current = existing != null ? existing.amount() : 0.0;
+
+        if (desired == current) return;
+
+        if (existing != null) {
+            instance.removeModifier(BATTLE_HARDENED_HP_ID);
+        }
+        if (desired > 0.0) {
+            instance.addTransientModifier(new AttributeModifier(
+                    BATTLE_HARDENED_HP_ID, desired, AttributeModifier.Operation.ADD_VALUE));
+        }
+        if (desired > current) {
+            player.heal((float) (desired - current));
+        }
     }
 
     /**
@@ -208,20 +240,34 @@ public class FeatEffectHandler {
     }
 
     /**
-     * Warforged Resilience: the chassis shrugs off minor hits, reducing all
-     * incoming damage by a flat amount (minimum 0).
+     * Pre-damage hooks: Blade of Force (attacker-side flat force damage) and
+     * Warforged Resilience (victim-side flat damage reduction).
      */
     @SubscribeEvent
     public static void onLivingDamagePre(LivingDamageEvent.Pre event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        // Blade of Force (Complete Warrior) — attacker side. Weapon strikes deal
+        // bonus force damage equal to the attacker's INT modifier. This is the
+        // only active damage feat in the Complete Warrior pass.
+        if (event.getSource().getEntity() instanceof ServerPlayer attacker) {
+            DnDPlayerData attackerData = attacker.getData(ModAttachments.PLAYER_DATA);
+            if (attackerData != null
+                    && attackerData.getAchievementFlag("blade_of_force_unlocked")
+                    && attackerData.getBladeOfForceBonus() > 0) {
+                event.setNewDamage(event.getNewDamage() + attackerData.getBladeOfForceBonus());
+            }
+        }
 
-        DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
-        if (data == null) return;
-        if (data.getRace() != DnDRace.WARFORGED) return;
-        if (!data.getAchievementFlag("warforged_resilience_unlocked")) return;
+        // Warforged Resilience — victim side: the chassis shrugs off minor hits,
+        // reducing all incoming damage by a flat amount (minimum 0).
+        if (event.getEntity() instanceof ServerPlayer player) {
+            DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
+            if (data == null) return;
+            if (data.getRace() != DnDRace.WARFORGED) return;
+            if (!data.getAchievementFlag("warforged_resilience_unlocked")) return;
 
-        float reduced = Math.max(0.0f, event.getNewDamage() - WARFORGED_DAMAGE_REDUCTION);
-        event.setNewDamage(reduced);
+            float reduced = Math.max(0.0f, event.getNewDamage() - WARFORGED_DAMAGE_REDUCTION);
+            event.setNewDamage(reduced);
+        }
     }
 
     /**
