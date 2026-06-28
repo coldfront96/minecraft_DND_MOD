@@ -60,6 +60,9 @@ public class DnDPlayerData {
     private int arcaneToughnessHp = 0;
     private int innateSpellCharges = 0;
     private int magicalTrainingCharges = 0;
+    private int favoredEnemyBonus = 0;
+    private boolean evasionUnlocked = false;
+    private int dangerSenseInitBonus = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -392,6 +395,21 @@ public class DnDPlayerData {
     public int getMagicalTrainingCharges() { return magicalTrainingCharges; }
     public void setMagicalTrainingCharges(int charges) { this.magicalTrainingCharges = Math.max(0, charges); }
 
+    // Improved Favored Enemy (Complete Adventurer): stacking attack/damage bonus
+    // against favored enemies.
+    public int getFavoredEnemyBonus() { return favoredEnemyBonus; }
+    public void setFavoredEnemyBonus(int bonus) { this.favoredEnemyBonus = bonus; }
+
+    // Evasion (Complete Adventurer): negates area-effect damage on a Reflex save,
+    // checked in FeatEffectHandler.
+    public boolean isEvasionUnlocked() { return evasionUnlocked; }
+    public void setEvasionUnlocked(boolean unlocked) { this.evasionUnlocked = unlocked; }
+
+    // Danger Sense (Complete Adventurer): +2 initiative, added alongside
+    // featInitiativeBonus in the character sheet.
+    public int getDangerSenseInitBonus() { return dangerSenseInitBonus; }
+    public void setDangerSenseInitBonus(int bonus) { this.dangerSenseInitBonus = bonus; }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -532,6 +550,9 @@ public class DnDPlayerData {
         featTag.putInt("ArcaneToughnessHp", arcaneToughnessHp);
         featTag.putInt("InnateSpellCharges", innateSpellCharges);
         featTag.putInt("MagicalTrainingCharges", magicalTrainingCharges);
+        featTag.putInt("FavoredEnemyBonus", favoredEnemyBonus);
+        featTag.putBoolean("EvasionUnlocked", evasionUnlocked);
+        featTag.putInt("DangerSenseInitBonus", dangerSenseInitBonus);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -641,6 +662,9 @@ public class DnDPlayerData {
             arcaneToughnessHp = featTag.getInt("ArcaneToughnessHp");
             innateSpellCharges = featTag.getInt("InnateSpellCharges");
             magicalTrainingCharges = featTag.getInt("MagicalTrainingCharges");
+            favoredEnemyBonus = featTag.getInt("FavoredEnemyBonus");
+            evasionUnlocked = featTag.getBoolean("EvasionUnlocked");
+            dangerSenseInitBonus = featTag.getInt("DangerSenseInitBonus");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -677,6 +701,9 @@ public class DnDPlayerData {
             arcaneToughnessHp = 0;
             innateSpellCharges = 0;
             magicalTrainingCharges = 0;
+            favoredEnemyBonus = 0;
+            evasionUnlocked = false;
+            dangerSenseInitBonus = 0;
         }
     }
 
@@ -736,5 +763,8 @@ public class DnDPlayerData {
         this.arcaneToughnessHp = other.arcaneToughnessHp;
         this.innateSpellCharges = other.innateSpellCharges;
         this.magicalTrainingCharges = other.magicalTrainingCharges;
+        this.favoredEnemyBonus = other.favoredEnemyBonus;
+        this.evasionUnlocked = other.evasionUnlocked;
+        this.dangerSenseInitBonus = other.dangerSenseInitBonus;
     }
 }

@@ -2,6 +2,8 @@ package com.deadmind.dndmods.feat;
 
 import com.deadmind.dndmods.DnDMods;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.combat.SaveType;
+import com.deadmind.dndmods.combat.SavingThrowSystem;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.ModAttachments;
 import com.deadmind.dndmods.race.DnDRace;
@@ -9,6 +11,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -50,6 +55,18 @@ public class FeatEffectHandler {
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "battle_hardened_feat");
     private static final ResourceLocation ARCANE_TOUGHNESS_HP_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "arcane_toughness_feat");
+    private static final ResourceLocation FAST_MOVEMENT_SPEED_ID =
+            ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "fast_movement_feat");
+
+    /**
+     * Fast Movement (Complete Adventurer): flat +10-feet movement boost. Applied
+     * as a flat ADD_VALUE to MOVEMENT_SPEED (~+0.05 on the 0.1 base, roughly
+     * +0.1 blocks/tick). Stacks with the Run feat's multiplied bonus.
+     */
+    private static final double FAST_MOVEMENT_SPEED_BONUS = 0.05;
+
+    /** Evasion (Complete Adventurer): baseline area-effect Reflex DC. */
+    private static final int EVASION_REFLEX_DC = 15;
     private static final ResourceLocation NATURAL_ATHLETE_SPEED_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "natural_athlete_speed");
     private static final ResourceLocation NATURAL_ATHLETE_JUMP_ID =
@@ -114,6 +131,12 @@ public class FeatEffectHandler {
         reconcileBattleHardened(player, data);
 
         reconcileArcaneToughness(player, data);
+
+        // Fast Movement (Complete Adventurer): flat speed bonus, reconciled each
+        // tick like the Run feat but using a flat ADD_VALUE operation.
+        reconcileAttribute(player, Attributes.MOVEMENT_SPEED, FAST_MOVEMENT_SPEED_ID,
+                FAST_MOVEMENT_SPEED_BONUS, data.getAchievementFlag("fast_movement_unlocked"),
+                AttributeModifier.Operation.ADD_VALUE);
 
         handleSelfSufficient(player, data);
     }
@@ -232,13 +255,19 @@ public class FeatEffectHandler {
 
     private static void reconcileAttribute(ServerPlayer player, Holder<Attribute> attribute,
                                            ResourceLocation id, double bonus, boolean shouldHave) {
+        reconcileAttribute(player, attribute, id, bonus, shouldHave,
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+    }
+
+    private static void reconcileAttribute(ServerPlayer player, Holder<Attribute> attribute,
+                                           ResourceLocation id, double bonus, boolean shouldHave,
+                                           AttributeModifier.Operation operation) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
 
         boolean has = instance.getModifier(id) != null;
         if (shouldHave && !has) {
-            instance.addTransientModifier(new AttributeModifier(
-                    id, bonus, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            instance.addTransientModifier(new AttributeModifier(id, bonus, operation));
         } else if (!shouldHave && has) {
             instance.removeModifier(id);
         }
@@ -299,17 +328,49 @@ public class FeatEffectHandler {
             }
         }
 
-        // Warforged Resilience — victim side: the chassis shrugs off minor hits,
-        // reducing all incoming damage by a flat amount (minimum 0).
+        // Victim-side damage feats.
         if (event.getEntity() instanceof ServerPlayer player) {
             DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
             if (data == null) return;
-            if (data.getRace() != DnDRace.WARFORGED) return;
-            if (!data.getAchievementFlag("warforged_resilience_unlocked")) return;
-
-            float reduced = Math.max(0.0f, event.getNewDamage() - WARFORGED_DAMAGE_REDUCTION);
-            event.setNewDamage(reduced);
+            handleWarforgedResilience(data, event);
+            handleEvasion(player, data, event);
         }
+    }
+
+    /**
+     * Warforged Resilience: the chassis shrugs off minor hits, reducing all
+     * incoming damage by a flat amount (minimum 0).
+     */
+    private static void handleWarforgedResilience(DnDPlayerData data, LivingDamageEvent.Pre event) {
+        if (data.getRace() != DnDRace.WARFORGED) return;
+        if (!data.getAchievementFlag("warforged_resilience_unlocked")) return;
+
+        float reduced = Math.max(0.0f, event.getNewDamage() - WARFORGED_DAMAGE_REDUCTION);
+        event.setNewDamage(reduced);
+    }
+
+    /**
+     * Evasion (Complete Adventurer): against area-effect damage (explosions,
+     * fireballs) a successful Reflex save negates the damage entirely. With
+     * Improved Evasion a failed save still halves it.
+     */
+    private static void handleEvasion(ServerPlayer player, DnDPlayerData data, LivingDamageEvent.Pre event) {
+        if (!data.isEvasionUnlocked()) return;
+        if (!isAreaDamage(event.getSource())) return;
+
+        boolean saved = SavingThrowSystem.rollSave(player, SaveType.REFLEX, EVASION_REFLEX_DC, null);
+        if (saved) {
+            event.setNewDamage(0.0f);
+        } else if (data.getAchievementFlag("improved_evasion_unlocked")) {
+            event.setNewDamage(event.getNewDamage() * 0.5f);
+        }
+    }
+
+    /** True for explosion / fireball style area damage sources that Evasion can dodge. */
+    private static boolean isAreaDamage(DamageSource source) {
+        return source.is(DamageTypeTags.IS_EXPLOSION)
+                || source.is(DamageTypes.FIREBALL)
+                || source.is(DamageTypes.UNATTRIBUTED_FIREBALL);
     }
 
     /**

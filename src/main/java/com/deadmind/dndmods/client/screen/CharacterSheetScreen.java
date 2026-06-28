@@ -138,7 +138,7 @@ public class CharacterSheetScreen extends Screen {
         drawStatRow(graphics, "Armor Class", String.valueOf(ac), x, y, rightEdge);
         y += 19;
 
-        int initiative = scores.getDexMod() + data.getFeatInitiativeBonus();
+        int initiative = scores.getDexMod() + data.getFeatInitiativeBonus() + data.getDangerSenseInitBonus();
         drawStatRow(graphics, "Initiative", formatSigned(initiative), x, y, rightEdge);
         y += 19;
 

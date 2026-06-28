@@ -1,6 +1,7 @@
 package com.deadmind.dndmods;
 
 import com.deadmind.dndmods.ability.AbilityRegistry;
+import com.deadmind.dndmods.feat.content.CompleteAdventurerFeats;
 import com.deadmind.dndmods.feat.content.CompleteArcaneFeats;
 import com.deadmind.dndmods.feat.content.CompleteDivineFeats;
 import com.deadmind.dndmods.feat.content.CompleteWarriorFeats;
@@ -43,6 +44,7 @@ public class DnDMods {
             CompleteWarriorFeats.register();
             CompleteDivineFeats.register();
             CompleteArcaneFeats.register();
+            CompleteAdventurerFeats.register();
         });
     }
 }
