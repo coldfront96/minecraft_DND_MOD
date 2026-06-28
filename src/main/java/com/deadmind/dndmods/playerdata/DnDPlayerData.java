@@ -65,6 +65,13 @@ public class DnDPlayerData {
     private int dangerSenseInitBonus = 0;
     private int luckOfHeroesCharges = 0;
     private int fatedCharges = 0;
+    private int smiteCharges = 0;
+    private int smiteDamageBonus = 0;
+    private int devotionHealingBonusWis = 0;
+    private boolean standFirmUnlocked = false;
+    private int divineImpetusCharges = 0;
+    private int holyResilienceReduction = 0;
+    private int zealousSurgeCharges = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -421,6 +428,39 @@ public class DnDPlayerData {
     public int getFatedCharges() { return fatedCharges; }
     public void setFatedCharges(int charges) { this.fatedCharges = Math.max(0, charges); }
 
+    // Smite Evil line (Complete Champion): daily smite charges (1/2/3 as the
+    // line is advanced), reset on login.
+    public int getSmiteCharges() { return smiteCharges; }
+    public void setSmiteCharges(int charges) { this.smiteCharges = Math.max(0, charges); }
+
+    // Improved Smite (Complete Champion): bonus radiant smite damage equal to
+    // Cleric level, rescaled on level up.
+    public int getSmiteDamageBonus() { return smiteDamageBonus; }
+    public void setSmiteDamageBonus(int bonus) { this.smiteDamageBonus = Math.max(0, bonus); }
+
+    // Sacred Healing Devotion (Complete Champion): extra heal equal to WIS
+    // modifier, recalculated on WIS change.
+    public int getDevotionHealingBonusWis() { return devotionHealingBonusWis; }
+    public void setDevotionHealingBonusWis(int bonus) { this.devotionHealingBonusWis = Math.max(0, bonus); }
+
+    // Stand Firm (Complete Champion): immunity to knockback, checked in
+    // FeatEffectHandler's LivingKnockBackEvent hook.
+    public boolean isStandFirmUnlocked() { return standFirmUnlocked; }
+    public void setStandFirmUnlocked(boolean unlocked) { this.standFirmUnlocked = unlocked; }
+
+    // Divine Impetus (Complete Champion): daily burst-of-speed charge, reset on login.
+    public int getDivineImpetusCharges() { return divineImpetusCharges; }
+    public void setDivineImpetusCharges(int charges) { this.divineImpetusCharges = Math.max(0, charges); }
+
+    // Holy Resilience (Complete Champion): flat damage reduction equal to WIS
+    // modifier (min 1), applied in FeatEffectHandler; recalculated on WIS change.
+    public int getHolyResilienceReduction() { return holyResilienceReduction; }
+    public void setHolyResilienceReduction(int reduction) { this.holyResilienceReduction = Math.max(0, reduction); }
+
+    // Zealous Surge (Complete Champion): daily divine revival charge, reset on login.
+    public int getZealousSurgeCharges() { return zealousSurgeCharges; }
+    public void setZealousSurgeCharges(int charges) { this.zealousSurgeCharges = Math.max(0, charges); }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -566,6 +606,13 @@ public class DnDPlayerData {
         featTag.putInt("DangerSenseInitBonus", dangerSenseInitBonus);
         featTag.putInt("LuckOfHeroesCharges", luckOfHeroesCharges);
         featTag.putInt("FatedCharges", fatedCharges);
+        featTag.putInt("SmiteCharges", smiteCharges);
+        featTag.putInt("SmiteDamageBonus", smiteDamageBonus);
+        featTag.putInt("DevotionHealingBonusWis", devotionHealingBonusWis);
+        featTag.putBoolean("StandFirmUnlocked", standFirmUnlocked);
+        featTag.putInt("DivineImpetusCharges", divineImpetusCharges);
+        featTag.putInt("HolyResilienceReduction", holyResilienceReduction);
+        featTag.putInt("ZealousSurgeCharges", zealousSurgeCharges);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -680,6 +727,13 @@ public class DnDPlayerData {
             dangerSenseInitBonus = featTag.getInt("DangerSenseInitBonus");
             luckOfHeroesCharges = featTag.getInt("LuckOfHeroesCharges");
             fatedCharges = featTag.getInt("FatedCharges");
+            smiteCharges = featTag.getInt("SmiteCharges");
+            smiteDamageBonus = featTag.getInt("SmiteDamageBonus");
+            devotionHealingBonusWis = featTag.getInt("DevotionHealingBonusWis");
+            standFirmUnlocked = featTag.getBoolean("StandFirmUnlocked");
+            divineImpetusCharges = featTag.getInt("DivineImpetusCharges");
+            holyResilienceReduction = featTag.getInt("HolyResilienceReduction");
+            zealousSurgeCharges = featTag.getInt("ZealousSurgeCharges");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -721,6 +775,13 @@ public class DnDPlayerData {
             dangerSenseInitBonus = 0;
             luckOfHeroesCharges = 0;
             fatedCharges = 0;
+            smiteCharges = 0;
+            smiteDamageBonus = 0;
+            devotionHealingBonusWis = 0;
+            standFirmUnlocked = false;
+            divineImpetusCharges = 0;
+            holyResilienceReduction = 0;
+            zealousSurgeCharges = 0;
         }
     }
 
@@ -785,5 +846,12 @@ public class DnDPlayerData {
         this.dangerSenseInitBonus = other.dangerSenseInitBonus;
         this.luckOfHeroesCharges = other.luckOfHeroesCharges;
         this.fatedCharges = other.fatedCharges;
+        this.smiteCharges = other.smiteCharges;
+        this.smiteDamageBonus = other.smiteDamageBonus;
+        this.devotionHealingBonusWis = other.devotionHealingBonusWis;
+        this.standFirmUnlocked = other.standFirmUnlocked;
+        this.divineImpetusCharges = other.divineImpetusCharges;
+        this.holyResilienceReduction = other.holyResilienceReduction;
+        this.zealousSurgeCharges = other.zealousSurgeCharges;
     }
 }

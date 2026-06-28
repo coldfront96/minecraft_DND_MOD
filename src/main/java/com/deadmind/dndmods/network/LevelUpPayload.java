@@ -188,6 +188,24 @@ public record LevelUpPayload(
                 data.setArcaneToughnessHp(data.getClassLevel(DnDClass.WIZARD));
             }
 
+            // Improved Smite (Complete Champion): bonus radiant damage equal to
+            // Cleric level — rescale on level up.
+            if (data.hasFeat("improved_smite")) {
+                data.setSmiteDamageBonus(data.getClassLevel(DnDClass.CLERIC));
+            }
+
+            // Sacred Healing Devotion (Complete Champion): extra heal equal to the
+            // WIS modifier — recalculate in case an ASI changed WIS.
+            if (data.hasFeat("sacred_healing_devotion")) {
+                data.setDevotionHealingBonusWis(data.getAbilityScores().getWisMod());
+            }
+
+            // Holy Resilience (Complete Champion): flat reduction equal to the WIS
+            // modifier (min 1) — recalculate in case an ASI changed WIS.
+            if (data.hasFeat("holy_resilience")) {
+                data.setHolyResilienceReduction(Math.max(1, data.getAbilityScores().getWisMod()));
+            }
+
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

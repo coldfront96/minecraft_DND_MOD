@@ -27,6 +27,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
@@ -334,8 +335,22 @@ public class FeatEffectHandler {
             DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
             if (data == null) return;
             handleWarforgedResilience(data, event);
+            handleHolyResilience(data, event);
             handleEvasion(player, data, event);
         }
+    }
+
+    /**
+     * Holy Resilience (Complete Champion): a Cleric reduces all incoming damage
+     * by their WIS modifier (minimum 1, stored in holyResilienceReduction). One
+     * of two active effects in this pass.
+     */
+    private static void handleHolyResilience(DnDPlayerData data, LivingDamageEvent.Pre event) {
+        if (!isCleric(data)) return;
+        if (data.getHolyResilienceReduction() <= 0) return;
+
+        float reduced = Math.max(0.0f, event.getNewDamage() - data.getHolyResilienceReduction());
+        event.setNewDamage(reduced);
     }
 
     /**
@@ -423,8 +438,11 @@ public class FeatEffectHandler {
     }
 
     /**
-     * Half-Orc Ferocity: once per day, the first blow that would kill the
-     * half-orc instead leaves them at 1 HP with Wither for a brief last stand.
+     * Death-cancelling feats. Half-Orc Ferocity is checked first; only if it does
+     * not save the player (wrong race, no feat, or already spent this day) does
+     * Zealous Surge (Complete Champion) get a chance. This ordering means a
+     * Half-Orc Cleric fights on through Ferocity first, then falls back to
+     * Zealous Surge on a later death once Ferocity is spent.
      */
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
@@ -432,15 +450,58 @@ public class FeatEffectHandler {
 
         DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
         if (data == null) return;
-        if (data.getRace() != DnDRace.HALF_ORC) return;
-        if (!data.getAchievementFlag("half_orc_ferocity_unlocked")) return;
-        if (!data.isHalfOrcFerocityAvailable()) return;
+
+        if (handleHalfOrcFerocity(player, data, event)) return;
+        handleZealousSurge(player, data, event);
+    }
+
+    /**
+     * Half-Orc Ferocity: once per day, the first blow that would kill the
+     * half-orc instead leaves them at 1 HP with Wither for a brief last stand.
+     * Returns true if it saved the player (and cancelled the death).
+     */
+    private static boolean handleHalfOrcFerocity(ServerPlayer player, DnDPlayerData data, LivingDeathEvent event) {
+        if (data.getRace() != DnDRace.HALF_ORC) return false;
+        if (!data.getAchievementFlag("half_orc_ferocity_unlocked")) return false;
+        if (!data.isHalfOrcFerocityAvailable()) return false;
 
         event.setCanceled(true);
         player.setHealth(1.0f);
         player.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 1, false, true));
         data.setHalfOrcFerocityAvailable(false);
         player.sendSystemMessage(Component.literal("§6[DnDMods] §cFerocity — you fight on through death!"));
+        return true;
+    }
+
+    /**
+     * Zealous Surge (Complete Champion): once per day a Cleric reduced to 0 HP is
+     * instead restored to WIS modifier × 3 HP. One of two active effects this pass.
+     */
+    private static void handleZealousSurge(ServerPlayer player, DnDPlayerData data, LivingDeathEvent event) {
+        if (!isCleric(data)) return;
+        if (!data.getAchievementFlag("zealous_surge_unlocked")) return;
+        if (data.getZealousSurgeCharges() <= 0) return;
+
+        event.setCanceled(true);
+        float heal = Math.max(1.0f, data.getAbilityScores().getWisMod() * 3.0f);
+        player.setHealth(heal);
+        data.setZealousSurgeCharges(data.getZealousSurgeCharges() - 1);
+        player.sendSystemMessage(Component.literal("§6[DnDMods] §aZealous Surge — divine power restores you!"));
+    }
+
+    /**
+     * Stand Firm (Complete Champion): the champion cannot be knocked back while
+     * the feat is active.
+     */
+    @SubscribeEvent
+    public static void onLivingKnockBack(LivingKnockBackEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+
+        DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
+        if (data == null) return;
+        if (data.isStandFirmUnlocked()) {
+            event.setCanceled(true);
+        }
     }
 
     private static boolean isRanger(DnDPlayerData data) {

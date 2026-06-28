@@ -51,6 +51,20 @@ public class PlayerEventHandler {
             if (data.getAchievementFlag("fated_unlocked")) {
                 data.setFatedCharges(1);
             }
+            // Complete Champion daily charges reset on login.
+            if (data.getAchievementFlag("greater_smite_unlocked")) {
+                data.setSmiteCharges(3);
+            } else if (data.getAchievementFlag("improved_smite_unlocked")) {
+                data.setSmiteCharges(2);
+            } else if (data.getAchievementFlag("smite_evil_unlocked")) {
+                data.setSmiteCharges(1);
+            }
+            if (data.getAchievementFlag("divine_impetus_unlocked")) {
+                data.setDivineImpetusCharges(1);
+            }
+            if (data.getAchievementFlag("zealous_surge_unlocked")) {
+                data.setZealousSurgeCharges(1);
+            }
 
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 
