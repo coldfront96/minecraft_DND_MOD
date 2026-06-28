@@ -1,6 +1,7 @@
 package com.deadmind.dndmods;
 
 import com.deadmind.dndmods.ability.AbilityRegistry;
+import com.deadmind.dndmods.feat.content.CompleteDivineFeats;
 import com.deadmind.dndmods.feat.content.CompleteWarriorFeats;
 import com.deadmind.dndmods.feat.content.CoreFeats;
 import com.deadmind.dndmods.enchanting.ModMenuTypes;
@@ -39,6 +40,7 @@ public class DnDMods {
             AbilityRegistry.init();
             CoreFeats.register();
             CompleteWarriorFeats.register();
+            CompleteDivineFeats.register();
         });
     }
 }

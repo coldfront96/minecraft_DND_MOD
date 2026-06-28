@@ -245,15 +245,25 @@ public class FeatEffectHandler {
      */
     @SubscribeEvent
     public static void onLivingDamagePre(LivingDamageEvent.Pre event) {
-        // Blade of Force (Complete Warrior) — attacker side. Weapon strikes deal
-        // bonus force damage equal to the attacker's INT modifier. This is the
-        // only active damage feat in the Complete Warrior pass.
+        // Attacker-side flat-damage feats.
         if (event.getSource().getEntity() instanceof ServerPlayer attacker) {
             DnDPlayerData attackerData = attacker.getData(ModAttachments.PLAYER_DATA);
-            if (attackerData != null
-                    && attackerData.getAchievementFlag("blade_of_force_unlocked")
-                    && attackerData.getBladeOfForceBonus() > 0) {
-                event.setNewDamage(event.getNewDamage() + attackerData.getBladeOfForceBonus());
+            if (attackerData != null) {
+                // Blade of Force (Complete Warrior): weapon strikes deal bonus
+                // force damage equal to the attacker's INT modifier.
+                if (attackerData.getAchievementFlag("blade_of_force_unlocked")
+                        && attackerData.getBladeOfForceBonus() > 0) {
+                    event.setNewDamage(event.getNewDamage() + attackerData.getBladeOfForceBonus());
+                }
+
+                // Holy Warrior (Complete Divine): a Cleric adds their WIS
+                // modifier as flat bonus damage to all melee attacks. This is the
+                // only active damage feat in the Complete Divine pass.
+                if (attackerData.getAchievementFlag("holy_warrior_unlocked")
+                        && attackerData.getHolyWarriorDamageBonus() > 0
+                        && isCleric(attackerData)) {
+                    event.setNewDamage(event.getNewDamage() + attackerData.getHolyWarriorDamageBonus());
+                }
             }
         }
 
@@ -332,5 +342,10 @@ public class FeatEffectHandler {
     private static boolean isRanger(DnDPlayerData data) {
         if (data.getPrimary().getDnDClass() == DnDClass.RANGER) return true;
         return data.getSecondary() != null && data.getSecondary().getDnDClass() == DnDClass.RANGER;
+    }
+
+    private static boolean isCleric(DnDPlayerData data) {
+        if (data.getPrimary().getDnDClass() == DnDClass.CLERIC) return true;
+        return data.getSecondary() != null && data.getSecondary().getDnDClass() == DnDClass.CLERIC;
     }
 }

@@ -28,6 +28,10 @@ public class PlayerEventHandler {
             if (data.hasFeat("halfling_luck")) {
                 data.setHalflingLuckCharges(1);
             }
+            // Pious Defiance (Complete Divine): daily auto-success charge.
+            if (data.getAchievementFlag("pious_defiance_unlocked") && data.getPiousDefianceCharges() < 1) {
+                data.setPiousDefianceCharges(1);
+            }
 
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 

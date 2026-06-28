@@ -175,6 +175,12 @@ public record LevelUpPayload(
                 data.setBladeOfForceBonus(data.getAbilityScores().getIntMod());
             }
 
+            // Holy Warrior (Complete Divine) deals flat melee damage equal to the
+            // WIS modifier — recalculate in case an ASI changed WIS.
+            if (data.hasFeat("holy_warrior")) {
+                data.setHolyWarriorDamageBonus(data.getAbilityScores().getWisMod());
+            }
+
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

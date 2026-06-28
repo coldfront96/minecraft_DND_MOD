@@ -47,6 +47,11 @@ public class DnDPlayerData {
     private int naturalArmorBonus = 0;
     private int bladeOfForceBonus = 0;
     private int battleHardenedHp = 0;
+    private int divineCasterLevelBonus = 0;
+    private int turningLevelBonus = 0;
+    private int domainSaveDcBonus = 0;
+    private int piousDefianceCharges = 0;
+    private int holyWarriorDamageBonus = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -312,6 +317,28 @@ public class DnDPlayerData {
     public int getBattleHardenedHp() { return battleHardenedHp; }
     public void setBattleHardenedHp(int hp) { this.battleHardenedHp = Math.max(0, hp); }
 
+    // Divine Spell Power (Complete Divine): caster-level bonus the Cleric ability
+    // pass will toggle; the field is stored here so saves carry it forward.
+    public int getDivineCasterLevelBonus() { return divineCasterLevelBonus; }
+    public void setDivineCasterLevelBonus(int bonus) { this.divineCasterLevelBonus = bonus; }
+
+    // Improved Turning (Complete Divine): effective turning-level bonus (+4).
+    public int getTurningLevelBonus() { return turningLevelBonus; }
+    public void setTurningLevelBonus(int bonus) { this.turningLevelBonus = bonus; }
+
+    // Domain Focus (Complete Divine): +2 to domain spell save DCs.
+    public int getDomainSaveDcBonus() { return domainSaveDcBonus; }
+    public void setDomainSaveDcBonus(int bonus) { this.domainSaveDcBonus = bonus; }
+
+    // Pious Defiance (Complete Divine): daily auto-success charge, reset on login.
+    public int getPiousDefianceCharges() { return piousDefianceCharges; }
+    public void setPiousDefianceCharges(int charges) { this.piousDefianceCharges = Math.max(0, charges); }
+
+    // Holy Warrior (Complete Divine): flat melee damage equal to WIS modifier,
+    // recalculated on grant and whenever WIS changes; applied in FeatEffectHandler.
+    public int getHolyWarriorDamageBonus() { return holyWarriorDamageBonus; }
+    public void setHolyWarriorDamageBonus(int bonus) { this.holyWarriorDamageBonus = Math.max(0, bonus); }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -439,6 +466,11 @@ public class DnDPlayerData {
         featTag.putInt("NaturalArmorBonus", naturalArmorBonus);
         featTag.putInt("BladeOfForceBonus", bladeOfForceBonus);
         featTag.putInt("BattleHardenedHp", battleHardenedHp);
+        featTag.putInt("DivineCasterLevelBonus", divineCasterLevelBonus);
+        featTag.putInt("TurningLevelBonus", turningLevelBonus);
+        featTag.putInt("DomainSaveDcBonus", domainSaveDcBonus);
+        featTag.putInt("PiousDefianceCharges", piousDefianceCharges);
+        featTag.putInt("HolyWarriorDamageBonus", holyWarriorDamageBonus);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -535,6 +567,11 @@ public class DnDPlayerData {
             naturalArmorBonus = featTag.getInt("NaturalArmorBonus");
             bladeOfForceBonus = featTag.getInt("BladeOfForceBonus");
             battleHardenedHp = featTag.getInt("BattleHardenedHp");
+            divineCasterLevelBonus = featTag.getInt("DivineCasterLevelBonus");
+            turningLevelBonus = featTag.getInt("TurningLevelBonus");
+            domainSaveDcBonus = featTag.getInt("DomainSaveDcBonus");
+            piousDefianceCharges = featTag.getInt("PiousDefianceCharges");
+            holyWarriorDamageBonus = featTag.getInt("HolyWarriorDamageBonus");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -558,6 +595,11 @@ public class DnDPlayerData {
             naturalArmorBonus = 0;
             bladeOfForceBonus = 0;
             battleHardenedHp = 0;
+            divineCasterLevelBonus = 0;
+            turningLevelBonus = 0;
+            domainSaveDcBonus = 0;
+            piousDefianceCharges = 0;
+            holyWarriorDamageBonus = 0;
         }
     }
 
@@ -604,5 +646,10 @@ public class DnDPlayerData {
         this.naturalArmorBonus = other.naturalArmorBonus;
         this.bladeOfForceBonus = other.bladeOfForceBonus;
         this.battleHardenedHp = other.battleHardenedHp;
+        this.divineCasterLevelBonus = other.divineCasterLevelBonus;
+        this.turningLevelBonus = other.turningLevelBonus;
+        this.domainSaveDcBonus = other.domainSaveDcBonus;
+        this.piousDefianceCharges = other.piousDefianceCharges;
+        this.holyWarriorDamageBonus = other.holyWarriorDamageBonus;
     }
 }
