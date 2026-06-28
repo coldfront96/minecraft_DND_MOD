@@ -48,6 +48,8 @@ public class FeatEffectHandler {
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "dwarven_toughness_feat_hp");
     private static final ResourceLocation BATTLE_HARDENED_HP_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "battle_hardened_feat");
+    private static final ResourceLocation ARCANE_TOUGHNESS_HP_ID =
+            ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "arcane_toughness_feat");
     private static final ResourceLocation NATURAL_ATHLETE_SPEED_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "natural_athlete_speed");
     private static final ResourceLocation NATURAL_ATHLETE_JUMP_ID =
@@ -111,7 +113,37 @@ public class FeatEffectHandler {
 
         reconcileBattleHardened(player, data);
 
+        reconcileArcaneToughness(player, data);
+
         handleSelfSufficient(player, data);
+    }
+
+    /**
+     * Arcane Toughness (Complete Arcane): +1 max HP per Wizard level, applied to
+     * the vanilla health bar from the level-scaled arcaneToughnessHp value (kept
+     * current by the level-up handler). Heals the player by the delta when it
+     * grows. Mirrors {@link #reconcileDwarvenToughness} / {@link #reconcileBattleHardened}.
+     */
+    private static void reconcileArcaneToughness(ServerPlayer player, DnDPlayerData data) {
+        AttributeInstance instance = player.getAttribute(Attributes.MAX_HEALTH);
+        if (instance == null) return;
+
+        double desired = data.getArcaneToughnessHp();
+        AttributeModifier existing = instance.getModifier(ARCANE_TOUGHNESS_HP_ID);
+        double current = existing != null ? existing.amount() : 0.0;
+
+        if (desired == current) return;
+
+        if (existing != null) {
+            instance.removeModifier(ARCANE_TOUGHNESS_HP_ID);
+        }
+        if (desired > 0.0) {
+            instance.addTransientModifier(new AttributeModifier(
+                    ARCANE_TOUGHNESS_HP_ID, desired, AttributeModifier.Operation.ADD_VALUE));
+        }
+        if (desired > current) {
+            player.heal((float) (desired - current));
+        }
     }
 
     /**

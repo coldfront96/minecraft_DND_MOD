@@ -181,6 +181,13 @@ public record LevelUpPayload(
                 data.setHolyWarriorDamageBonus(data.getAbilityScores().getWisMod());
             }
 
+            // Arcane Toughness (Complete Arcane) grants +1 HP per Wizard level —
+            // rescale to the new Wizard level so FeatEffectHandler applies the
+            // right bonus on the next tick.
+            if (data.hasFeat("arcane_toughness")) {
+                data.setArcaneToughnessHp(data.getClassLevel(DnDClass.WIZARD));
+            }
+
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

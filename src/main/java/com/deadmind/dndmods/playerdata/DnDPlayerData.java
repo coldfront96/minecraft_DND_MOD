@@ -52,6 +52,14 @@ public class DnDPlayerData {
     private int domainSaveDcBonus = 0;
     private int piousDefianceCharges = 0;
     private int holyWarriorDamageBonus = 0;
+    private int spellFocusBonus = 0;
+    private int spellPenetrationBonus = 0;
+    private int arcaneStrikeBonus = 0;
+    private int schoolCasterLevelBonus = 0;
+    private int schoolMasteryCharges = 0;
+    private int arcaneToughnessHp = 0;
+    private int innateSpellCharges = 0;
+    private int magicalTrainingCharges = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -145,6 +153,14 @@ public class DnDPlayerData {
 
     public int getTotalLevel() {
         return primary.getLevel() + (secondary != null ? secondary.getLevel() : 0);
+    }
+
+    /** Total levels the player has in the given class across primary and secondary entries. */
+    public int getClassLevel(DnDClass dndClass) {
+        int level = 0;
+        if (primary.getDnDClass() == dndClass) level += primary.getLevel();
+        if (secondary != null && secondary.getDnDClass() == dndClass) level += secondary.getLevel();
+        return level;
     }
 
     public boolean isUnifiedPool() {
@@ -339,6 +355,43 @@ public class DnDPlayerData {
     public int getHolyWarriorDamageBonus() { return holyWarriorDamageBonus; }
     public void setHolyWarriorDamageBonus(int bonus) { this.holyWarriorDamageBonus = Math.max(0, bonus); }
 
+    // Spell Focus / Greater Spell Focus / Earth Power (Complete Arcane): stacking
+    // bonus to spell save DCs.
+    public int getSpellFocusBonus() { return spellFocusBonus; }
+    public void setSpellFocusBonus(int bonus) { this.spellFocusBonus = bonus; }
+
+    // Spell Penetration / Greater Spell Penetration (Complete Arcane): stacking
+    // bonus on caster-level checks to overcome spell resistance.
+    public int getSpellPenetrationBonus() { return spellPenetrationBonus; }
+    public void setSpellPenetrationBonus(int bonus) { this.spellPenetrationBonus = bonus; }
+
+    // Arcane Strike (Complete Arcane): bonus melee damage from a sacrificed spell
+    // slot; the active toggle is deferred to the Wizard ability pass.
+    public int getArcaneStrikeBonus() { return arcaneStrikeBonus; }
+    public void setArcaneStrikeBonus(int bonus) { this.arcaneStrikeBonus = bonus; }
+
+    // School Focus / Enhanced School (Complete Arcane): effective caster-level
+    // bonus for the chosen school.
+    public int getSchoolCasterLevelBonus() { return schoolCasterLevelBonus; }
+    public void setSchoolCasterLevelBonus(int bonus) { this.schoolCasterLevelBonus = bonus; }
+
+    // School Mastery (Complete Arcane): daily free chosen-school cast, reset on login.
+    public int getSchoolMasteryCharges() { return schoolMasteryCharges; }
+    public void setSchoolMasteryCharges(int charges) { this.schoolMasteryCharges = Math.max(0, charges); }
+
+    // Arcane Toughness (Complete Arcane): +1 HP per Wizard level, applied to the
+    // vanilla health bar by FeatEffectHandler and rescaled on level up.
+    public int getArcaneToughnessHp() { return arcaneToughnessHp; }
+    public void setArcaneToughnessHp(int hp) { this.arcaneToughnessHp = Math.max(0, hp); }
+
+    // Innate Spell (Complete Arcane): daily slot-free casts, reset on login.
+    public int getInnateSpellCharges() { return innateSpellCharges; }
+    public void setInnateSpellCharges(int charges) { this.innateSpellCharges = Math.max(0, charges); }
+
+    // Magical Training (Complete Arcane): daily cantrip-level uses, reset on login.
+    public int getMagicalTrainingCharges() { return magicalTrainingCharges; }
+    public void setMagicalTrainingCharges(int charges) { this.magicalTrainingCharges = Math.max(0, charges); }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -471,6 +524,14 @@ public class DnDPlayerData {
         featTag.putInt("DomainSaveDcBonus", domainSaveDcBonus);
         featTag.putInt("PiousDefianceCharges", piousDefianceCharges);
         featTag.putInt("HolyWarriorDamageBonus", holyWarriorDamageBonus);
+        featTag.putInt("SpellFocusBonus", spellFocusBonus);
+        featTag.putInt("SpellPenetrationBonus", spellPenetrationBonus);
+        featTag.putInt("ArcaneStrikeBonus", arcaneStrikeBonus);
+        featTag.putInt("SchoolCasterLevelBonus", schoolCasterLevelBonus);
+        featTag.putInt("SchoolMasteryCharges", schoolMasteryCharges);
+        featTag.putInt("ArcaneToughnessHp", arcaneToughnessHp);
+        featTag.putInt("InnateSpellCharges", innateSpellCharges);
+        featTag.putInt("MagicalTrainingCharges", magicalTrainingCharges);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -572,6 +633,14 @@ public class DnDPlayerData {
             domainSaveDcBonus = featTag.getInt("DomainSaveDcBonus");
             piousDefianceCharges = featTag.getInt("PiousDefianceCharges");
             holyWarriorDamageBonus = featTag.getInt("HolyWarriorDamageBonus");
+            spellFocusBonus = featTag.getInt("SpellFocusBonus");
+            spellPenetrationBonus = featTag.getInt("SpellPenetrationBonus");
+            arcaneStrikeBonus = featTag.getInt("ArcaneStrikeBonus");
+            schoolCasterLevelBonus = featTag.getInt("SchoolCasterLevelBonus");
+            schoolMasteryCharges = featTag.getInt("SchoolMasteryCharges");
+            arcaneToughnessHp = featTag.getInt("ArcaneToughnessHp");
+            innateSpellCharges = featTag.getInt("InnateSpellCharges");
+            magicalTrainingCharges = featTag.getInt("MagicalTrainingCharges");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -600,6 +669,14 @@ public class DnDPlayerData {
             domainSaveDcBonus = 0;
             piousDefianceCharges = 0;
             holyWarriorDamageBonus = 0;
+            spellFocusBonus = 0;
+            spellPenetrationBonus = 0;
+            arcaneStrikeBonus = 0;
+            schoolCasterLevelBonus = 0;
+            schoolMasteryCharges = 0;
+            arcaneToughnessHp = 0;
+            innateSpellCharges = 0;
+            magicalTrainingCharges = 0;
         }
     }
 
@@ -651,5 +728,13 @@ public class DnDPlayerData {
         this.domainSaveDcBonus = other.domainSaveDcBonus;
         this.piousDefianceCharges = other.piousDefianceCharges;
         this.holyWarriorDamageBonus = other.holyWarriorDamageBonus;
+        this.spellFocusBonus = other.spellFocusBonus;
+        this.spellPenetrationBonus = other.spellPenetrationBonus;
+        this.arcaneStrikeBonus = other.arcaneStrikeBonus;
+        this.schoolCasterLevelBonus = other.schoolCasterLevelBonus;
+        this.schoolMasteryCharges = other.schoolMasteryCharges;
+        this.arcaneToughnessHp = other.arcaneToughnessHp;
+        this.innateSpellCharges = other.innateSpellCharges;
+        this.magicalTrainingCharges = other.magicalTrainingCharges;
     }
 }

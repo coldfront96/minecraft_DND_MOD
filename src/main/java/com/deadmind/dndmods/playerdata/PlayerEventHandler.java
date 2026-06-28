@@ -32,6 +32,16 @@ public class PlayerEventHandler {
             if (data.getAchievementFlag("pious_defiance_unlocked") && data.getPiousDefianceCharges() < 1) {
                 data.setPiousDefianceCharges(1);
             }
+            // Complete Arcane daily charges reset on login.
+            if (data.getAchievementFlag("school_mastery_unlocked")) {
+                data.setSchoolMasteryCharges(1);
+            }
+            if (data.getAchievementFlag("innate_spell_unlocked")) {
+                data.setInnateSpellCharges(3);
+            }
+            if (data.getAchievementFlag("magical_training_unlocked")) {
+                data.setMagicalTrainingCharges(3);
+            }
 
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 
