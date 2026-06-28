@@ -42,6 +42,15 @@ public class PlayerEventHandler {
             if (data.getAchievementFlag("magical_training_unlocked")) {
                 data.setMagicalTrainingCharges(3);
             }
+            // Complete Scoundrel daily luck charges reset on login.
+            if (data.getAchievementFlag("fortunate_one_unlocked")) {
+                data.setLuckOfHeroesCharges(2);
+            } else if (data.getAchievementFlag("luck_of_heroes_unlocked")) {
+                data.setLuckOfHeroesCharges(1);
+            }
+            if (data.getAchievementFlag("fated_unlocked")) {
+                data.setFatedCharges(1);
+            }
 
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 

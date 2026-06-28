@@ -63,6 +63,8 @@ public class DnDPlayerData {
     private int favoredEnemyBonus = 0;
     private boolean evasionUnlocked = false;
     private int dangerSenseInitBonus = 0;
+    private int luckOfHeroesCharges = 0;
+    private int fatedCharges = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -405,10 +407,19 @@ public class DnDPlayerData {
     public boolean isEvasionUnlocked() { return evasionUnlocked; }
     public void setEvasionUnlocked(boolean unlocked) { this.evasionUnlocked = unlocked; }
 
-    // Danger Sense (Complete Adventurer): +2 initiative, added alongside
-    // featInitiativeBonus in the character sheet.
+    // Danger Sense (Complete Adventurer) / Quick Thinking (Complete Scoundrel):
+    // initiative bonus, added alongside featInitiativeBonus in the character sheet.
     public int getDangerSenseInitBonus() { return dangerSenseInitBonus; }
     public void setDangerSenseInitBonus(int bonus) { this.dangerSenseInitBonus = bonus; }
+
+    // Luck of Heroes / Fortunate One (Complete Scoundrel): daily reroll charges,
+    // reset on login (1 base, 2 with Fortunate One).
+    public int getLuckOfHeroesCharges() { return luckOfHeroesCharges; }
+    public void setLuckOfHeroesCharges(int charges) { this.luckOfHeroesCharges = Math.max(0, charges); }
+
+    // Fated (Complete Scoundrel): daily auto-natural-20 charge, reset on login.
+    public int getFatedCharges() { return fatedCharges; }
+    public void setFatedCharges(int charges) { this.fatedCharges = Math.max(0, charges); }
 
     // --- Achievement flags ---
 
@@ -553,6 +564,8 @@ public class DnDPlayerData {
         featTag.putInt("FavoredEnemyBonus", favoredEnemyBonus);
         featTag.putBoolean("EvasionUnlocked", evasionUnlocked);
         featTag.putInt("DangerSenseInitBonus", dangerSenseInitBonus);
+        featTag.putInt("LuckOfHeroesCharges", luckOfHeroesCharges);
+        featTag.putInt("FatedCharges", fatedCharges);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -665,6 +678,8 @@ public class DnDPlayerData {
             favoredEnemyBonus = featTag.getInt("FavoredEnemyBonus");
             evasionUnlocked = featTag.getBoolean("EvasionUnlocked");
             dangerSenseInitBonus = featTag.getInt("DangerSenseInitBonus");
+            luckOfHeroesCharges = featTag.getInt("LuckOfHeroesCharges");
+            fatedCharges = featTag.getInt("FatedCharges");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -704,6 +719,8 @@ public class DnDPlayerData {
             favoredEnemyBonus = 0;
             evasionUnlocked = false;
             dangerSenseInitBonus = 0;
+            luckOfHeroesCharges = 0;
+            fatedCharges = 0;
         }
     }
 
@@ -766,5 +783,7 @@ public class DnDPlayerData {
         this.favoredEnemyBonus = other.favoredEnemyBonus;
         this.evasionUnlocked = other.evasionUnlocked;
         this.dangerSenseInitBonus = other.dangerSenseInitBonus;
+        this.luckOfHeroesCharges = other.luckOfHeroesCharges;
+        this.fatedCharges = other.fatedCharges;
     }
 }

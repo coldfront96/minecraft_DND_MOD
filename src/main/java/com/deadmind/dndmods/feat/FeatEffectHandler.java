@@ -2,6 +2,7 @@ package com.deadmind.dndmods.feat;
 
 import com.deadmind.dndmods.DnDMods;
 import com.deadmind.dndmods.classes.DnDClass;
+import com.deadmind.dndmods.combat.ModDamageTypes;
 import com.deadmind.dndmods.combat.SaveType;
 import com.deadmind.dndmods.combat.SavingThrowSystem;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
@@ -389,13 +390,23 @@ public class FeatEffectHandler {
             }
         }
 
-        // Distracting Attack — attacker side.
+        // Attacker-side post-hit feats.
         if (event.getSource().getEntity() instanceof ServerPlayer attacker) {
             DnDPlayerData data = attacker.getData(ModAttachments.PLAYER_DATA);
-            if (data != null
-                    && data.getAchievementFlag("distracting_attack_unlocked")
-                    && isRanger(data)) {
-                victim.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, false, true));
+            if (data != null) {
+                // Distracting Attack (Ranger): tag the target with Glowing.
+                if (data.getAchievementFlag("distracting_attack_unlocked") && isRanger(data)) {
+                    victim.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, false, true));
+                }
+
+                // Weakening Strike (Complete Scoundrel): a Rogue's sneak attack —
+                // represented in this mod by ability (Backstab) damage — saps the
+                // victim's strength. The only active effect in this pass.
+                if (data.getAchievementFlag("weakening_strike_unlocked")
+                        && isRogue(data)
+                        && event.getSource().is(ModDamageTypes.ABILITY_DAMAGE)) {
+                    victim.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0, false, true));
+                }
             }
         }
     }
@@ -440,5 +451,10 @@ public class FeatEffectHandler {
     private static boolean isCleric(DnDPlayerData data) {
         if (data.getPrimary().getDnDClass() == DnDClass.CLERIC) return true;
         return data.getSecondary() != null && data.getSecondary().getDnDClass() == DnDClass.CLERIC;
+    }
+
+    private static boolean isRogue(DnDPlayerData data) {
+        if (data.getPrimary().getDnDClass() == DnDClass.ROGUE) return true;
+        return data.getSecondary() != null && data.getSecondary().getDnDClass() == DnDClass.ROGUE;
     }
 }
