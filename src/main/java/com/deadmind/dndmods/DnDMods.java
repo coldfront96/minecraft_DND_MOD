@@ -6,6 +6,9 @@ import com.deadmind.dndmods.feat.content.CompleteArcaneFeats;
 import com.deadmind.dndmods.feat.content.CompleteChampionFeats;
 import com.deadmind.dndmods.feat.content.CompleteMageFeats;
 import com.deadmind.dndmods.feat.content.CompleteScoundrelFeats;
+import com.deadmind.dndmods.feat.content.HeroesOfHorrorFeats;
+import com.deadmind.dndmods.feat.content.TomeOfBattleFeats;
+import com.deadmind.dndmods.feat.content.TomeOfMagicFeats;
 import com.deadmind.dndmods.feat.content.CompleteDivineFeats;
 import com.deadmind.dndmods.feat.content.CompleteWarriorFeats;
 import com.deadmind.dndmods.feat.content.CoreFeats;
@@ -51,6 +54,9 @@ public class DnDMods {
             CompleteScoundrelFeats.register();
             CompleteChampionFeats.register();
             CompleteMageFeats.register();
+            HeroesOfHorrorFeats.register();
+            TomeOfMagicFeats.register();
+            TomeOfBattleFeats.register();
         });
     }
 }

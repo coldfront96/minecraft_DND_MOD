@@ -79,6 +79,17 @@ public class DnDPlayerData {
     private int spellReflectionCharges = 0;
     private int reactiveSpellCharges = 0;
     private int instantMetamagicCharges = 0;
+    private int deathWardCharges = 0;
+    private int shadowStrBonus = 0;
+    private int eldritchInsightCharges = 0;
+    private int martialDamageBonus = 0;
+    private int adamantineReduction = 0;
+    private int concentrationMightBonus = 0;
+    private boolean concentrationMightUsedThisSecond = false;
+    private int perfectClarityCharges = 0;
+    private int orderForgedCharges = 0;
+    private int bloodyFuryBonus = 0;
+    private int ironHeartSurgeCooldown = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -499,6 +510,53 @@ public class DnDPlayerData {
     public int getInstantMetamagicCharges() { return instantMetamagicCharges; }
     public void setInstantMetamagicCharges(int charges) { this.instantMetamagicCharges = Math.max(0, charges); }
 
+    // Death Ward (Heroes of Horror): daily death-immunity charge, reset on login.
+    public int getDeathWardCharges() { return deathWardCharges; }
+    public void setDeathWardCharges(int charges) { this.deathWardCharges = Math.max(0, charges); }
+
+    // Embrace the Dark (Tome of Magic): dynamic +STR melee bonus while in full
+    // darkness; reconciled each tick by FeatEffectHandler.
+    public int getShadowStrBonus() { return shadowStrBonus; }
+    public void setShadowStrBonus(int bonus) { this.shadowStrBonus = Math.max(0, bonus); }
+
+    // Eldritch Insight (Tome of Magic): daily spell-save reroll charge, reset on login.
+    public int getEldritchInsightCharges() { return eldritchInsightCharges; }
+    public void setEldritchInsightCharges(int charges) { this.eldritchInsightCharges = Math.max(0, charges); }
+
+    // Shared martial melee bonus (Tome of Battle): summed flat melee damage from
+    // iron_will_warrior, mountain_hammer, elder_mountain_hammer, and martial_study.
+    public int getMartialDamageBonus() { return martialDamageBonus; }
+    public void setMartialDamageBonus(int bonus) { this.martialDamageBonus = Math.max(0, bonus); }
+
+    // Adamantine Body (Tome of Battle): flat physical-melee damage reduction.
+    public int getAdamantineReduction() { return adamantineReduction; }
+    public void setAdamantineReduction(int reduction) { this.adamantineReduction = Math.max(0, reduction); }
+
+    // Concentration of Might (Tome of Battle): INT-based bonus applied to one
+    // melee hit per second; recalculated on INT change.
+    public int getConcentrationMightBonus() { return concentrationMightBonus; }
+    public void setConcentrationMightBonus(int bonus) { this.concentrationMightBonus = Math.max(0, bonus); }
+
+    public boolean isConcentrationMightUsedThisSecond() { return concentrationMightUsedThisSecond; }
+    public void setConcentrationMightUsedThisSecond(boolean used) { this.concentrationMightUsedThisSecond = used; }
+
+    // Perfect Clarity (Tome of Battle): daily INT-attack reroll charge, reset on login.
+    public int getPerfectClarityCharges() { return perfectClarityCharges; }
+    public void setPerfectClarityCharges(int charges) { this.perfectClarityCharges = Math.max(0, charges); }
+
+    // Order Forged from Chaos (Tome of Battle): daily party-buff charge, reset on login.
+    public int getOrderForgedCharges() { return orderForgedCharges; }
+    public void setOrderForgedCharges(int charges) { this.orderForgedCharges = Math.max(0, charges); }
+
+    // Blood of the Martyr (Tome of Battle): dynamic melee fury bonus below 50% HP;
+    // reconciled each tick by FeatEffectHandler.
+    public int getBloodyFuryBonus() { return bloodyFuryBonus; }
+    public void setBloodyFuryBonus(int bonus) { this.bloodyFuryBonus = Math.max(0, bonus); }
+
+    // Iron Heart Surge (Tome of Battle): cooldown ticks for the deferred active use.
+    public int getIronHeartSurgeCooldown() { return ironHeartSurgeCooldown; }
+    public void setIronHeartSurgeCooldown(int ticks) { this.ironHeartSurgeCooldown = Math.max(0, ticks); }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -658,6 +716,17 @@ public class DnDPlayerData {
         featTag.putInt("SpellReflectionCharges", spellReflectionCharges);
         featTag.putInt("ReactiveSpellCharges", reactiveSpellCharges);
         featTag.putInt("InstantMetamagicCharges", instantMetamagicCharges);
+        featTag.putInt("DeathWardCharges", deathWardCharges);
+        featTag.putInt("ShadowStrBonus", shadowStrBonus);
+        featTag.putInt("EldritchInsightCharges", eldritchInsightCharges);
+        featTag.putInt("MartialDamageBonus", martialDamageBonus);
+        featTag.putInt("AdamantineReduction", adamantineReduction);
+        featTag.putInt("ConcentrationMightBonus", concentrationMightBonus);
+        featTag.putBoolean("ConcentrationMightUsedThisSecond", concentrationMightUsedThisSecond);
+        featTag.putInt("PerfectClarityCharges", perfectClarityCharges);
+        featTag.putInt("OrderForgedCharges", orderForgedCharges);
+        featTag.putInt("BloodyFuryBonus", bloodyFuryBonus);
+        featTag.putInt("IronHeartSurgeCooldown", ironHeartSurgeCooldown);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -786,6 +855,17 @@ public class DnDPlayerData {
             spellReflectionCharges = featTag.getInt("SpellReflectionCharges");
             reactiveSpellCharges = featTag.getInt("ReactiveSpellCharges");
             instantMetamagicCharges = featTag.getInt("InstantMetamagicCharges");
+            deathWardCharges = featTag.getInt("DeathWardCharges");
+            shadowStrBonus = featTag.getInt("ShadowStrBonus");
+            eldritchInsightCharges = featTag.getInt("EldritchInsightCharges");
+            martialDamageBonus = featTag.getInt("MartialDamageBonus");
+            adamantineReduction = featTag.getInt("AdamantineReduction");
+            concentrationMightBonus = featTag.getInt("ConcentrationMightBonus");
+            concentrationMightUsedThisSecond = featTag.getBoolean("ConcentrationMightUsedThisSecond");
+            perfectClarityCharges = featTag.getInt("PerfectClarityCharges");
+            orderForgedCharges = featTag.getInt("OrderForgedCharges");
+            bloodyFuryBonus = featTag.getInt("BloodyFuryBonus");
+            ironHeartSurgeCooldown = featTag.getInt("IronHeartSurgeCooldown");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -841,6 +921,17 @@ public class DnDPlayerData {
             spellReflectionCharges = 0;
             reactiveSpellCharges = 0;
             instantMetamagicCharges = 0;
+            deathWardCharges = 0;
+            shadowStrBonus = 0;
+            eldritchInsightCharges = 0;
+            martialDamageBonus = 0;
+            adamantineReduction = 0;
+            concentrationMightBonus = 0;
+            concentrationMightUsedThisSecond = false;
+            perfectClarityCharges = 0;
+            orderForgedCharges = 0;
+            bloodyFuryBonus = 0;
+            ironHeartSurgeCooldown = 0;
         }
     }
 
@@ -919,5 +1010,16 @@ public class DnDPlayerData {
         this.spellReflectionCharges = other.spellReflectionCharges;
         this.reactiveSpellCharges = other.reactiveSpellCharges;
         this.instantMetamagicCharges = other.instantMetamagicCharges;
+        this.deathWardCharges = other.deathWardCharges;
+        this.shadowStrBonus = other.shadowStrBonus;
+        this.eldritchInsightCharges = other.eldritchInsightCharges;
+        this.martialDamageBonus = other.martialDamageBonus;
+        this.adamantineReduction = other.adamantineReduction;
+        this.concentrationMightBonus = other.concentrationMightBonus;
+        this.concentrationMightUsedThisSecond = other.concentrationMightUsedThisSecond;
+        this.perfectClarityCharges = other.perfectClarityCharges;
+        this.orderForgedCharges = other.orderForgedCharges;
+        this.bloodyFuryBonus = other.bloodyFuryBonus;
+        this.ironHeartSurgeCooldown = other.ironHeartSurgeCooldown;
     }
 }

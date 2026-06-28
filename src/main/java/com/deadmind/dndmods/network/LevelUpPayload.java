@@ -215,6 +215,12 @@ public record LevelUpPayload(
                 data.setEldritchLoreCasterBonus(data.getAbilityScores().getIntMod());
             }
 
+            // Concentration of Might (Tome of Battle): INT-based melee bonus —
+            // recalculate in case an ASI changed INT.
+            if (data.hasFeat("concentration_of_might")) {
+                data.setConcentrationMightBonus(data.getAbilityScores().getIntMod());
+            }
+
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

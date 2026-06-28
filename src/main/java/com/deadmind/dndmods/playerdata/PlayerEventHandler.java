@@ -86,6 +86,19 @@ public class PlayerEventHandler {
             if (data.getAchievementFlag("instant_metamagic_unlocked")) {
                 data.setInstantMetamagicCharges(3);
             }
+            // Partial-sourcebook daily charges reset on login.
+            if (data.getAchievementFlag("death_ward_unlocked")) {
+                data.setDeathWardCharges(1);
+            }
+            if (data.getAchievementFlag("eldritch_insight_unlocked")) {
+                data.setEldritchInsightCharges(1);
+            }
+            if (data.getAchievementFlag("perfect_clarity_unlocked")) {
+                data.setPerfectClarityCharges(1);
+            }
+            if (data.getAchievementFlag("order_forged_unlocked")) {
+                data.setOrderForgedCharges(1);
+            }
 
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 

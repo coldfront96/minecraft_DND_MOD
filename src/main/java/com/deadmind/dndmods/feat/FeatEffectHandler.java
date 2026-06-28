@@ -69,6 +69,16 @@ public class FeatEffectHandler {
 
     /** Evasion (Complete Adventurer): baseline area-effect Reflex DC. */
     private static final int EVASION_REFLEX_DC = 15;
+
+    private static final ResourceLocation EMBRACE_DARK_CON_ID =
+            ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "embrace_dark_con");
+
+    /** Light level at or below which "darkness" effects (shadow feats) apply. */
+    private static final int DARKNESS_LIGHT_LEVEL = 4;
+    /** Shadow Healing (Tome of Magic): doubled regen ≈ +1 HP per 80 ticks in darkness. */
+    private static final int SHADOW_HEALING_INTERVAL = 80;
+    /** Shadow Mastery (Heroes of Horror): physical damage multiplier in darkness. */
+    private static final float SHADOW_MASTERY_DAMAGE_MULT = 0.8f;
     private static final ResourceLocation NATURAL_ATHLETE_SPEED_ID =
             ResourceLocation.fromNamespaceAndPath(DnDMods.MOD_ID, "natural_athlete_speed");
     private static final ResourceLocation NATURAL_ATHLETE_JUMP_ID =
@@ -141,6 +151,47 @@ public class FeatEffectHandler {
                 AttributeModifier.Operation.ADD_VALUE);
 
         handleSelfSufficient(player, data);
+        handlePartialSourcebookTicks(player, data);
+    }
+
+    /**
+     * Tick-reconciled effects from the partial sourcebook passes (Heroes of
+     * Horror / Tome of Magic / Tome of Battle): light-gated regen and attribute
+     * toggles, the HP-threshold fury bonus, the once-per-second concentration
+     * reset, and the Iron Heart Surge cooldown countdown.
+     */
+    private static void handlePartialSourcebookTicks(ServerPlayer player, DnDPlayerData data) {
+        // Shadow Healing (Tome of Magic): doubled regen while in darkness.
+        if (data.getAchievementFlag("shadow_healing_unlocked")
+                && player.getHealth() < player.getMaxHealth()
+                && getLightLevel(player) <= DARKNESS_LIGHT_LEVEL
+                && player.tickCount % SHADOW_HEALING_INTERVAL == 0) {
+            player.heal(1.0f);
+        }
+
+        // Embrace the Dark (Tome of Magic): +2 STR (melee) and +4 max HP in full darkness.
+        boolean inFullDark = data.getAchievementFlag("embrace_the_dark_unlocked")
+                && getLightLevel(player) == 0;
+        data.setShadowStrBonus(inFullDark ? 2 : 0);
+        reconcileAttribute(player, Attributes.MAX_HEALTH, EMBRACE_DARK_CON_ID,
+                4.0, inFullDark, AttributeModifier.Operation.ADD_VALUE);
+
+        // Blood of the Martyr (Tome of Battle): fury melee bonus below 50% HP.
+        if (data.getAchievementFlag("blood_of_martyr_unlocked")) {
+            data.setBloodyFuryBonus(player.getHealth() < player.getMaxHealth() * 0.5f ? 2 : 0);
+        } else if (data.getBloodyFuryBonus() != 0) {
+            data.setBloodyFuryBonus(0);
+        }
+
+        // Concentration of Might (Tome of Battle): clear the once-per-second gate.
+        if (player.tickCount % 20 == 0 && data.isConcentrationMightUsedThisSecond()) {
+            data.setConcentrationMightUsedThisSecond(false);
+        }
+
+        // Iron Heart Surge (Tome of Battle): tick down the deferred-use cooldown.
+        if (data.getIronHeartSurgeCooldown() > 0) {
+            data.setIronHeartSurgeCooldown(data.getIronHeartSurgeCooldown() - 1);
+        }
     }
 
     /**
@@ -327,6 +378,11 @@ public class FeatEffectHandler {
                         && isCleric(attackerData)) {
                     event.setNewDamage(event.getNewDamage() + attackerData.getHolyWarriorDamageBonus());
                 }
+
+                // Tome of Battle / Tome of Magic flat melee bonuses (martial
+                // training, mountain hammer, shadow STR, bloody fury, and the
+                // once-per-second Concentration of Might) apply to weapon attacks.
+                applyAttackerMeleeBonuses(attackerData, event);
             }
         }
 
@@ -336,8 +392,64 @@ public class FeatEffectHandler {
             if (data == null) return;
             handleWarforgedResilience(data, event);
             handleHolyResilience(data, event);
+            handleShadowMastery(player, data, event);
+            handleAdamantineBody(data, event);
             handleEvasion(player, data, event);
         }
+    }
+
+    /**
+     * Adds the partial-sourcebook flat melee bonuses to a player's weapon attack:
+     * the shared Tome of Battle martial bonus, the Embrace the Dark STR bonus, the
+     * Blood of the Martyr fury bonus, and a once-per-second Concentration of Might
+     * bonus. Only applies to physical player attacks.
+     */
+    private static void applyAttackerMeleeBonuses(DnDPlayerData data, LivingDamageEvent.Pre event) {
+        if (!event.getSource().is(DamageTypes.PLAYER_ATTACK)) return;
+
+        int bonus = data.getMartialDamageBonus() + data.getShadowStrBonus() + data.getBloodyFuryBonus();
+
+        // Concentration of Might: at most one melee hit per second.
+        if (data.getConcentrationMightBonus() > 0 && !data.isConcentrationMightUsedThisSecond()) {
+            bonus += data.getConcentrationMightBonus();
+            data.setConcentrationMightUsedThisSecond(true);
+        }
+
+        if (bonus > 0) {
+            event.setNewDamage(event.getNewDamage() + bonus);
+        }
+    }
+
+    /**
+     * Shadow Mastery (Heroes of Horror): in darkness the champion becomes
+     * partially incorporeal, taking 20% less physical (melee) damage.
+     */
+    private static void handleShadowMastery(ServerPlayer player, DnDPlayerData data, LivingDamageEvent.Pre event) {
+        if (!data.getAchievementFlag("shadow_mastery_unlocked")) return;
+        if (!isPhysicalMelee(event.getSource())) return;
+        if (getLightLevel(player) > DARKNESS_LIGHT_LEVEL) return;
+
+        event.setNewDamage(event.getNewDamage() * SHADOW_MASTERY_DAMAGE_MULT);
+    }
+
+    /**
+     * Adamantine Body (Tome of Battle): flat physical-melee damage reduction that
+     * stacks additively with other flat reductions (e.g. Warforged Resilience).
+     */
+    private static void handleAdamantineBody(DnDPlayerData data, LivingDamageEvent.Pre event) {
+        if (data.getAdamantineReduction() <= 0) return;
+        if (!isPhysicalMelee(event.getSource())) return;
+
+        float reduced = Math.max(0.0f, event.getNewDamage() - data.getAdamantineReduction());
+        event.setNewDamage(reduced);
+    }
+
+    private static boolean isPhysicalMelee(DamageSource source) {
+        return source.is(DamageTypes.PLAYER_ATTACK) || source.is(DamageTypes.MOB_ATTACK);
+    }
+
+    private static int getLightLevel(ServerPlayer player) {
+        return player.level().getMaxLocalRawBrightness(player.blockPosition());
     }
 
     /**
