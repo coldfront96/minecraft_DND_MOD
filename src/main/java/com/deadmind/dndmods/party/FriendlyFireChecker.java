@@ -1,10 +1,14 @@
 package com.deadmind.dndmods.party;
 
+import com.deadmind.dndmods.guild.Guild;
+import com.deadmind.dndmods.guild.GuildManager;
+import com.deadmind.dndmods.guild.GuildZoneType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.level.ChunkPos;
 
 import java.util.UUID;
 
@@ -34,8 +38,21 @@ public final class FriendlyFireChecker {
             }
         }
 
-        // 3. Players in the same party, when that party has friendly fire off.
+        // 3. Player-vs-player: arena override, then party, then guild.
         if (attacker instanceof ServerPlayer && target instanceof ServerPlayer) {
+            MinecraftServer server = attacker.getServer();
+
+            // 3a. An ARENA zone forces friendly fire on regardless of party/guild
+            // — checked before any friendly result so PvP zones always allow damage.
+            if (server != null) {
+                ChunkPos attackerChunk = new ChunkPos(attacker.blockPosition());
+                Guild chunkGuild = GuildManager.getGuildAtChunk(attackerChunk, server);
+                if (chunkGuild != null && chunkGuild.getZoneType(attackerChunk) == GuildZoneType.ARENA) {
+                    return false;
+                }
+            }
+
+            // 3b. Same party, friendly fire off.
             PartyManager manager = PartyManager.getInstance();
             Party attackerParty = manager.getPartyOf(attacker.getUUID());
             Party targetParty = manager.getPartyOf(target.getUUID());
@@ -43,7 +60,14 @@ public final class FriendlyFireChecker {
                     && !attackerParty.isFriendlyFireEnabled()) {
                 return true;
             }
-            // GUILD_CHECK_PLACEHOLDER
+
+            // 3c. Same guild, friendly fire off.
+            if (server != null && GuildManager.isSameGuild(attacker.getUUID(), target.getUUID(), server)) {
+                Guild guild = GuildManager.getGuildOf(attacker.getUUID(), server);
+                if (guild != null && !guild.isFriendlyFireEnabled()) {
+                    return true;
+                }
+            }
         }
 
         // 4. Everything else is a valid target.
