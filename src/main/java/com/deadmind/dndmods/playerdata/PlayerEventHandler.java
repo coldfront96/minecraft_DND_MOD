@@ -65,6 +65,27 @@ public class PlayerEventHandler {
             if (data.getAchievementFlag("zealous_surge_unlocked")) {
                 data.setZealousSurgeCharges(1);
             }
+            // Complete Mage daily charges reset on login.
+            if (data.getAchievementFlag("eldritch_apex_unlocked")) {
+                data.setEldritchApexCharges(1);
+            }
+            if (data.getAchievementFlag("automatic_metamagic_unlocked")) {
+                data.setAutomaticMetamagicCharges(1);
+            }
+            if (data.getAchievementFlag("greater_warding_unlocked")) {
+                data.setWardingGestureCharges(2);
+            } else if (data.getAchievementFlag("warding_gesture_unlocked")) {
+                data.setWardingGestureCharges(1);
+            }
+            if (data.getAchievementFlag("spell_reflection_unlocked")) {
+                data.setSpellReflectionCharges(1);
+            }
+            if (data.getAchievementFlag("reactive_spell_unlocked")) {
+                data.setReactiveSpellCharges(1);
+            }
+            if (data.getAchievementFlag("instant_metamagic_unlocked")) {
+                data.setInstantMetamagicCharges(3);
+            }
 
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 

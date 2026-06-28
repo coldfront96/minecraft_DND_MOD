@@ -206,6 +206,15 @@ public record LevelUpPayload(
                 data.setHolyResilienceReduction(Math.max(1, data.getAbilityScores().getWisMod()));
             }
 
+            // Eldritch Lore / Mastery (Complete Mage): caster-level bonus equal to
+            // the INT modifier, doubled with Eldritch Mastery — recalculate in case
+            // an ASI changed INT.
+            if (data.hasFeat("eldritch_mastery")) {
+                data.setEldritchLoreCasterBonus(data.getAbilityScores().getIntMod() * 2);
+            } else if (data.hasFeat("eldritch_lore")) {
+                data.setEldritchLoreCasterBonus(data.getAbilityScores().getIntMod());
+            }
+
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

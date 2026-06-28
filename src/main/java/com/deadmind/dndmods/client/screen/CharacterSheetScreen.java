@@ -138,7 +138,13 @@ public class CharacterSheetScreen extends Screen {
         drawStatRow(graphics, "Armor Class", String.valueOf(ac), x, y, rightEdge);
         y += 19;
 
-        int initiative = scores.getDexMod() + data.getFeatInitiativeBonus() + data.getDangerSenseInitBonus();
+        // Arcane Reflexes (Complete Mage): a Wizard may use INT instead of DEX
+        // for initiative when it is higher, mirroring Insightful Reflexes.
+        int initBaseMod = scores.getDexMod();
+        if (data.getAchievementFlag("arcane_reflexes_unlocked") && scores.getIntMod() > initBaseMod) {
+            initBaseMod = scores.getIntMod();
+        }
+        int initiative = initBaseMod + data.getFeatInitiativeBonus() + data.getDangerSenseInitBonus();
         drawStatRow(graphics, "Initiative", formatSigned(initiative), x, y, rightEdge);
         y += 19;
 

@@ -72,6 +72,13 @@ public class DnDPlayerData {
     private int divineImpetusCharges = 0;
     private int holyResilienceReduction = 0;
     private int zealousSurgeCharges = 0;
+    private int eldritchLoreCasterBonus = 0;
+    private int eldritchApexCharges = 0;
+    private int automaticMetamagicCharges = 0;
+    private int wardingGestureCharges = 0;
+    private int spellReflectionCharges = 0;
+    private int reactiveSpellCharges = 0;
+    private int instantMetamagicCharges = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -461,6 +468,37 @@ public class DnDPlayerData {
     public int getZealousSurgeCharges() { return zealousSurgeCharges; }
     public void setZealousSurgeCharges(int charges) { this.zealousSurgeCharges = Math.max(0, charges); }
 
+    // Eldritch Lore / Mastery (Complete Mage): caster-level bonus equal to the
+    // INT modifier (x2 with Mastery), recalculated on INT change.
+    public int getEldritchLoreCasterBonus() { return eldritchLoreCasterBonus; }
+    public void setEldritchLoreCasterBonus(int bonus) { this.eldritchLoreCasterBonus = Math.max(0, bonus); }
+
+    // Eldritch Apex (Complete Mage): daily max-caster-level cast, reset on login.
+    public int getEldritchApexCharges() { return eldritchApexCharges; }
+    public void setEldritchApexCharges(int charges) { this.eldritchApexCharges = Math.max(0, charges); }
+
+    // Automatic Metamagic (Complete Mage): daily free-metamagic charge, reset on login.
+    public int getAutomaticMetamagicCharges() { return automaticMetamagicCharges; }
+    public void setAutomaticMetamagicCharges(int charges) { this.automaticMetamagicCharges = Math.max(0, charges); }
+
+    // Warding Gesture / Greater Warding (Complete Mage): daily ward charges,
+    // reset on login (1 base, 2 with Greater Warding).
+    public int getWardingGestureCharges() { return wardingGestureCharges; }
+    public void setWardingGestureCharges(int charges) { this.wardingGestureCharges = Math.max(0, charges); }
+
+    // Spell Reflection (Complete Mage): daily reflect charge, reset on login.
+    public int getSpellReflectionCharges() { return spellReflectionCharges; }
+    public void setSpellReflectionCharges(int charges) { this.spellReflectionCharges = Math.max(0, charges); }
+
+    // Reactive Spell (Complete Mage): daily immediate-action cast, reset on login.
+    public int getReactiveSpellCharges() { return reactiveSpellCharges; }
+    public void setReactiveSpellCharges(int charges) { this.reactiveSpellCharges = Math.max(0, charges); }
+
+    // Instant Metamagic (Complete Mage): three daily free-action metamagic casts,
+    // reset on login.
+    public int getInstantMetamagicCharges() { return instantMetamagicCharges; }
+    public void setInstantMetamagicCharges(int charges) { this.instantMetamagicCharges = Math.max(0, charges); }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -613,6 +651,13 @@ public class DnDPlayerData {
         featTag.putInt("DivineImpetusCharges", divineImpetusCharges);
         featTag.putInt("HolyResilienceReduction", holyResilienceReduction);
         featTag.putInt("ZealousSurgeCharges", zealousSurgeCharges);
+        featTag.putInt("EldritchLoreCasterBonus", eldritchLoreCasterBonus);
+        featTag.putInt("EldritchApexCharges", eldritchApexCharges);
+        featTag.putInt("AutomaticMetamagicCharges", automaticMetamagicCharges);
+        featTag.putInt("WardingGestureCharges", wardingGestureCharges);
+        featTag.putInt("SpellReflectionCharges", spellReflectionCharges);
+        featTag.putInt("ReactiveSpellCharges", reactiveSpellCharges);
+        featTag.putInt("InstantMetamagicCharges", instantMetamagicCharges);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -734,6 +779,13 @@ public class DnDPlayerData {
             divineImpetusCharges = featTag.getInt("DivineImpetusCharges");
             holyResilienceReduction = featTag.getInt("HolyResilienceReduction");
             zealousSurgeCharges = featTag.getInt("ZealousSurgeCharges");
+            eldritchLoreCasterBonus = featTag.getInt("EldritchLoreCasterBonus");
+            eldritchApexCharges = featTag.getInt("EldritchApexCharges");
+            automaticMetamagicCharges = featTag.getInt("AutomaticMetamagicCharges");
+            wardingGestureCharges = featTag.getInt("WardingGestureCharges");
+            spellReflectionCharges = featTag.getInt("SpellReflectionCharges");
+            reactiveSpellCharges = featTag.getInt("ReactiveSpellCharges");
+            instantMetamagicCharges = featTag.getInt("InstantMetamagicCharges");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -782,6 +834,13 @@ public class DnDPlayerData {
             divineImpetusCharges = 0;
             holyResilienceReduction = 0;
             zealousSurgeCharges = 0;
+            eldritchLoreCasterBonus = 0;
+            eldritchApexCharges = 0;
+            automaticMetamagicCharges = 0;
+            wardingGestureCharges = 0;
+            spellReflectionCharges = 0;
+            reactiveSpellCharges = 0;
+            instantMetamagicCharges = 0;
         }
     }
 
@@ -853,5 +912,12 @@ public class DnDPlayerData {
         this.divineImpetusCharges = other.divineImpetusCharges;
         this.holyResilienceReduction = other.holyResilienceReduction;
         this.zealousSurgeCharges = other.zealousSurgeCharges;
+        this.eldritchLoreCasterBonus = other.eldritchLoreCasterBonus;
+        this.eldritchApexCharges = other.eldritchApexCharges;
+        this.automaticMetamagicCharges = other.automaticMetamagicCharges;
+        this.wardingGestureCharges = other.wardingGestureCharges;
+        this.spellReflectionCharges = other.spellReflectionCharges;
+        this.reactiveSpellCharges = other.reactiveSpellCharges;
+        this.instantMetamagicCharges = other.instantMetamagicCharges;
     }
 }
