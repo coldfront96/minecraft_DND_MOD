@@ -16,7 +16,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.phys.Vec3;
 
 public class SmiteUndead extends Ability {
@@ -56,7 +56,7 @@ public class SmiteUndead extends Ability {
                 if (look.dot(toEntity) > 0.5) {
                     // Holy damage hits everything in front; undead take extra and
                     // are set alight by the holy fire (matches the ability text).
-                    boolean isUndead = living.getMobType() == MobType.UNDEAD;
+                    boolean isUndead = living.getType().is(EntityTypeTags.UNDEAD);
 
                     float damage = AbilityDamageCalculator.calculate(this, data, living, player);
                     if (isUndead) {

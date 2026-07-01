@@ -1,6 +1,16 @@
 package com.deadmind.dndmods;
 
 import com.deadmind.dndmods.ability.AbilityRegistry;
+import com.deadmind.dndmods.feat.content.CompleteAdventurerFeats;
+import com.deadmind.dndmods.feat.content.CompleteArcaneFeats;
+import com.deadmind.dndmods.feat.content.CompleteChampionFeats;
+import com.deadmind.dndmods.feat.content.CompleteMageFeats;
+import com.deadmind.dndmods.feat.content.CompleteScoundrelFeats;
+import com.deadmind.dndmods.feat.content.HeroesOfHorrorFeats;
+import com.deadmind.dndmods.feat.content.TomeOfBattleFeats;
+import com.deadmind.dndmods.feat.content.TomeOfMagicFeats;
+import com.deadmind.dndmods.feat.content.CompleteDivineFeats;
+import com.deadmind.dndmods.feat.content.CompleteWarriorFeats;
 import com.deadmind.dndmods.feat.content.CoreFeats;
 import com.deadmind.dndmods.enchanting.ModMenuTypes;
 import com.deadmind.dndmods.loot.ModLootModifiers;
@@ -37,6 +47,16 @@ public class DnDMods {
         event.enqueueWork(() -> {
             AbilityRegistry.init();
             CoreFeats.register();
+            CompleteWarriorFeats.register();
+            CompleteDivineFeats.register();
+            CompleteArcaneFeats.register();
+            CompleteAdventurerFeats.register();
+            CompleteScoundrelFeats.register();
+            CompleteChampionFeats.register();
+            CompleteMageFeats.register();
+            HeroesOfHorrorFeats.register();
+            TomeOfMagicFeats.register();
+            TomeOfBattleFeats.register();
         });
     }
 }

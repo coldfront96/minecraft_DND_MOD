@@ -28,6 +28,77 @@ public class PlayerEventHandler {
             if (data.hasFeat("halfling_luck")) {
                 data.setHalflingLuckCharges(1);
             }
+            // Pious Defiance (Complete Divine): daily auto-success charge.
+            if (data.getAchievementFlag("pious_defiance_unlocked") && data.getPiousDefianceCharges() < 1) {
+                data.setPiousDefianceCharges(1);
+            }
+            // Complete Arcane daily charges reset on login.
+            if (data.getAchievementFlag("school_mastery_unlocked")) {
+                data.setSchoolMasteryCharges(1);
+            }
+            if (data.getAchievementFlag("innate_spell_unlocked")) {
+                data.setInnateSpellCharges(3);
+            }
+            if (data.getAchievementFlag("magical_training_unlocked")) {
+                data.setMagicalTrainingCharges(3);
+            }
+            // Complete Scoundrel daily luck charges reset on login.
+            if (data.getAchievementFlag("fortunate_one_unlocked")) {
+                data.setLuckOfHeroesCharges(2);
+            } else if (data.getAchievementFlag("luck_of_heroes_unlocked")) {
+                data.setLuckOfHeroesCharges(1);
+            }
+            if (data.getAchievementFlag("fated_unlocked")) {
+                data.setFatedCharges(1);
+            }
+            // Complete Champion daily charges reset on login.
+            if (data.getAchievementFlag("greater_smite_unlocked")) {
+                data.setSmiteCharges(3);
+            } else if (data.getAchievementFlag("improved_smite_unlocked")) {
+                data.setSmiteCharges(2);
+            } else if (data.getAchievementFlag("smite_evil_unlocked")) {
+                data.setSmiteCharges(1);
+            }
+            if (data.getAchievementFlag("divine_impetus_unlocked")) {
+                data.setDivineImpetusCharges(1);
+            }
+            if (data.getAchievementFlag("zealous_surge_unlocked")) {
+                data.setZealousSurgeCharges(1);
+            }
+            // Complete Mage daily charges reset on login.
+            if (data.getAchievementFlag("eldritch_apex_unlocked")) {
+                data.setEldritchApexCharges(1);
+            }
+            if (data.getAchievementFlag("automatic_metamagic_unlocked")) {
+                data.setAutomaticMetamagicCharges(1);
+            }
+            if (data.getAchievementFlag("greater_warding_unlocked")) {
+                data.setWardingGestureCharges(2);
+            } else if (data.getAchievementFlag("warding_gesture_unlocked")) {
+                data.setWardingGestureCharges(1);
+            }
+            if (data.getAchievementFlag("spell_reflection_unlocked")) {
+                data.setSpellReflectionCharges(1);
+            }
+            if (data.getAchievementFlag("reactive_spell_unlocked")) {
+                data.setReactiveSpellCharges(1);
+            }
+            if (data.getAchievementFlag("instant_metamagic_unlocked")) {
+                data.setInstantMetamagicCharges(3);
+            }
+            // Partial-sourcebook daily charges reset on login.
+            if (data.getAchievementFlag("death_ward_unlocked")) {
+                data.setDeathWardCharges(1);
+            }
+            if (data.getAchievementFlag("eldritch_insight_unlocked")) {
+                data.setEldritchInsightCharges(1);
+            }
+            if (data.getAchievementFlag("perfect_clarity_unlocked")) {
+                data.setPerfectClarityCharges(1);
+            }
+            if (data.getAchievementFlag("order_forged_unlocked")) {
+                data.setOrderForgedCharges(1);
+            }
 
             PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
 

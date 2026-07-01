@@ -155,6 +155,72 @@ public record LevelUpPayload(
                 data.setDwarvenToughnessHp(data.getTotalLevel());
             }
 
+            // Battle Hardened (Complete Warrior) grants +2 max HP per hit die —
+            // rescale to the new total level so FeatEffectHandler applies the
+            // right bonus on the next tick.
+            if (data.hasFeat("battle_hardened")) {
+                data.setBattleHardenedHp(data.getTotalLevel() * 2);
+            }
+
+            // Improved Toughness (Complete Warrior) grants +1 HP per character
+            // level via the shared toughness stacking system — gaining a level
+            // adds one more stack so the MAX_HEALTH reconcile keeps pace.
+            if (data.hasFeat("improved_toughness")) {
+                data.setToughnessFeatCount(data.getToughnessFeatCount() + 1);
+            }
+
+            // Blade of Force (Complete Warrior) deals flat force damage equal to
+            // the INT modifier — recalculate in case an ASI changed INT.
+            if (data.hasFeat("blade_of_force")) {
+                data.setBladeOfForceBonus(data.getAbilityScores().getIntMod());
+            }
+
+            // Holy Warrior (Complete Divine) deals flat melee damage equal to the
+            // WIS modifier — recalculate in case an ASI changed WIS.
+            if (data.hasFeat("holy_warrior")) {
+                data.setHolyWarriorDamageBonus(data.getAbilityScores().getWisMod());
+            }
+
+            // Arcane Toughness (Complete Arcane) grants +1 HP per Wizard level —
+            // rescale to the new Wizard level so FeatEffectHandler applies the
+            // right bonus on the next tick.
+            if (data.hasFeat("arcane_toughness")) {
+                data.setArcaneToughnessHp(data.getClassLevel(DnDClass.WIZARD));
+            }
+
+            // Improved Smite (Complete Champion): bonus radiant damage equal to
+            // Cleric level — rescale on level up.
+            if (data.hasFeat("improved_smite")) {
+                data.setSmiteDamageBonus(data.getClassLevel(DnDClass.CLERIC));
+            }
+
+            // Sacred Healing Devotion (Complete Champion): extra heal equal to the
+            // WIS modifier — recalculate in case an ASI changed WIS.
+            if (data.hasFeat("sacred_healing_devotion")) {
+                data.setDevotionHealingBonusWis(data.getAbilityScores().getWisMod());
+            }
+
+            // Holy Resilience (Complete Champion): flat reduction equal to the WIS
+            // modifier (min 1) — recalculate in case an ASI changed WIS.
+            if (data.hasFeat("holy_resilience")) {
+                data.setHolyResilienceReduction(Math.max(1, data.getAbilityScores().getWisMod()));
+            }
+
+            // Eldritch Lore / Mastery (Complete Mage): caster-level bonus equal to
+            // the INT modifier, doubled with Eldritch Mastery — recalculate in case
+            // an ASI changed INT.
+            if (data.hasFeat("eldritch_mastery")) {
+                data.setEldritchLoreCasterBonus(data.getAbilityScores().getIntMod() * 2);
+            } else if (data.hasFeat("eldritch_lore")) {
+                data.setEldritchLoreCasterBonus(data.getAbilityScores().getIntMod());
+            }
+
+            // Concentration of Might (Tome of Battle): INT-based melee bonus —
+            // recalculate in case an ASI changed INT.
+            if (data.hasFeat("concentration_of_might")) {
+                data.setConcentrationMightBonus(data.getAbilityScores().getIntMod());
+            }
+
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

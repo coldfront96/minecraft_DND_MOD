@@ -15,7 +15,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -24,7 +24,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerSleepInBedEvent;
+import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Set;
@@ -163,10 +163,10 @@ public class RacialTraitHandler {
         }
     }
 
-    // ---- PlayerSleepInBedEvent ----
+    // ---- CanPlayerSleepEvent ----
 
     @SubscribeEvent
-    public static void onPlayerSleep(PlayerSleepInBedEvent event) {
+    public static void onPlayerSleep(CanPlayerSleepEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
         DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
@@ -174,7 +174,7 @@ public class RacialTraitHandler {
         DnDRace race = data.getRace();
 
         if (race == DnDRace.ELF || race == DnDRace.HALF_ELF) {
-            event.setResult(Player.BedSleepingProblem.OTHER_PROBLEM);
+            event.setProblem(Player.BedSleepingProblem.OTHER_PROBLEM);
             player.displayClientMessage(
                     Component.literal("§6[DnDMods] §eElves do not sleep — you enter a meditative trance instead."),
                     false);
@@ -300,7 +300,7 @@ public class RacialTraitHandler {
             DnDPlayerData victimData = victimPlayer.getData(ModAttachments.PLAYER_DATA);
             if (victimData != null && isUndead(victimData.getRace())) return;
         } else {
-            if (victim.getMobType() == MobType.UNDEAD) return;
+            if (victim.getType().is(EntityTypeTags.UNDEAD)) return;
         }
 
         attacker.heal(1.0f);
