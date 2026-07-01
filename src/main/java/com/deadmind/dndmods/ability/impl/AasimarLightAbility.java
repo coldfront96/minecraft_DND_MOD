@@ -12,7 +12,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.AABB;
 
@@ -58,7 +58,7 @@ public class AasimarLightAbility extends Ability {
                 mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, false, true));
 
                 float damage = baseDamage;
-                if (mob.getMobType() == MobType.UNDEAD) {
+                if (mob.getType().is(EntityTypeTags.UNDEAD)) {
                     damage *= 2.0f;
                 }
                 mob.hurt(ModDamageTypes.abilityDamage(player.level(), player), damage);

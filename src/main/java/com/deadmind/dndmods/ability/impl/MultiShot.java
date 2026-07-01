@@ -6,6 +6,7 @@ import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.phys.Vec3;
@@ -38,7 +39,8 @@ public class MultiShot extends Ability {
         double spreadAngle = Math.toRadians(15);
 
         for (int i = -1; i <= 1; i++) {
-            Arrow arrow = new Arrow(player.level(), player);
+            Arrow arrow = new Arrow(EntityType.ARROW, player.level());
+            arrow.setPos(player.getX(), player.getEyeY() - 0.1, player.getZ());
             Vec3 dir;
             if (i == 0) {
                 dir = look;
