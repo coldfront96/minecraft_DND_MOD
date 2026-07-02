@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "khimairacraft:netherite_arcane_dust" },
+    { "item": "minecraft:nether_star" }
+  ],
+  "result": {
+    "id": "khimairacraft:nether_star_arcane_dust",
+    "count": 1
+  }
+}

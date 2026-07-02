@@ -1,8 +1,0 @@
-{
-  "type": "dndmods:witch_fragment",
-  "conditions": [
-    {
-      "condition": "minecraft:killed_by_player"
-    }
-  ]
-}

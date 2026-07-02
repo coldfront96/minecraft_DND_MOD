@@ -4,10 +4,10 @@ plugins {
 }
 
 version = '0.1.0'
-group = 'com.deadmind.dndmods'
+group = 'com.khimairacraft'
 
 base {
-    archivesName = 'dndmods'
+    archivesName = 'khimairacraft'
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -25,7 +25,7 @@ neoForge {
     }
 
     mods {
-        dndmods {
+        khimairacraft {
             sourceSet(sourceSets.main)
         }
     }
