@@ -5,6 +5,7 @@ import com.deadmind.dndmods.ability.AbilityCooldownManager;
 import com.deadmind.dndmods.ability.ClickBehavior;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.combat.ModDamageTypes;
+import com.deadmind.dndmods.party.FriendlyFireChecker;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.race.DnDRace;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +14,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.tags.EntityTypeTags;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.phys.AABB;
 
 public class AasimarLightAbility extends Ability {
@@ -52,17 +53,17 @@ public class AasimarLightAbility extends Ability {
 
         for (Entity entity : player.level().getEntities(player, area)) {
             if (!(entity instanceof LivingEntity living)) continue;
-            if (living instanceof ServerPlayer) continue;
+            if (!(living instanceof Monster) && !(living instanceof ServerPlayer)) continue;
+            if (FriendlyFireChecker.isFriendly(player, living)) continue;
+            if (!player.hasLineOfSight(living)) continue;
 
-            if (living instanceof Mob mob) {
-                mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, false, true));
+            living.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, false, true));
 
-                float damage = baseDamage;
-                if (mob.getType().is(EntityTypeTags.UNDEAD)) {
-                    damage *= 2.0f;
-                }
-                mob.hurt(ModDamageTypes.abilityDamage(player.level(), player), damage);
+            float damage = baseDamage;
+            if (living.getType().is(EntityTypeTags.UNDEAD)) {
+                damage *= 2.0f;
             }
+            living.hurt(ModDamageTypes.abilityDamage(player.level(), player), damage);
         }
 
         player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 120, 0, false, true));

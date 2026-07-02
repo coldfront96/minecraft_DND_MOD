@@ -8,6 +8,7 @@ import com.deadmind.dndmods.combat.AbilityDamageCalculator;
 import com.deadmind.dndmods.combat.ModDamageTypes;
 import com.deadmind.dndmods.combat.PerPlayerCombatState;
 import com.deadmind.dndmods.combat.SaveType;
+import com.deadmind.dndmods.party.FriendlyFireChecker;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -16,6 +17,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.phys.Vec3;
 
@@ -51,22 +53,24 @@ public class SmiteUndead extends Ability {
         }
 
         for (Entity entity : player.level().getEntities(player, player.getBoundingBox().inflate(6.0))) {
-            if (entity instanceof LivingEntity living) {
-                Vec3 toEntity = entity.position().subtract(eyePos).normalize();
-                if (look.dot(toEntity) > 0.5) {
-                    // Holy damage hits everything in front; undead take extra and
-                    // are set alight by the holy fire (matches the ability text).
-                    boolean isUndead = living.getType().is(EntityTypeTags.UNDEAD);
+            if (!(entity instanceof LivingEntity living)) continue;
+            if (!(living instanceof Monster) && !(living instanceof ServerPlayer)) continue;
+            if (FriendlyFireChecker.isFriendly(player, living)) continue;
+            if (!player.hasLineOfSight(living)) continue;
+            Vec3 toEntity = entity.position().subtract(eyePos).normalize();
+            if (look.dot(toEntity) > 0.5) {
+                // Holy damage hits foes in front; undead take extra and are set
+                // alight by the holy fire (matches the ability text).
+                boolean isUndead = living.getType().is(EntityTypeTags.UNDEAD);
 
-                    float damage = AbilityDamageCalculator.calculate(this, data, living, player);
-                    if (isUndead) {
-                        damage *= 1.5f;
-                    }
-                    living.hurt(ModDamageTypes.abilityDamage(player.level(), player), damage);
-                    living.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0));
-                    if (isUndead) {
-                        living.setRemainingFireTicks(60);
-                    }
+                float damage = AbilityDamageCalculator.calculate(this, data, living, player);
+                if (isUndead) {
+                    damage *= 1.5f;
+                }
+                living.hurt(ModDamageTypes.abilityDamage(player.level(), player), damage);
+                living.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0));
+                if (isUndead) {
+                    living.setRemainingFireTicks(60);
                 }
             }
         }

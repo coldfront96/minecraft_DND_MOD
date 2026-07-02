@@ -8,6 +8,7 @@ import com.deadmind.dndmods.combat.AbilityDamageCalculator;
 import com.deadmind.dndmods.combat.ModDamageTypes;
 import com.deadmind.dndmods.combat.SaveType;
 import com.deadmind.dndmods.combat.SavingThrowSystem;
+import com.deadmind.dndmods.party.FriendlyFireChecker;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -17,6 +18,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
@@ -41,14 +43,16 @@ public class NaturesGrasp extends Ability {
         double closestDist = 12.0;
 
         for (Entity entity : player.level().getEntities(player, player.getBoundingBox().inflate(12.0))) {
-            if (entity instanceof LivingEntity living) {
-                Vec3 toEntity = entity.position().subtract(eyePos).normalize();
-                if (look.dot(toEntity) > 0.7) {
-                    double dist = entity.distanceTo(player);
-                    if (dist < closestDist) {
-                        closestDist = dist;
-                        target = living;
-                    }
+            if (!(entity instanceof LivingEntity living)) continue;
+            if (!(living instanceof Monster) && !(living instanceof ServerPlayer)) continue;
+            if (FriendlyFireChecker.isFriendly(player, living)) continue;
+            if (!player.hasLineOfSight(living)) continue;
+            Vec3 toEntity = entity.position().subtract(eyePos).normalize();
+            if (look.dot(toEntity) > 0.7) {
+                double dist = entity.distanceTo(player);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    target = living;
                 }
             }
         }
