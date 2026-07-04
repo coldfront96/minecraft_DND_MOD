@@ -33,6 +33,39 @@ public class PerPlayerCombatState {
         private boolean consumeNextAttack;
         private int consumeNextAttackTicks;
 
+        // --- Fighter class ability content pass ---
+        private int inCombatTicks;
+        private int powerStrikeTicks;
+        private int battleCryTicks;
+        private int defensiveStanceTicks;
+        private int unbreakableTicks;
+        private int warlordsPresenceTicks;
+        private boolean combatStanceActive; // stationary >= 1s (set by FighterPassives tick)
+
+        /** In-combat state used by the Stamina regen rate selector. */
+        public boolean isInCombat() { return inCombatTicks > 0; }
+        public void markInCombat(int ticks) { this.inCombatTicks = Math.max(this.inCombatTicks, ticks); }
+
+        /** Power Strike: the next melee hit gains bonus damage while pending. */
+        public boolean isPowerStrikePending() { return powerStrikeTicks > 0; }
+        public void setPowerStrike(int ticks) { this.powerStrikeTicks = ticks; }
+        public void clearPowerStrike() { this.powerStrikeTicks = 0; }
+
+        public boolean isBattleCryActive() { return battleCryTicks > 0; }
+        public void setBattleCry(int ticks) { this.battleCryTicks = ticks; }
+
+        public boolean isDefensiveStanceActive() { return defensiveStanceTicks > 0; }
+        public void setDefensiveStance(int ticks) { this.defensiveStanceTicks = ticks; }
+
+        public boolean isUnbreakableActive() { return unbreakableTicks > 0; }
+        public void setUnbreakable(int ticks) { this.unbreakableTicks = ticks; }
+
+        public boolean isWarlordsPresenceActive() { return warlordsPresenceTicks > 0; }
+        public void setWarlordsPresence(int ticks) { this.warlordsPresenceTicks = ticks; }
+
+        public boolean isCombatStanceActive() { return combatStanceActive; }
+        public void setCombatStanceActive(boolean active) { this.combatStanceActive = active; }
+
         @Nullable
         public String getPendingEnhancement() { return pendingEnhancement; }
 
@@ -98,6 +131,12 @@ public class PerPlayerCombatState {
                     consumeNextAttack = false;
                 }
             }
+            if (inCombatTicks > 0) inCombatTicks--;
+            if (powerStrikeTicks > 0) powerStrikeTicks--;
+            if (battleCryTicks > 0) battleCryTicks--;
+            if (defensiveStanceTicks > 0) defensiveStanceTicks--;
+            if (unbreakableTicks > 0) unbreakableTicks--;
+            if (warlordsPresenceTicks > 0) warlordsPresenceTicks--;
         }
     }
 }

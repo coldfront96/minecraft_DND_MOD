@@ -95,6 +95,11 @@ public record LevelUpPayload(
                 int newMaxHp = data.getMaxHp();
                 data.setCurrentHp(data.getCurrentHp() + (newMaxHp - oldMaxHp));
 
+                // Multiclassing into Fighter grants a level-1 Fighter bonus feat.
+                if (newClass == DnDClass.FIGHTER) {
+                    data.addFighterBonusFeatSlot();
+                }
+
                 data.clearLevelUpAvailable();
 
                 LOGGER.info("Player {} added secondary class: {}", player.getName().getString(), newClass.getDisplayName());
@@ -139,6 +144,13 @@ public record LevelUpPayload(
                     }
                 }
 
+                // Fighter bonus feat at Fighter levels 1,2,4,6,8,10,12,14,16,18,20.
+                if (advancing.getDnDClass() == DnDClass.FIGHTER && isFighterBonusFeatLevel(newLevel)) {
+                    data.addFighterBonusFeatSlot();
+                    LOGGER.info("Player {} gained a Fighter bonus feat at Fighter level {}",
+                            player.getName().getString(), newLevel);
+                }
+
                 data.clearLevelUpAvailable();
 
                 LOGGER.info("Player {} leveled up {} to level {}",
@@ -148,6 +160,10 @@ public record LevelUpPayload(
             }
 
             data.resetXpAfterLevelUp();
+
+            // Fighter passive progression + Stamina recalc (covers CON ASI too).
+            recalcFighterPassives(data);
+            com.khimairacraft.resource.StaminaSystem.recalcMaxStamina(data);
 
             // Dwarven Toughness grants +1 HP per character level — rescale to
             // the new total level so FeatEffectHandler applies the right bonus.
@@ -225,6 +241,36 @@ public record LevelUpPayload(
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
         });
+    }
+
+    private static boolean isFighterBonusFeatLevel(int level) {
+        return switch (level) {
+            case 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 -> true;
+            default -> false;
+        };
+    }
+
+    /** Recomputes the Fighter passive scaling values from the current Fighter level. */
+    private static void recalcFighterPassives(DnDPlayerData data) {
+        int lvl = data.getClassLevel(DnDClass.FIGHTER);
+
+        int armorAc = 0;
+        if (lvl >= 15) armorAc = 4;
+        else if (lvl >= 11) armorAc = 3;
+        else if (lvl >= 7) armorAc = 2;
+        else if (lvl >= 3) armorAc = 1;
+        data.setFighterArmorAcBonus(armorAc);
+
+        int weapon = 0;
+        if (lvl >= 17) weapon = 4;
+        else if (lvl >= 13) weapon = 3;
+        else if (lvl >= 9) weapon = 2;
+        else if (lvl >= 5) weapon = 1;
+        data.setFighterWeaponAttackBonus(weapon);
+        data.setFighterWeaponDamageBonus(weapon);
+
+        data.setAchievementFlag("weapon_mastery_unlocked", lvl >= 19);
+        data.setFighterDamageReduction(lvl >= 20 ? 5 : 0);
     }
 
     private static void applyAsiPoint(AbilityScores scores, int index, int amount) {

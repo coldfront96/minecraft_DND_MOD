@@ -15,7 +15,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public record SelectFeatPayload(String featId, boolean isRacialBonusSlot) implements CustomPacketPayload {
+public record SelectFeatPayload(String featId, boolean isRacialBonusSlot, boolean isFighterBonusSlot) implements CustomPacketPayload {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("DnDMods/FeatSelect");
 
@@ -26,12 +26,13 @@ public record SelectFeatPayload(String featId, boolean isRacialBonusSlot) implem
             StreamCodec.of(SelectFeatPayload::write, SelectFeatPayload::read);
 
     private static SelectFeatPayload read(FriendlyByteBuf buf) {
-        return new SelectFeatPayload(buf.readUtf(64), buf.readBoolean());
+        return new SelectFeatPayload(buf.readUtf(64), buf.readBoolean(), buf.readBoolean());
     }
 
     private static void write(FriendlyByteBuf buf, SelectFeatPayload payload) {
         buf.writeUtf(payload.featId, 64);
         buf.writeBoolean(payload.isRacialBonusSlot);
+        buf.writeBoolean(payload.isFighterBonusSlot);
     }
 
     public void handle(IPayloadContext context) {
@@ -62,7 +63,18 @@ public record SelectFeatPayload(String featId, boolean isRacialBonusSlot) implem
                 return;
             }
 
-            if (isRacialBonusSlot) {
+            if (isFighterBonusSlot) {
+                if (!feat.isFighterBonusFeat()) {
+                    LOGGER.warn("Player {} tried to use a Fighter bonus slot on a non-combat feat: {}",
+                            player.getName().getString(), featId);
+                    return;
+                }
+                if (data.getFighterBonusFeatSlotsAvailable() <= 0) {
+                    LOGGER.warn("Player {} has no Fighter bonus feat slots available", player.getName().getString());
+                    return;
+                }
+                data.spendFighterBonusFeatSlot();
+            } else if (isRacialBonusSlot) {
                 if (!data.isHumanBonusFeatAvailable()) {
                     LOGGER.warn("Player {} does not have racial bonus feat slot", player.getName().getString());
                     return;

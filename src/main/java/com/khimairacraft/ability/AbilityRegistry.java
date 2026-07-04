@@ -1,6 +1,7 @@
 package com.khimairacraft.ability;
 
 import com.khimairacraft.ability.impl.*;
+import com.khimairacraft.ability.fighter.*;
 import com.khimairacraft.classes.DnDClass;
 import com.khimairacraft.race.DnDRace;
 
@@ -12,10 +13,17 @@ public class AbilityRegistry {
     private static final Map<DnDRace, List<Ability>> RACIAL_ABILITIES = new EnumMap<>(DnDRace.class);
 
     public static void init() {
-        // Fighter abilities
-        register(new PowerStrike());
-        register(new ShieldBash());
-        register(new SecondWind());
+        // Fighter abilities (full kit — Fighter ability content pass)
+        register(new PowerStrikeAbility());
+        register(new BattleCryAbility());
+        register(new CleavingBlowAbility());
+        register(new DefensiveStanceAbility());
+        register(new MightySwingAbility());
+        register(new RallyAbility());
+        register(new WhirlwindStrikeAbility());
+        register(new UnbreakableAbility());
+        register(new ChampionsBlowAbility());
+        register(new WarlordsPresenceAbility());
 
         // Rogue abilities
         register(new BackStab());

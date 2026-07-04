@@ -50,14 +50,32 @@ public class FeatSelectionScreen extends Screen {
     private static final int TEXT_PLACEHOLDER = 0xFF606060;
 
     private final boolean isRacialBonusSlot;
+    private final boolean isFighterBonusSlot;
     private FeatCategory selectedCategory = FeatCategory.GENERAL;
     @Nullable
     private Feat selectedFeat = null;
     private int scrollOffset = 0;
 
     public FeatSelectionScreen(boolean isRacialBonusSlot) {
+        this(isRacialBonusSlot, false);
+    }
+
+    public FeatSelectionScreen(boolean isRacialBonusSlot, boolean isFighterBonusSlot) {
         super(Component.literal("Feat Selection"));
         this.isRacialBonusSlot = isRacialBonusSlot;
+        this.isFighterBonusSlot = isFighterBonusSlot;
+    }
+
+    /**
+     * When filling a Fighter bonus slot, show only fighter bonus feats (all
+     * combat feats the player currently qualifies for) regardless of the
+     * selected category tab; otherwise show the selected category.
+     */
+    private List<Feat> displayedFeats(DnDPlayerData data) {
+        if (isFighterBonusSlot) {
+            return FeatRegistry.getFighterBonusFeats(data);
+        }
+        return FeatRegistry.getByCategory(selectedCategory);
     }
 
     @Nullable
@@ -77,7 +95,7 @@ public class FeatSelectionScreen extends Screen {
         graphics.fill(left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, COLOR_BG);
         renderBorder(graphics, left, top, PANEL_WIDTH, PANEL_HEIGHT, COLOR_BORDER);
 
-        String title = isRacialBonusSlot ? "Racial Bonus Feat" : "Feat Selection";
+        String title = isFighterBonusSlot ? "Fighter Bonus Feat" : (isRacialBonusSlot ? "Racial Bonus Feat" : "Feat Selection");
         int tw = this.font.width(title);
         graphics.drawString(this.font, title, left + (PANEL_WIDTH - tw) / 2, top + 4, TEXT_WHITE, false);
 
@@ -115,7 +133,7 @@ public class FeatSelectionScreen extends Screen {
         DnDPlayerData data = getPlayerData();
         if (data == null) return;
 
-        List<Feat> feats = FeatRegistry.getByCategory(selectedCategory);
+        List<Feat> feats = displayedFeats(data);
         List<FeatChainHelper.FeatChain> chains = FeatChainHelper.buildChains(feats);
 
         int y = top - scrollOffset * ROW_HEIGHT;
@@ -297,7 +315,7 @@ public class FeatSelectionScreen extends Screen {
         DnDPlayerData data = getPlayerData();
         if (data == null) return false;
 
-        List<Feat> feats = FeatRegistry.getByCategory(selectedCategory);
+        List<Feat> feats = displayedFeats(data);
         List<FeatChainHelper.FeatChain> chains = FeatChainHelper.buildChains(feats);
 
         int y = top - scrollOffset * ROW_HEIGHT;
@@ -337,7 +355,7 @@ public class FeatSelectionScreen extends Screen {
         int btnY = panelTop + PANEL_HEIGHT - 28;
 
         if (mouseX >= btnX && mouseX < btnX + btnW && mouseY >= btnY && mouseY < btnY + btnH) {
-            PacketDistributor.sendToServer(new SelectFeatPayload(selectedFeat.getFeatId(), isRacialBonusSlot));
+            PacketDistributor.sendToServer(new SelectFeatPayload(selectedFeat.getFeatId(), isRacialBonusSlot, isFighterBonusSlot));
             this.onClose();
             return true;
         }

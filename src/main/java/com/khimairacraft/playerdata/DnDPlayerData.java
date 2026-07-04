@@ -90,6 +90,14 @@ public class DnDPlayerData {
     private int orderForgedCharges = 0;
     private int bloodyFuryBonus = 0;
     private int ironHeartSurgeCooldown = 0;
+    // --- Fighter class ability content pass ---
+    private int fighterBonusFeatSlotsAvailable = 0;
+    private int currentStamina = 0;
+    private int maxStamina = 0;
+    private int fighterArmorAcBonus = 0;
+    private int fighterWeaponAttackBonus = 0;
+    private int fighterWeaponDamageBonus = 0;
+    private int fighterDamageReduction = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -192,6 +200,43 @@ public class DnDPlayerData {
         if (secondary != null && secondary.getDnDClass() == dndClass) level += secondary.getLevel();
         return level;
     }
+
+    // --- Fighter class ability content pass ---
+
+    public int getFighterBonusFeatSlotsAvailable() { return fighterBonusFeatSlotsAvailable; }
+    public void setFighterBonusFeatSlotsAvailable(int slots) { this.fighterBonusFeatSlotsAvailable = Math.max(0, slots); }
+    public void addFighterBonusFeatSlot() { this.fighterBonusFeatSlotsAvailable++; }
+    public void spendFighterBonusFeatSlot() {
+        if (fighterBonusFeatSlotsAvailable > 0) fighterBonusFeatSlotsAvailable--;
+    }
+
+    public int getCurrentStamina() { return currentStamina; }
+    public void setCurrentStamina(int stamina) { this.currentStamina = Math.max(0, Math.min(maxStamina, stamina)); }
+    public int getMaxStamina() { return maxStamina; }
+    public void setMaxStamina(int max) {
+        this.maxStamina = Math.max(0, max);
+        if (currentStamina > maxStamina) currentStamina = maxStamina;
+    }
+
+    /** Spends stamina if available. Returns false (no change) if there is not enough. */
+    public boolean trySpendStamina(int amount) {
+        if (amount <= 0) return true;
+        if (currentStamina < amount) return false;
+        currentStamina -= amount;
+        return true;
+    }
+
+    public int getFighterArmorAcBonus() { return fighterArmorAcBonus; }
+    public void setFighterArmorAcBonus(int bonus) { this.fighterArmorAcBonus = Math.max(0, bonus); }
+
+    public int getFighterWeaponAttackBonus() { return fighterWeaponAttackBonus; }
+    public void setFighterWeaponAttackBonus(int bonus) { this.fighterWeaponAttackBonus = Math.max(0, bonus); }
+
+    public int getFighterWeaponDamageBonus() { return fighterWeaponDamageBonus; }
+    public void setFighterWeaponDamageBonus(int bonus) { this.fighterWeaponDamageBonus = Math.max(0, bonus); }
+
+    public int getFighterDamageReduction() { return fighterDamageReduction; }
+    public void setFighterDamageReduction(int reduction) { this.fighterDamageReduction = Math.max(0, reduction); }
 
     public boolean isUnifiedPool() {
         return prestigeClass.unifiesPools() && secondary != null;
@@ -727,6 +772,13 @@ public class DnDPlayerData {
         featTag.putInt("OrderForgedCharges", orderForgedCharges);
         featTag.putInt("BloodyFuryBonus", bloodyFuryBonus);
         featTag.putInt("IronHeartSurgeCooldown", ironHeartSurgeCooldown);
+        featTag.putInt("FighterBonusFeatSlots", fighterBonusFeatSlotsAvailable);
+        featTag.putInt("CurrentStamina", currentStamina);
+        featTag.putInt("MaxStamina", maxStamina);
+        featTag.putInt("FighterArmorAcBonus", fighterArmorAcBonus);
+        featTag.putInt("FighterWeaponAttackBonus", fighterWeaponAttackBonus);
+        featTag.putInt("FighterWeaponDamageBonus", fighterWeaponDamageBonus);
+        featTag.putInt("FighterDamageReduction", fighterDamageReduction);
         net.minecraft.nbt.ListTag featList = new net.minecraft.nbt.ListTag();
         for (String featId : grantedFeats) {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
@@ -866,6 +918,13 @@ public class DnDPlayerData {
             orderForgedCharges = featTag.getInt("OrderForgedCharges");
             bloodyFuryBonus = featTag.getInt("BloodyFuryBonus");
             ironHeartSurgeCooldown = featTag.getInt("IronHeartSurgeCooldown");
+            fighterBonusFeatSlotsAvailable = featTag.getInt("FighterBonusFeatSlots");
+            currentStamina = featTag.getInt("CurrentStamina");
+            maxStamina = featTag.getInt("MaxStamina");
+            fighterArmorAcBonus = featTag.getInt("FighterArmorAcBonus");
+            fighterWeaponAttackBonus = featTag.getInt("FighterWeaponAttackBonus");
+            fighterWeaponDamageBonus = featTag.getInt("FighterWeaponDamageBonus");
+            fighterDamageReduction = featTag.getInt("FighterDamageReduction");
             net.minecraft.nbt.ListTag featList = featTag.getList("Granted", net.minecraft.nbt.Tag.TAG_STRING);
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
@@ -932,6 +991,13 @@ public class DnDPlayerData {
             orderForgedCharges = 0;
             bloodyFuryBonus = 0;
             ironHeartSurgeCooldown = 0;
+            fighterBonusFeatSlotsAvailable = 0;
+            currentStamina = 0;
+            maxStamina = 0;
+            fighterArmorAcBonus = 0;
+            fighterWeaponAttackBonus = 0;
+            fighterWeaponDamageBonus = 0;
+            fighterDamageReduction = 0;
         }
     }
 
@@ -1021,5 +1087,12 @@ public class DnDPlayerData {
         this.orderForgedCharges = other.orderForgedCharges;
         this.bloodyFuryBonus = other.bloodyFuryBonus;
         this.ironHeartSurgeCooldown = other.ironHeartSurgeCooldown;
+        this.fighterBonusFeatSlotsAvailable = other.fighterBonusFeatSlotsAvailable;
+        this.currentStamina = other.currentStamina;
+        this.maxStamina = other.maxStamina;
+        this.fighterArmorAcBonus = other.fighterArmorAcBonus;
+        this.fighterWeaponAttackBonus = other.fighterWeaponAttackBonus;
+        this.fighterWeaponDamageBonus = other.fighterWeaponDamageBonus;
+        this.fighterDamageReduction = other.fighterDamageReduction;
     }
 }

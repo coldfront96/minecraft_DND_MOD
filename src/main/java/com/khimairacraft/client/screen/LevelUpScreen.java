@@ -65,6 +65,7 @@ public class LevelUpScreen extends Screen {
     private int panelHeight;
 
     private int featBtnX, featBtnY, featBtnW, featBtnH;
+    private int fighterBtnX, fighterBtnY, fighterBtnW, fighterBtnH;
 
     public LevelUpScreen() {
         super(Component.literal("Level Up"));
@@ -405,6 +406,23 @@ public class LevelUpScreen extends Screen {
 
         if (data.isHumanBonusFeatAvailable()) {
             gui.drawString(this.font, "Racial Bonus Feat Available!", x, y, 0xFF44FF44);
+            y += 12;
+        }
+
+        if (data.getFighterBonusFeatSlotsAvailable() > 0) {
+            gui.drawString(this.font, "Fighter Bonus Feat Available: " + data.getFighterBonusFeatSlotsAvailable(),
+                    x, y, 0xFF44AAFF);
+            y += 12;
+            fighterBtnX = x;
+            fighterBtnY = y;
+            fighterBtnW = btnW;
+            fighterBtnH = btnH;
+            gui.fill(x, y, x + btnW, y + btnH, 0xFF1A2A3A);
+            drawBorder(gui, x, y, btnW, btnH, 0xFF4088C0);
+            String fbText = "Open Fighter Feat Selection";
+            gui.drawString(this.font, fbText, x + (btnW - this.font.width(fbText)) / 2, y + 4, WHITE);
+        } else {
+            fighterBtnW = 0;
         }
 
         featAcknowledged = true;
@@ -615,6 +633,15 @@ public class LevelUpScreen extends Screen {
             if (mouseX >= featBtnX && mouseX < featBtnX + featBtnW
                     && mouseY >= featBtnY && mouseY < featBtnY + featBtnH) {
                 Minecraft.getInstance().setScreen(new FeatSelectionScreen(false));
+                return true;
+            }
+        }
+
+        // Fighter bonus feat selection button click
+        if (fighterBtnW > 0) {
+            if (mouseX >= fighterBtnX && mouseX < fighterBtnX + fighterBtnW
+                    && mouseY >= fighterBtnY && mouseY < fighterBtnY + fighterBtnH) {
+                Minecraft.getInstance().setScreen(new FeatSelectionScreen(false, true));
                 return true;
             }
         }

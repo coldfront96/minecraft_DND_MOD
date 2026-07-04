@@ -18,6 +18,8 @@ public class Feat {
     private final List<FeatPrerequisite> prerequisites;
     private final Consumer<DnDPlayerData> onGrant;
     private final Consumer<DnDPlayerData> onRevoke;
+    /** True if a Fighter may select this feat with a Fighter bonus feat slot. */
+    private boolean isFighterBonusFeat = false;
 
     public Feat(String featId, String displayName, String description,
                 FeatCategory category, FeatSource source,
@@ -45,6 +47,9 @@ public class Feat {
     public String getChainGroup() { return chainGroup; }
     public int getChainOrder() { return chainOrder; }
     public List<FeatPrerequisite> getPrerequisites() { return prerequisites; }
+
+    public boolean isFighterBonusFeat() { return isFighterBonusFeat; }
+    public void setFighterBonusFeat(boolean value) { this.isFighterBonusFeat = value; }
 
     public void applyGrant(DnDPlayerData data) {
         if (onGrant != null) onGrant.accept(data);

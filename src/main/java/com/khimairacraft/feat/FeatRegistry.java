@@ -8,7 +8,29 @@ public class FeatRegistry {
     private static final Map<String, Feat> REGISTRY = new LinkedHashMap<>();
 
     public static void register(Feat feat) {
+        // Every COMBAT-category feat is a Fighter bonus feat (and nothing else is).
+        // Tagging here covers CoreFeats, CompleteWarriorFeats, and every other
+        // sourcebook's combat feats uniformly, without editing each registration.
+        if (feat.getCategory() == FeatCategory.COMBAT) {
+            feat.setFighterBonusFeat(true);
+        }
         REGISTRY.put(feat.getFeatId(), feat);
+    }
+
+    /**
+     * All feats a Fighter may take with a bonus feat slot right now: tagged as a
+     * fighter bonus feat, source enabled, prerequisites met, and not already held.
+     */
+    public static List<Feat> getFighterBonusFeats(DnDPlayerData data) {
+        List<Feat> result = new ArrayList<>();
+        for (Feat feat : REGISTRY.values()) {
+            if (!feat.isFighterBonusFeat()) continue;
+            if (!FeatSourceConfig.isEnabled(feat.getSource())) continue;
+            if (data.hasFeat(feat.getFeatId())) continue;
+            if (!feat.allPrerequisitesMet(data)) continue;
+            result.add(feat);
+        }
+        return result;
     }
 
     public static Feat get(String featId) {
