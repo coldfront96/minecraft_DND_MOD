@@ -2,7 +2,11 @@ package com.khimairacraft.classes;
 
 public enum DnDClass {
     NONE("None", ResourceType.NONE, 0),
-    FIGHTER("Fighter", ResourceType.STAMINA, 100),
+    // Fighter has NO generic class resource: its Stamina lives in the dedicated
+    // currentStamina/maxStamina pool on DnDPlayerData (level-scaled max + regen
+    // breakpoints), not in the generic ClassEntry resource. See DnDHudOverlay /
+    // CharacterSheetScreen for the Fighter-specific rendering of that pool.
+    FIGHTER("Fighter", ResourceType.NONE, 0),
     ROGUE("Rogue", ResourceType.FOCUS, 80),
     WIZARD("Wizard", ResourceType.MANA, 100),
     CLERIC("Cleric", ResourceType.FAITH, 100),
@@ -32,6 +36,7 @@ public enum DnDClass {
     }
 
     public int getMaxResourceAtLevel(int level) {
+        if (resourceType == ResourceType.NONE) return 0;
         return baseMaxResource + (level - 1) * 5;
     }
 

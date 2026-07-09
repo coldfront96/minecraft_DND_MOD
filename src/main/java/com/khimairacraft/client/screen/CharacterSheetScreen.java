@@ -162,18 +162,33 @@ public class CharacterSheetScreen extends Screen {
 
         ClassEntry primary = data.getPrimary();
         if (primary.getDnDClass() != DnDClass.NONE) {
-            String resName = primary.getDnDClass().getResourceType().getDisplayName();
-            String resValue = primary.getCurrentResource() + " / " + primary.getMaxResource();
-            drawStatRow(graphics, resName, resValue, x, y, rightEdge);
+            drawResourceRow(graphics, data, primary, x, y, rightEdge);
             y += 19;
         }
 
         ClassEntry secondary = data.getSecondary();
         if (secondary != null && secondary.getDnDClass() != DnDClass.NONE) {
-            String resName = secondary.getDnDClass().getResourceType().getDisplayName();
-            String resValue = secondary.getCurrentResource() + " / " + secondary.getMaxResource();
-            drawStatRow(graphics, resName, resValue, x, y, rightEdge);
+            drawResourceRow(graphics, data, secondary, x, y, rightEdge);
         }
+    }
+
+    /**
+     * Draws a class's resource row. Fighter has no generic class resource, so it
+     * reads the dedicated Stamina pool ({@code currentStamina}/{@code maxStamina})
+     * off {@link DnDPlayerData}; all other classes use their generic pool.
+     */
+    private void drawResourceRow(GuiGraphics graphics, DnDPlayerData data, ClassEntry entry,
+                                 int x, int y, int rightEdge) {
+        String resName;
+        String resValue;
+        if (entry.getDnDClass() == DnDClass.FIGHTER) {
+            resName = "Stamina";
+            resValue = data.getCurrentStamina() + " / " + data.getMaxStamina();
+        } else {
+            resName = entry.getDnDClass().getResourceType().getDisplayName();
+            resValue = entry.getCurrentResource() + " / " + entry.getMaxResource();
+        }
+        drawStatRow(graphics, resName, resValue, x, y, rightEdge);
     }
 
     private void drawStatRow(GuiGraphics graphics, String label, String value, int x, int y, int rightEdge) {

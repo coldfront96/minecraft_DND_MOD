@@ -42,6 +42,18 @@ public abstract class FighterAbility extends Ability {
         onUse(player, data);
     }
 
+    /**
+     * Fighter's required class resource is {@link DnDClass#FIGHTER}, which has no
+     * generic resource type ({@code ResourceType.NONE}); the base tooltip would
+     * therefore label the cost "None". Fighter abilities spend the dedicated
+     * Stamina pool, so label the cost accordingly.
+     */
+    @Override
+    public Component getTooltip(DnDPlayerData data) {
+        return Component.literal(getName() + " - Cost: " + getResourceCost()
+                + " Stamina - Level " + getRequiredLevel());
+    }
+
     /** Shared hostile-target filter: hostile mob or player, not friendly, in line of sight. */
     protected static boolean isValidHostileTarget(ServerPlayer caster, LivingEntity living) {
         if (!(living instanceof Monster) && !(living instanceof ServerPlayer)) return false;

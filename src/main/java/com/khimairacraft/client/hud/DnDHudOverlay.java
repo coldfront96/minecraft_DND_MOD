@@ -61,21 +61,13 @@ public class DnDHudOverlay {
         } else if (data.getSecondary() != null) {
             ClassEntry secondary = data.getSecondary();
             currentY -= BAR_HEIGHT;
-            renderResourceBar(gui, x, currentY,
-                    secondary.getCurrentResource(), secondary.getMaxResource(),
-                    getResourceColor(secondary.getDnDClass().getResourceType()));
+            renderClassResourceBar(gui, x, currentY, data, secondary);
 
             currentY -= BAR_HEIGHT + BAR_GAP;
-            ClassEntry primary = data.getPrimary();
-            renderResourceBar(gui, x, currentY,
-                    primary.getCurrentResource(), primary.getMaxResource(),
-                    getResourceColor(primary.getDnDClass().getResourceType()));
+            renderClassResourceBar(gui, x, currentY, data, data.getPrimary());
         } else {
-            ClassEntry primary = data.getPrimary();
             currentY -= BAR_HEIGHT;
-            renderResourceBar(gui, x, currentY,
-                    primary.getCurrentResource(), primary.getMaxResource(),
-                    getResourceColor(primary.getDnDClass().getResourceType()));
+            renderClassResourceBar(gui, x, currentY, data, data.getPrimary());
         }
 
         currentY -= XP_BAR_HEIGHT + BAR_GAP;
@@ -86,6 +78,26 @@ public class DnDHudOverlay {
 
         currentY -= 10;
         renderScaledText(gui, getClassDisplayString(data), x, currentY, 0xFFFFFFFF, 0.85f);
+    }
+
+    /**
+     * Renders a class's resource bar. Fighter is a special case: it has no
+     * generic class resource, so its bar reads the dedicated Stamina pool
+     * ({@code currentStamina}/{@code maxStamina}) off {@link DnDPlayerData}
+     * rather than the generic {@link ClassEntry} resource. All other classes
+     * keep reading their generic pool.
+     */
+    private static void renderClassResourceBar(GuiGraphics gui, int x, int y,
+                                               DnDPlayerData data, ClassEntry entry) {
+        if (entry.getDnDClass() == DnDClass.FIGHTER) {
+            renderResourceBar(gui, x, y,
+                    data.getCurrentStamina(), data.getMaxStamina(),
+                    getResourceColor(ResourceType.STAMINA));
+        } else {
+            renderResourceBar(gui, x, y,
+                    entry.getCurrentResource(), entry.getMaxResource(),
+                    getResourceColor(entry.getDnDClass().getResourceType()));
+        }
     }
 
     private static void renderResourceBar(GuiGraphics gui, int x, int y,

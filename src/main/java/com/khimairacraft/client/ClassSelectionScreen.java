@@ -1,6 +1,7 @@
 package com.khimairacraft.client;
 
 import com.khimairacraft.classes.DnDClass;
+import com.khimairacraft.classes.ResourceType;
 import com.khimairacraft.network.SelectClassPayload;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -85,10 +86,17 @@ public class ClassSelectionScreen extends Screen {
             gui.fill(x, y, x + 1, y + CARD_HEIGHT, borderColor);
             gui.fill(x + CARD_WIDTH - 1, y, x + CARD_WIDTH, y + CARD_HEIGHT, borderColor);
 
-            int nameColor = 0xFF000000 | dndClass.getResourceType().getColor();
+            // Fighter has no generic class resource; preview its dedicated Stamina
+            // pool (level-1 base = 10 + 5) so the card doesn't read "None (0)".
+            boolean fighter = dndClass == DnDClass.FIGHTER;
+            ResourceType displayResource = fighter ? ResourceType.STAMINA : dndClass.getResourceType();
+
+            int nameColor = 0xFF000000 | displayResource.getColor();
             gui.drawCenteredString(this.font, dndClass.getDisplayName(), x + CARD_WIDTH / 2, y + 6, nameColor);
 
-            String resource = dndClass.getResourceType().getDisplayName() + " (" + dndClass.getBaseMaxResource() + ")";
+            String resource = fighter
+                    ? "Stamina (15)"
+                    : dndClass.getResourceType().getDisplayName() + " (" + dndClass.getBaseMaxResource() + ")";
             gui.drawCenteredString(this.font, resource, x + CARD_WIDTH / 2, y + 19, 0xAAAAAA);
 
             gui.drawCenteredString(this.font, HIT_DICE[i], x + CARD_WIDTH / 2, y + 32, 0xCC4444);
