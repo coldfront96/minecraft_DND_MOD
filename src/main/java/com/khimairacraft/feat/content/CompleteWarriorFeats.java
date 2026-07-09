@@ -315,8 +315,8 @@ public class CompleteWarriorFeats {
                 FeatCategory.COMBAT, FeatSource.COMPLETE_WARRIOR,
                 null, 0,
                 List.of(reqFeat("toughness", "Toughness"), bab(3)),
-                data -> data.setToughnessFeatCount(data.getToughnessFeatCount() + data.getTotalLevel()),
-                data -> data.setToughnessFeatCount(data.getToughnessFeatCount() - data.getTotalLevel())
+                data -> data.setFeatStackCount("toughness", data.getFeatStackCount("toughness") + data.getTotalLevel()),
+                data -> data.setFeatStackCount("toughness", data.getFeatStackCount("toughness") - data.getTotalLevel())
         ));
     }
 

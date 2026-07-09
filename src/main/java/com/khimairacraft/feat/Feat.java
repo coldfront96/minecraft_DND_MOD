@@ -20,6 +20,15 @@ public class Feat {
     private final Consumer<DnDPlayerData> onRevoke;
     /** True if a Fighter may select this feat with a Fighter bonus feat slot. */
     private boolean isFighterBonusFeat = false;
+    /**
+     * True if this feat may be taken more than once, each take adding a stack.
+     * Repeatable feats track their times-taken count in
+     * {@link DnDPlayerData#getFeatStackCount(String)} and keep appearing as
+     * selectable after being granted. Their {@code onGrant} is re-run on every
+     * take and must be additive (it increments the stack / applies per-stack
+     * effect). Defaults to false.
+     */
+    private boolean isRepeatable = false;
 
     public Feat(String featId, String displayName, String description,
                 FeatCategory category, FeatSource source,
@@ -50,6 +59,9 @@ public class Feat {
 
     public boolean isFighterBonusFeat() { return isFighterBonusFeat; }
     public void setFighterBonusFeat(boolean value) { this.isFighterBonusFeat = value; }
+
+    public boolean isRepeatable() { return isRepeatable; }
+    public void setRepeatable(boolean value) { this.isRepeatable = value; }
 
     public void applyGrant(DnDPlayerData data) {
         if (onGrant != null) onGrant.accept(data);

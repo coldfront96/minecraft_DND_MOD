@@ -288,7 +288,7 @@ public class FeatEffectHandler {
         AttributeInstance instance = player.getAttribute(Attributes.MAX_HEALTH);
         if (instance == null) return;
 
-        double desired = data.getToughnessFeatCount() * TOUGHNESS_HP_PER_STACK;
+        double desired = data.getFeatStackCount("toughness") * TOUGHNESS_HP_PER_STACK;
         AttributeModifier existing = instance.getModifier(TOUGHNESS_HP_ID);
         double current = existing != null ? existing.amount() : 0.0;
 

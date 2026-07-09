@@ -53,7 +53,9 @@ public record SelectFeatPayload(String featId, boolean isRacialBonusSlot, boolea
                 return;
             }
 
-            if (data.hasFeat(featId)) {
+            // Non-repeatable feats can only be taken once; repeatable feats
+            // (Toughness, Extra Rage, ...) may be taken again to add a stack.
+            if (!feat.isRepeatable() && data.hasFeat(featId)) {
                 LOGGER.warn("Player {} already has feat: {}", player.getName().getString(), featId);
                 return;
             }
@@ -88,6 +90,10 @@ public record SelectFeatPayload(String featId, boolean isRacialBonusSlot, boolea
                 data.spendFeatSlot();
             }
 
+            // grantFeat adds to grantedFeats only on the first take (no-op on
+            // repeats). applyGrant runs the feat's onGrant every take — for a
+            // repeatable feat that call increments its stack and applies the
+            // additive per-stack effect.
             data.grantFeat(featId);
             feat.applyGrant(data);
 

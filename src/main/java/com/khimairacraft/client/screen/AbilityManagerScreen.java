@@ -509,7 +509,11 @@ public class AbilityManagerScreen extends Screen {
                 if (y + ABILITY_ROW_HEIGHT > bottom) break;
                 int indent = chain.chainGroup() != null ? 8 : 0;
                 graphics.fill(left + indent, y, left + TAB_PANEL_WIDTH, y + ABILITY_ROW_HEIGHT, 0xFF1A1A2A);
-                graphics.drawString(this.font, "✓ " + feat.getDisplayName(), left + indent + 4, y + 5, 0xFF6060C0, false);
+                String featLabel = "✓ " + feat.getDisplayName();
+                if (feat.isRepeatable() && data.getFeatStackCount(feat.getFeatId()) > 0) {
+                    featLabel += " ×" + data.getFeatStackCount(feat.getFeatId());
+                }
+                graphics.drawString(this.font, featLabel, left + indent + 4, y + 5, 0xFF6060C0, false);
                 y += ABILITY_ROW_HEIGHT + ABILITY_ROW_GAP;
             }
             y += 2;

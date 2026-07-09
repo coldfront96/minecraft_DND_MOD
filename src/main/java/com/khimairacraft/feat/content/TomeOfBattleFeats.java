@@ -203,11 +203,11 @@ public class TomeOfBattleFeats {
                 List.of(bab(6), str(15), con(13)),
                 data -> {
                     data.setFeatFortBonus(data.getFeatFortBonus() + 2);
-                    data.setToughnessFeatCount(data.getToughnessFeatCount() + 1);
+                    data.setFeatStackCount("toughness", data.getFeatStackCount("toughness") + 1);
                 },
                 data -> {
                     data.setFeatFortBonus(data.getFeatFortBonus() - 2);
-                    data.setToughnessFeatCount(data.getToughnessFeatCount() - 1);
+                    data.setFeatStackCount("toughness", data.getFeatStackCount("toughness") - 1);
                 }
         ));
 

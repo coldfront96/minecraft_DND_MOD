@@ -182,7 +182,7 @@ public record LevelUpPayload(
             // level via the shared toughness stacking system — gaining a level
             // adds one more stack so the MAX_HEALTH reconcile keeps pace.
             if (data.hasFeat("improved_toughness")) {
-                data.setToughnessFeatCount(data.getToughnessFeatCount() + 1);
+                data.setFeatStackCount("toughness", data.getFeatStackCount("toughness") + 1);
             }
 
             // Blade of Force (Complete Warrior) deals flat force damage equal to

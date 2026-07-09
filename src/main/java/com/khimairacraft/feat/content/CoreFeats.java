@@ -459,19 +459,24 @@ public class CoreFeats {
     // Saving-throw feats. These were specified in the architecture task
     // but were absent from the codebase; added here. Each grants a real
     // numeric bonus read by SavingThrowSystem (and the character sheet).
-    // Toughness raises max HP and stacks via toughnessFeatCount, applied
-    // to the vanilla health bar by FeatEffectHandler.
+    // Toughness raises max HP and stacks via the general repeatable-feat stack
+    // map (getFeatStackCount("toughness")), applied to the vanilla health bar
+    // by FeatEffectHandler.
     // ------------------------------------------------------------------
     private static void registerSaveFeats() {
-        FeatRegistry.register(new Feat(
+        // Toughness is repeatable: each take adds a stack (+3 HP, applied by
+        // FeatEffectHandler.reconcileToughness reading getFeatStackCount).
+        Feat toughness = new Feat(
                 "toughness", "Toughness",
                 "+3 hit points permanently.",
                 FeatCategory.GENERAL, FeatSource.PHB,
                 null, 0,
                 List.of(),
-                data -> data.setToughnessFeatCount(data.getToughnessFeatCount() + 1),
-                data -> data.setToughnessFeatCount(data.getToughnessFeatCount() - 1)
-        ));
+                data -> data.incrementFeatStack("toughness"),
+                data -> data.setFeatStackCount("toughness", data.getFeatStackCount("toughness") - 1)
+        );
+        toughness.setRepeatable(true);
+        FeatRegistry.register(toughness);
 
         FeatRegistry.register(new Feat(
                 "iron_will", "Iron Will",
@@ -942,9 +947,27 @@ public class CoreFeats {
                 "Automatically stabilize when dying. Fight on at negative HP.",
                 null, 0, List.of(reqFeat("endurance", "Endurance")));
 
-        flagFeat("extra_rage", "Extra Rage",
+        // Extra Rage is repeatable: each take sets the unlock flag and adds a
+        // stack. getRageCooldownMultiplier() reads the stack count (25% Rage
+        // cooldown reduction per stack) for the future Barbarian Rage system.
+        Feat extraRage = new Feat(
+                "extra_rage", "Extra Rage",
                 "Rage two additional times per day.",
-                null, 0, List.of(cls(DnDClass.BARBARIAN)));
+                FeatCategory.COMBAT, FeatSource.PHB,
+                null, 0, List.of(cls(DnDClass.BARBARIAN)),
+                data -> {
+                    data.setAchievementFlag("extra_rage_unlocked", true);
+                    data.incrementFeatStack("extra_rage");
+                },
+                data -> {
+                    data.setFeatStackCount("extra_rage", data.getFeatStackCount("extra_rage") - 1);
+                    if (data.getFeatStackCount("extra_rage") <= 0) {
+                        data.setAchievementFlag("extra_rage_unlocked", false);
+                    }
+                }
+        );
+        extraRage.setRepeatable(true);
+        FeatRegistry.register(extraRage);
 
         flagFeat("extra_smiting", "Extra Smiting",
                 "Two additional smite attempts per day.",

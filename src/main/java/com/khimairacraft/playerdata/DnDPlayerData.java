@@ -29,6 +29,8 @@ public class DnDPlayerData {
     private long undyingResolveLastUsed = -1L;
     private int racialAcBonus = 0;
     private final List<String> grantedFeats = new ArrayList<>();
+    /** featId to times-taken count for repeatable feats (e.g. Toughness, Extra Rage). */
+    private final Map<String, Integer> repeatableFeatStacks = new HashMap<>();
     private int featSlotsAvailable = 0;
     private int featAcBonus = 0;
     private int featInitiativeBonus = 0;
@@ -36,7 +38,6 @@ public class DnDPlayerData {
     private int featWillBonus = 0;
     private int featRefBonus = 0;
     private int featFortBonus = 0;
-    private int toughnessFeatCount = 0;
     private int extraTurningCharges = 0;
     private int devotionDamageBonus = 0;
     private int devotionHealingBonus = 0;
@@ -131,7 +132,7 @@ public class DnDPlayerData {
             hp += secondary.getMaxHp();
         }
         hp += abilityScores.getConMod() * getTotalLevel();
-        hp += toughnessFeatCount * 3;
+        hp += getFeatStackCount("toughness") * 3;
         return hp;
     }
 
@@ -371,8 +372,51 @@ public class DnDPlayerData {
     public int getFeatFortBonus() { return featFortBonus; }
     public void setFeatFortBonus(int bonus) { this.featFortBonus = bonus; }
 
-    public int getToughnessFeatCount() { return toughnessFeatCount; }
-    public void setToughnessFeatCount(int count) { this.toughnessFeatCount = Math.max(0, count); }
+    // ------------------------------------------------------------------
+    // Repeatable feat stacks — general system for feats that may be taken
+    // multiple times (Toughness, Extra Rage, ...). featId -> times-taken.
+    // ------------------------------------------------------------------
+
+    /** Times a repeatable feat has been taken; 0 if never. */
+    public int getFeatStackCount(String featId) {
+        return repeatableFeatStacks.getOrDefault(featId, 0);
+    }
+
+    /** Adds one stack of a repeatable feat, creating the entry at 1 if absent. */
+    public void incrementFeatStack(String featId) {
+        repeatableFeatStacks.merge(featId, 1, Integer::sum);
+    }
+
+    /** Sets a repeatable feat's stack count (clamped at 0; removes the entry at 0). */
+    public void setFeatStackCount(String featId, int count) {
+        if (count <= 0) {
+            repeatableFeatStacks.remove(featId);
+        } else {
+            repeatableFeatStacks.put(featId, count);
+        }
+    }
+
+    /**
+     * True if the feat is held at all — either granted normally, or a repeatable
+     * feat with at least one stack. Prerequisite checks use this so a single
+     * stack of a repeatable feat satisfies a "requires feat X" prerequisite.
+     */
+    public boolean hasFeatAtAnyStack(String featId) {
+        return grantedFeats.contains(featId) || getFeatStackCount(featId) > 0;
+    }
+
+    public Map<String, Integer> getRepeatableFeatStacks() { return repeatableFeatStacks; }
+
+    /**
+     * Rage cooldown multiplier from stacked Extra Rage. Each stack multiplies the
+     * cooldown by 0.75 (25% reduction, diminishing, no hard cap). Returns 1.0 with
+     * no stacks. Prep hook for the Barbarian Rage system; not yet wired to it.
+     */
+    public float getRageCooldownMultiplier() {
+        int stacks = getFeatStackCount("extra_rage");
+        if (stacks <= 0) return 1.0f;
+        return (float) Math.pow(0.75, stacks);
+    }
 
     public int getExtraTurningCharges() { return extraTurningCharges; }
     public void setExtraTurningCharges(int charges) { this.extraTurningCharges = Math.max(0, charges); }
@@ -718,7 +762,6 @@ public class DnDPlayerData {
         featTag.putInt("WillBonus", featWillBonus);
         featTag.putInt("RefBonus", featRefBonus);
         featTag.putInt("FortBonus", featFortBonus);
-        featTag.putInt("ToughnessCount", toughnessFeatCount);
         featTag.putInt("ExtraTurningCharges", extraTurningCharges);
         featTag.putInt("DevotionDamageBonus", devotionDamageBonus);
         featTag.putInt("DevotionHealingBonus", devotionHealingBonus);
@@ -784,6 +827,11 @@ public class DnDPlayerData {
             featList.add(net.minecraft.nbt.StringTag.valueOf(featId));
         }
         featTag.put("Granted", featList);
+
+        CompoundTag stacksTag = new CompoundTag();
+        repeatableFeatStacks.forEach(stacksTag::putInt);
+        featTag.put("RepeatableFeatStacks", stacksTag);
+
         tag.put("Feats", featTag);
 
         return tag;
@@ -854,6 +902,7 @@ public class DnDPlayerData {
         racialAcBonus = tag.getInt("RacialAcBonus");
 
         grantedFeats.clear();
+        repeatableFeatStacks.clear();
         if (tag.contains("Feats")) {
             CompoundTag featTag = tag.getCompound("Feats");
             featSlotsAvailable = featTag.getInt("SlotsAvailable");
@@ -863,7 +912,6 @@ public class DnDPlayerData {
             featWillBonus = featTag.getInt("WillBonus");
             featRefBonus = featTag.getInt("RefBonus");
             featFortBonus = featTag.getInt("FortBonus");
-            toughnessFeatCount = featTag.getInt("ToughnessCount");
             extraTurningCharges = featTag.getInt("ExtraTurningCharges");
             devotionDamageBonus = featTag.getInt("DevotionDamageBonus");
             devotionHealingBonus = featTag.getInt("DevotionHealingBonus");
@@ -929,6 +977,25 @@ public class DnDPlayerData {
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
             }
+
+            if (featTag.contains("RepeatableFeatStacks")) {
+                CompoundTag stacksTag = featTag.getCompound("RepeatableFeatStacks");
+                for (String key : stacksTag.getAllKeys()) {
+                    repeatableFeatStacks.put(key, stacksTag.getInt(key));
+                }
+            }
+
+            // One-time migration: Toughness used to stack via a dedicated
+            // ToughnessCount field. Fold any old value into the general stack map
+            // (only if this save predates the map, i.e. has no "toughness" entry).
+            // Brand-new saves never had ToughnessCount, so the contains() guard
+            // skips them safely.
+            if (featTag.contains("ToughnessCount") && !repeatableFeatStacks.containsKey("toughness")) {
+                int legacy = featTag.getInt("ToughnessCount");
+                if (legacy > 0) {
+                    repeatableFeatStacks.put("toughness", legacy);
+                }
+            }
         } else {
             featSlotsAvailable = 0;
             featAcBonus = 0;
@@ -937,7 +1004,6 @@ public class DnDPlayerData {
             featWillBonus = 0;
             featRefBonus = 0;
             featFortBonus = 0;
-            toughnessFeatCount = 0;
             extraTurningCharges = 0;
             devotionDamageBonus = 0;
             devotionHealingBonus = 0;
@@ -1026,6 +1092,8 @@ public class DnDPlayerData {
         this.racialAcBonus = other.racialAcBonus;
         this.grantedFeats.clear();
         this.grantedFeats.addAll(other.grantedFeats);
+        this.repeatableFeatStacks.clear();
+        this.repeatableFeatStacks.putAll(other.repeatableFeatStacks);
         this.featSlotsAvailable = other.featSlotsAvailable;
         this.featAcBonus = other.featAcBonus;
         this.featInitiativeBonus = other.featInitiativeBonus;
@@ -1033,7 +1101,6 @@ public class DnDPlayerData {
         this.featWillBonus = other.featWillBonus;
         this.featRefBonus = other.featRefBonus;
         this.featFortBonus = other.featFortBonus;
-        this.toughnessFeatCount = other.toughnessFeatCount;
         this.extraTurningCharges = other.extraTurningCharges;
         this.devotionDamageBonus = other.devotionDamageBonus;
         this.devotionHealingBonus = other.devotionHealingBonus;

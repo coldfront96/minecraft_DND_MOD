@@ -36,7 +36,9 @@ public interface FeatPrerequisite {
     record RequiredFeatPrerequisite(String requiredFeatId, String requiredFeatName) implements FeatPrerequisite {
         @Override
         public boolean isMet(DnDPlayerData data) {
-            return data.hasFeat(requiredFeatId);
+            // hasFeatAtAnyStack so a single stack of a repeatable feat still
+            // satisfies a "requires feat X" prerequisite.
+            return data.hasFeatAtAnyStack(requiredFeatId);
         }
 
         @Override

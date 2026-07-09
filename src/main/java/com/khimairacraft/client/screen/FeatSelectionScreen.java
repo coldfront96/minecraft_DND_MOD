@@ -161,16 +161,30 @@ public class FeatSelectionScreen extends Screen {
         }
     }
 
+    /** A feat can be taken now if it is repeatable-or-ungranted and its prerequisites are met. */
+    private boolean canTake(Feat feat, DnDPlayerData data) {
+        if (!feat.isRepeatable() && data.hasFeat(feat.getFeatId())) return false;
+        return feat.allPrerequisitesMet(data);
+    }
+
     private void renderFeatRow(GuiGraphics graphics, Feat feat, DnDPlayerData data, int left, int y, boolean indented) {
         boolean granted = data.hasFeat(feat.getFeatId());
-        boolean available = !granted && feat.allPrerequisitesMet(data);
+        boolean repeatableTaken = feat.isRepeatable() && data.getFeatStackCount(feat.getFeatId()) > 0;
+        boolean available = canTake(feat, data);
         boolean selected = selectedFeat != null && selectedFeat.getFeatId().equals(feat.getFeatId());
 
         int bgColor;
         int textColor;
         String prefix = "";
+        String suffix = "";
 
-        if (granted) {
+        if (repeatableTaken) {
+            // Repeatable feat already taken: show its stack count and keep it
+            // selectable (take another stack) instead of the read-only ✓ state.
+            suffix = " ×" + data.getFeatStackCount(feat.getFeatId());
+            bgColor = available ? COLOR_AVAILABLE : COLOR_LOCKED;
+            textColor = available ? TEXT_WHITE : TEXT_LOCKED;
+        } else if (granted) {
             bgColor = COLOR_GRANTED;
             textColor = TEXT_GRANTED;
             prefix = "✓ ";
@@ -190,7 +204,7 @@ public class FeatSelectionScreen extends Screen {
             renderBorder(graphics, left + indent, y, FEAT_LIST_WIDTH - indent, ROW_HEIGHT - 1, COLOR_CONFIRM_BORDER);
         }
 
-        String displayText = prefix + feat.getDisplayName();
+        String displayText = prefix + feat.getDisplayName() + suffix;
         if (this.font.width(displayText) > FEAT_LIST_WIDTH - indent - 8) {
             while (this.font.width(displayText + "..") > FEAT_LIST_WIDTH - indent - 8 && displayText.length() > 1) {
                 displayText = displayText.substring(0, displayText.length() - 1);
@@ -259,8 +273,7 @@ public class FeatSelectionScreen extends Screen {
     private void renderConfirmButton(GuiGraphics graphics, int panelLeft, int panelTop, int mouseX, int mouseY) {
         DnDPlayerData data = getPlayerData();
         boolean canConfirm = selectedFeat != null && data != null
-                && !data.hasFeat(selectedFeat.getFeatId())
-                && selectedFeat.allPrerequisitesMet(data);
+                && canTake(selectedFeat, data);
 
         int btnW = 120;
         int btnH = 20;
@@ -330,7 +343,7 @@ public class FeatSelectionScreen extends Screen {
                 if (y >= top && y < contentBottom) {
                     if (mouseX >= left && mouseX < left + FEAT_LIST_WIDTH
                             && mouseY >= y && mouseY < y + ROW_HEIGHT) {
-                        if (!data.hasFeat(feat.getFeatId())) {
+                        if (canTake(feat, data)) {
                             selectedFeat = feat;
                         }
                         return true;
@@ -346,8 +359,7 @@ public class FeatSelectionScreen extends Screen {
     private boolean handleConfirmClick(double mouseX, double mouseY, int panelLeft, int panelTop) {
         DnDPlayerData data = getPlayerData();
         if (selectedFeat == null || data == null) return false;
-        if (data.hasFeat(selectedFeat.getFeatId())) return false;
-        if (!selectedFeat.allPrerequisitesMet(data)) return false;
+        if (!canTake(selectedFeat, data)) return false;
 
         int btnW = 120;
         int btnH = 20;

@@ -26,7 +26,8 @@ public class FeatRegistry {
         for (Feat feat : REGISTRY.values()) {
             if (!feat.isFighterBonusFeat()) continue;
             if (!FeatSourceConfig.isEnabled(feat.getSource())) continue;
-            if (data.hasFeat(feat.getFeatId())) continue;
+            // Repeatable feats stay selectable after being granted (take another stack).
+            if (!feat.isRepeatable() && data.hasFeat(feat.getFeatId())) continue;
             if (!feat.allPrerequisitesMet(data)) continue;
             result.add(feat);
         }
@@ -83,7 +84,8 @@ public class FeatRegistry {
         List<Feat> result = new ArrayList<>();
         for (Feat feat : REGISTRY.values()) {
             if (!FeatSourceConfig.isEnabled(feat.getSource())) continue;
-            if (data.hasFeat(feat.getFeatId())) continue;
+            // Repeatable feats stay selectable after being granted (take another stack).
+            if (!feat.isRepeatable() && data.hasFeat(feat.getFeatId())) continue;
             if (!feat.allPrerequisitesMet(data)) continue;
             result.add(feat);
         }
