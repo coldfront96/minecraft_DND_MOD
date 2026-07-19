@@ -1,5 +1,6 @@
 package com.deadmind.dndmods.ability;
 
+import com.deadmind.dndmods.ability.barbarian.*;
 import com.deadmind.dndmods.ability.impl.*;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.race.DnDRace;
@@ -38,9 +39,12 @@ public class AbilityRegistry {
         register(new NaturesGrasp());
 
         // Barbarian abilities
-        register(new Reckless());
-        register(new GroundSlam());
-        register(new BerserkerRage());
+        register(new RageAbility());
+        register(new RecklessAttackAbility());
+        register(new IntimidatingRoarAbility());
+        register(new ThunderousStompAbility());
+        register(new UnstoppableChargeAbility());
+        register(new SecondWindAbility());
 
         // Racial abilities
         registerRacial(DnDRace.DRAGONBORN, new DragonBreathAbility());

@@ -2,12 +2,14 @@ package com.deadmind.dndmods.combat;
 
 import com.deadmind.dndmods.ability.Ability;
 import com.deadmind.dndmods.ability.AbilityScoreType;
+import com.deadmind.dndmods.ability.passive.BarbarianPassives;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.AbilityScores;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.PlayerDataHelper;
 import com.deadmind.dndmods.race.DnDRace;
 import com.deadmind.dndmods.race.RacialSaveBonus;
+import com.deadmind.dndmods.resource.RageSystem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,13 +38,22 @@ public final class SavingThrowSystem {
         DnDRace race = data.getRace();
         int racialAll = RacialSaveBonus.getAllSavesBonus(race);
 
+        int trapSense = BarbarianPassives.getTrapSenseBonus(data);
+
         return switch (saveType) {
             case FORTITUDE -> scores.getConMod() + (level / 3) + racialAll
                     + RacialSaveBonus.getFearBonus(race) + data.getFeatFortBonus();
-            case REFLEX -> getReflexAbilityMod(data, scores) + (level / 4) + racialAll + data.getFeatRefBonus();
-            case WILL -> scores.getWisMod() + (level / 3) + racialAll
-                    + RacialSaveBonus.getEnchantmentBonus(race)
-                    + RacialSaveBonus.getIllusionBonus(race) + data.getFeatWillBonus();
+            case REFLEX -> getReflexAbilityMod(data, scores) + (level / 4) + racialAll
+                    + data.getFeatRefBonus() + trapSense;
+            case WILL -> {
+                int base = scores.getWisMod() + (level / 3) + racialAll
+                        + RacialSaveBonus.getEnchantmentBonus(race)
+                        + RacialSaveBonus.getIllusionBonus(race) + data.getFeatWillBonus();
+                if (data.getClassLevel(DnDClass.BARBARIAN) >= 14) {
+                    base += 4; // Indomitable Will (always active at level 14+)
+                }
+                yield base;
+            }
         };
     }
 

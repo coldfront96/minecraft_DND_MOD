@@ -2,10 +2,12 @@ package com.deadmind.dndmods.combat;
 
 import com.deadmind.dndmods.DnDMods;
 import com.deadmind.dndmods.ability.AbilityCooldownManager;
+import com.deadmind.dndmods.ability.passive.BarbarianPassives;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.network.SyncPlayerDataPayload;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.PlayerDataHelper;
+import com.deadmind.dndmods.resource.RageSystem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -36,6 +38,7 @@ public class CombatEventHandler {
 
         for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
             PlayerDataHelper.get(player).tickCooldowns();
+            RageSystem.tickPlayer(player);
         }
 
         resourceRegenCounter++;
@@ -45,8 +48,13 @@ public class CombatEventHandler {
                 DnDPlayerData data = PlayerDataHelper.get(player);
                 if (data.getDnDClass() == DnDClass.NONE) continue;
 
+                // Barbarian fast movement passive (reapply every second)
+                if (data.getClassLevel(DnDClass.BARBARIAN) >= 1) {
+                    BarbarianPassives.applyFastMovement(player, data);
+                }
+
                 int regenAmount = getResourceRegenRate(data.getDnDClass());
-                if (data.getCurrentResource() < data.getMaxResource()) {
+                if (regenAmount > 0 && data.getCurrentResource() < data.getMaxResource()) {
                     data.restoreResource(regenAmount);
                     PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
                 }
@@ -95,10 +103,14 @@ public class CombatEventHandler {
         if (event.getSource().getEntity() instanceof ServerPlayer attacker) {
             DnDPlayerData data = PlayerDataHelper.get(attacker);
             if (data.getDnDClass() == DnDClass.NONE) return;
+        }
 
-            if (data.getDnDClass() == DnDClass.BARBARIAN && data.getCurrentResource() < data.getMaxResource()) {
-                data.restoreResource(5);
-                PacketDistributor.sendToPlayer(attacker, SyncPlayerDataPayload.fromPlayer(data));
+        // Bloodlust Surge: passive heal when raging below 25% HP on taking damage
+        if (event.getEntity() instanceof ServerPlayer defender) {
+            DnDPlayerData defData = PlayerDataHelper.get(defender);
+            if (defData.getClassLevel(DnDClass.BARBARIAN) >= 12) {
+                BarbarianPassives.applyBloodlustSurge(defender, defData);
+                PacketDistributor.sendToPlayer(defender, SyncPlayerDataPayload.fromPlayer(defData));
             }
         }
     }
@@ -131,6 +143,20 @@ public class CombatEventHandler {
             if (defState.isRecklessActive()) {
                 event.setNewDamage(event.getNewDamage() * 1.2f);
             }
+
+            // Barbarian passive damage reduction
+            DnDPlayerData defData = PlayerDataHelper.get(defender);
+            int dr = BarbarianPassives.getDamageReduction(defData);
+            // Rage tier DR stacks
+            if (RageSystem.isRaging(defender.getUUID())) {
+                RageSystem.RageState rageState = RageSystem.getRageState(defender.getUUID());
+                if (rageState != null) {
+                    dr += rageState.getTier().getDamageReduction();
+                }
+            }
+            if (dr > 0) {
+                event.setNewDamage(Math.max(1.0f, event.getNewDamage() - dr));
+            }
         }
 
         if (event.getSource().getEntity() instanceof ServerPlayer attacker) {
@@ -144,6 +170,15 @@ public class CombatEventHandler {
                         Component.literal("Marked!").withStyle(s -> s.withColor(0xFF4444)), true);
             }
 
+            // Rage damage multiplier
+            if (RageSystem.isRaging(attacker.getUUID())) {
+                DnDPlayerData atkData = PlayerDataHelper.get(attacker);
+                RageSystem.RageState rageState = RageSystem.getRageState(attacker.getUUID());
+                if (rageState != null) {
+                    event.setNewDamage(event.getNewDamage() * rageState.getTier().getDamageMultiplier());
+                }
+            }
+
             // Pending enhancement from ENHANCES_ATTACK abilities
             String enhancement = state.consumePendingEnhancement();
             if (enhancement != null) {
@@ -152,8 +187,11 @@ public class CombatEventHandler {
                             event.setNewDamage(event.getNewDamage() * 1.5f);
                     case "fighter_shield_bash" ->
                             target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 2, false, true));
-                    case "barbarian_reckless" ->
-                            event.setNewDamage(event.getNewDamage() * 1.4f);
+                    case "barbarian_reckless_attack" -> {
+                        DnDPlayerData atkData2 = PlayerDataHelper.get(attacker);
+                        int strBonus = atkData2.getAbilityScores().getStrMod() * 2;
+                        event.setNewDamage(event.getNewDamage() + strBonus);
+                    }
                 }
             }
         }
@@ -161,8 +199,10 @@ public class CombatEventHandler {
 
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        PerPlayerCombatState.remove(event.getEntity().getUUID());
-        AbilityCooldownManager.removePlayer(event.getEntity().getUUID());
+        UUID uuid = event.getEntity().getUUID();
+        PerPlayerCombatState.remove(uuid);
+        AbilityCooldownManager.removePlayer(uuid);
+        RageSystem.remove(uuid);
     }
 
     private static int getResourceRegenRate(DnDClass dndClass) {
