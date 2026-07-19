@@ -22,12 +22,12 @@ public class ThunderousStompAbility extends Ability {
     public ThunderousStompAbility() {
         super("barbarian_thunderous_stomp", "Thunderous Stomp",
                 "Slam the ground, dealing AoE damage and knocking back nearby enemies. Requires Rage.",
-                DnDClass.BARBARIAN, 6, 0, 160, ClickBehavior.CONSUMES_CLICK);
+                DnDClass.BARBARIAN, 9, 0, 160, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override
     public boolean canUse(ServerPlayer player, DnDPlayerData data) {
-        if (data.getClassLevel(DnDClass.BARBARIAN) < 6) return false;
+        if (data.getClassLevel(DnDClass.BARBARIAN) < 9) return false;
         if (!RageSystem.isRaging(player.getUUID())) {
             player.displayClientMessage(
                     Component.literal("You must be Raging to use Thunderous Stomp!")

@@ -19,12 +19,12 @@ public class UnstoppableChargeAbility extends Ability {
     public UnstoppableChargeAbility() {
         super("barbarian_unstoppable_charge", "Unstoppable Charge",
                 "Dash 8 blocks forward, damaging and knocking aside enemies in your path.",
-                DnDClass.BARBARIAN, 8, 0, 240, ClickBehavior.CONSUMES_CLICK);
+                DnDClass.BARBARIAN, 15, 0, 240, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override
     public boolean canUse(ServerPlayer player, DnDPlayerData data) {
-        if (data.getClassLevel(DnDClass.BARBARIAN) < 8) return false;
+        if (data.getClassLevel(DnDClass.BARBARIAN) < 15) return false;
         return !data.isOnCooldown("barbarian_unstoppable_charge");
     }
 

@@ -152,16 +152,9 @@ public class CombatEventHandler {
                 event.setNewDamage(event.getNewDamage() * 1.2f);
             }
 
-            // Barbarian passive damage reduction
+            // Barbarian passive damage reduction (level 7+, active at all times)
             DnDPlayerData defData = PlayerDataHelper.get(defender);
             int dr = BarbarianPassives.getDamageReduction(defData);
-            // Rage tier DR stacks
-            if (RageSystem.isRaging(defender.getUUID())) {
-                RageSystem.RageState rageState = RageSystem.getRageState(defender.getUUID());
-                if (rageState != null) {
-                    dr += rageState.getTier().getDamageReduction();
-                }
-            }
             if (dr > 0) {
                 event.setNewDamage(Math.max(1.0f, event.getNewDamage() - dr));
             }
@@ -176,15 +169,6 @@ public class CombatEventHandler {
                 event.setNewDamage(event.getNewDamage() * 1.25f);
                 attacker.displayClientMessage(
                         Component.literal("Marked!").withStyle(s -> s.withColor(0xFF4444)), true);
-            }
-
-            // Rage damage multiplier
-            if (RageSystem.isRaging(attacker.getUUID())) {
-                DnDPlayerData atkData = PlayerDataHelper.get(attacker);
-                RageSystem.RageState rageState = RageSystem.getRageState(attacker.getUUID());
-                if (rageState != null) {
-                    event.setNewDamage(event.getNewDamage() * rageState.getTier().getDamageMultiplier());
-                }
             }
 
             // Pending enhancement from ENHANCES_ATTACK abilities
@@ -207,10 +191,14 @@ public class CombatEventHandler {
 
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        // Rage/fatigue score changes must be reverted before the player data
+        // saves, so handleLogout runs with the live player, not just the UUID.
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            RageSystem.handleLogout(serverPlayer);
+        }
         UUID uuid = event.getEntity().getUUID();
         PerPlayerCombatState.remove(uuid);
         AbilityCooldownManager.removePlayer(uuid);
-        RageSystem.remove(uuid);
     }
 
     private static int getResourceRegenRate(DnDClass dndClass) {

@@ -14,12 +14,12 @@ public class RecklessAttackAbility extends Ability {
     public RecklessAttackAbility() {
         super("barbarian_reckless_attack", "Reckless Attack",
                 "Your next attack deals bonus damage equal to 2x STR modifier, but you take +20% damage for 10 seconds. Requires Rage.",
-                DnDClass.BARBARIAN, 2, 0, 100, ClickBehavior.ENHANCES_ATTACK);
+                DnDClass.BARBARIAN, 3, 0, 100, ClickBehavior.ENHANCES_ATTACK);
     }
 
     @Override
     public boolean canUse(ServerPlayer player, DnDPlayerData data) {
-        if (data.getClassLevel(DnDClass.BARBARIAN) < 2) return false;
+        if (data.getClassLevel(DnDClass.BARBARIAN) < 3) return false;
         if (!RageSystem.isRaging(player.getUUID())) {
             player.displayClientMessage(
                     Component.literal("You must be Raging to use Reckless Attack!")

@@ -16,12 +16,12 @@ public class SecondWindAbility extends Ability {
     public SecondWindAbility() {
         super("barbarian_second_wind", "Second Wind",
                 "Once per Rage, heal for 20% of max HP when below 25% HP. Requires Rage.",
-                DnDClass.BARBARIAN, 10, 0, 0, ClickBehavior.CONSUMES_CLICK);
+                DnDClass.BARBARIAN, 18, 0, 0, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override
     public boolean canUse(ServerPlayer player, DnDPlayerData data) {
-        if (data.getClassLevel(DnDClass.BARBARIAN) < 10) return false;
+        if (data.getClassLevel(DnDClass.BARBARIAN) < 18) return false;
 
         if (!RageSystem.isRaging(player.getUUID())) {
             player.displayClientMessage(

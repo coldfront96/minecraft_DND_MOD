@@ -22,12 +22,12 @@ public class IntimidatingRoarAbility extends Ability {
     public IntimidatingRoarAbility() {
         super("barbarian_intimidating_roar", "Intimidating Roar",
                 "Let out a terrifying roar that inflicts fear on nearby enemies. Requires Rage.",
-                DnDClass.BARBARIAN, 4, 0, 200, ClickBehavior.CONSUMES_CLICK);
+                DnDClass.BARBARIAN, 6, 0, 200, ClickBehavior.CONSUMES_CLICK);
     }
 
     @Override
     public boolean canUse(ServerPlayer player, DnDPlayerData data) {
-        if (data.getClassLevel(DnDClass.BARBARIAN) < 4) return false;
+        if (data.getClassLevel(DnDClass.BARBARIAN) < 6) return false;
         if (!RageSystem.isRaging(player.getUUID())) {
             player.displayClientMessage(
                     Component.literal("You must be Raging to use Intimidating Roar!")
