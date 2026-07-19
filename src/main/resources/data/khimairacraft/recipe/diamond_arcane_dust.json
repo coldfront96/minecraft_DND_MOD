@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "khimairacraft:ghast_arcane_dust" },
+    { "item": "minecraft:diamond" },
+    { "item": "minecraft:diamond" },
+    { "item": "minecraft:diamond" },
+    { "item": "minecraft:diamond" }
+  ],
+  "result": {
+    "id": "khimairacraft:diamond_arcane_dust",
+    "count": 1
+  }
+}

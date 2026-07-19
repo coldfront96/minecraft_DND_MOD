@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "khimairacraft:copper_arcane_dust" },
+    { "item": "minecraft:iron_ingot" },
+    { "item": "minecraft:iron_ingot" },
+    { "item": "minecraft:iron_ingot" },
+    { "item": "minecraft:iron_ingot" }
+  ],
+  "result": {
+    "id": "khimairacraft:iron_arcane_dust",
+    "count": 1
+  }
+}

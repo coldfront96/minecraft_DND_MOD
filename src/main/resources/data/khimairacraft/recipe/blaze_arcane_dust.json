@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "khimairacraft:emerald_arcane_dust" },
+    { "item": "minecraft:blaze_powder" },
+    { "item": "minecraft:blaze_powder" },
+    { "item": "minecraft:blaze_powder" },
+    { "item": "minecraft:blaze_powder" }
+  ],
+  "result": {
+    "id": "khimairacraft:blaze_arcane_dust",
+    "count": 1
+  }
+}

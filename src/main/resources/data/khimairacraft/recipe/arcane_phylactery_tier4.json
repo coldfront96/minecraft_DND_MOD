@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "khimairacraft:arcane_phylactery" },
+    { "item": "khimairacraft:netherite_arcane_dust" },
+    { "item": "khimairacraft:netherite_arcane_dust" },
+    { "item": "khimairacraft:netherite_arcane_dust" },
+    { "item": "khimairacraft:netherite_arcane_dust" }
+  ],
+  "result": {
+    "id": "khimairacraft:arcane_phylactery",
+    "count": 1
+  }
+}
