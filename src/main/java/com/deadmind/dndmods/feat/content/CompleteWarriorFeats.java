@@ -318,6 +318,14 @@ public class CompleteWarriorFeats {
                 data -> data.setToughnessFeatCount(data.getToughnessFeatCount() + data.getTotalLevel()),
                 data -> data.setToughnessFeatCount(data.getToughnessFeatCount() - data.getTotalLevel())
         ));
+
+        // Extend Rage: the "extend_rage_unlocked" flag is read by RageSystem's
+        // duration formula (+600 ticks / 5 rounds). The prerequisite is
+        // possession of the Rage ability itself (registered id "barbarian_rage").
+        flagFeat("extend_rage", "Extend Rage",
+                "Your rage lasts 5 rounds longer than normal.",
+                null, 0,
+                List.of(new FeatPrerequisite.AbilityPossessionPrerequisite("barbarian_rage")));
     }
 
     // --- Helpers ---

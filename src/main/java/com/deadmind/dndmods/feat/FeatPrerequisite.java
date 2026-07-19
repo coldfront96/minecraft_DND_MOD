@@ -1,5 +1,7 @@
 package com.deadmind.dndmods.feat;
 
+import com.deadmind.dndmods.ability.Ability;
+import com.deadmind.dndmods.ability.AbilityRegistry;
 import com.deadmind.dndmods.ability.AbilityScoreType;
 import com.deadmind.dndmods.classes.DnDClass;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
@@ -104,6 +106,25 @@ public interface FeatPrerequisite {
         @Override
         public String getDescription() {
             return "Caster Level " + minimumCasterLevel + "+";
+        }
+    }
+
+    /**
+     * Met when the player currently possesses the given registered ability —
+     * i.e. meets its class/level requirement across primary and secondary
+     * class entries. Resolved against {@link AbilityRegistry} at check time.
+     */
+    record AbilityPossessionPrerequisite(String abilityId) implements FeatPrerequisite {
+        @Override
+        public boolean isMet(DnDPlayerData data) {
+            Ability ability = AbilityRegistry.getAbility(abilityId);
+            return ability != null && ability.meetsLevelRequirement(data);
+        }
+
+        @Override
+        public String getDescription() {
+            Ability ability = AbilityRegistry.getAbility(abilityId);
+            return "Ability: " + (ability != null ? ability.getName() : abilityId);
         }
     }
 
