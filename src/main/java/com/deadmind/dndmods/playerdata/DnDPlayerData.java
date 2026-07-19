@@ -298,6 +298,18 @@ public class DnDPlayerData {
         grantedFeats.remove(featId);
     }
 
+    /**
+     * Rage cooldown multiplier from the repeatable Extra Rage feat: each copy
+     * of "extra_rage" in the granted list cuts the base cooldown by 20%.
+     */
+    public float getRageCooldownMultiplier() {
+        float multiplier = 1.0f;
+        for (String feat : grantedFeats) {
+            if (feat.equals("extra_rage")) multiplier *= 0.8f;
+        }
+        return multiplier;
+    }
+
     public int getFeatSlotsAvailable() { return featSlotsAvailable; }
 
     public void setFeatSlotsAvailable(int slots) { this.featSlotsAvailable = slots; }

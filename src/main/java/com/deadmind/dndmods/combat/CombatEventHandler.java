@@ -16,9 +16,11 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -98,19 +100,25 @@ public class CombatEventHandler {
         }
     }
 
-    @SubscribeEvent
-    public static void onLivingDamage(LivingDamageEvent.Post event) {
-        if (event.getSource().getEntity() instanceof ServerPlayer attacker) {
-            DnDPlayerData data = PlayerDataHelper.get(attacker);
-            if (data.getDnDClass() == DnDClass.NONE) return;
+    /**
+     * Runs at HIGHEST priority so a raging player's rage is ended — and the
+     * rage cooldown stamped — at the moment of death, before any other death
+     * processing (and before respawn). fromDeath=true skips fatigue per RAW.
+     * Also the Bloodlust Surge trigger: killing blow by a raging Barbarian.
+     */
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getEntity() instanceof ServerPlayer dying
+                && RageSystem.isRaging(dying.getUUID())) {
+            RageSystem.endRage(dying, true);
         }
 
-        // Bloodlust Surge: passive heal when raging below 25% HP on taking damage
-        if (event.getEntity() instanceof ServerPlayer defender) {
-            DnDPlayerData defData = PlayerDataHelper.get(defender);
-            if (defData.getClassLevel(DnDClass.BARBARIAN) >= 12) {
-                BarbarianPassives.applyBloodlustSurge(defender, defData);
-                PacketDistributor.sendToPlayer(defender, SyncPlayerDataPayload.fromPlayer(defData));
+        if (event.getSource().getEntity() instanceof ServerPlayer killer
+                && killer != event.getEntity()) {
+            DnDPlayerData data = PlayerDataHelper.get(killer);
+            if (data.getClassLevel(DnDClass.BARBARIAN) >= 12) {
+                BarbarianPassives.onKillWhileRaging(killer, data);
+                PacketDistributor.sendToPlayer(killer, SyncPlayerDataPayload.fromPlayer(data));
             }
         }
     }

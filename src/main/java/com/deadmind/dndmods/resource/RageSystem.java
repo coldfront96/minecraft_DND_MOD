@@ -5,7 +5,11 @@ import com.deadmind.dndmods.network.SyncPlayerDataPayload;
 import com.deadmind.dndmods.playerdata.DnDPlayerData;
 import com.deadmind.dndmods.playerdata.PlayerDataHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Map;
@@ -18,19 +22,18 @@ public final class RageSystem {
 
     private static final Map<UUID, RageState> ACTIVE_RAGES = new ConcurrentHashMap<>();
 
-    public enum RageTier {
-        BASE(1, 10, 1.3f, 1),
-        GREATER(11, 19, 1.5f, 2),
-        MIGHTY(20, 20, 1.75f, 3);
+    private static final ResourceLocation RAGE_MAX_HP_ID =
+            ResourceLocation.fromNamespaceAndPath("dndmods", "rage_max_hp");
 
-        private final int minLevel;
-        private final int maxLevel;
+    public enum RageTier {
+        BASE(1.3f, 1),
+        GREATER(1.5f, 2),
+        MIGHTY(1.75f, 3);
+
         private final float damageMultiplier;
         private final int damageReduction;
 
-        RageTier(int minLevel, int maxLevel, float damageMultiplier, int damageReduction) {
-            this.minLevel = minLevel;
-            this.maxLevel = maxLevel;
+        RageTier(float damageMultiplier, int damageReduction) {
             this.damageMultiplier = damageMultiplier;
             this.damageReduction = damageReduction;
         }
@@ -46,13 +49,11 @@ public final class RageSystem {
     }
 
     public static class RageState {
-        private final long startTime;
-        private final long endTime;
+        private long endTime;
         private final RageTier tier;
         private boolean usedSecondWind;
 
         public RageState(long startTime, long durationMillis, RageTier tier) {
-            this.startTime = startTime;
             this.endTime = startTime + durationMillis;
             this.tier = tier;
             this.usedSecondWind = false;
@@ -66,19 +67,15 @@ public final class RageSystem {
             return currentTime >= endTime;
         }
 
-        public long getRemainingMillis(long currentTime) {
-            return Math.max(0, endTime - currentTime);
+        public void extend(long millis) {
+            this.endTime += millis;
         }
     }
 
     public static boolean isRaging(UUID playerId) {
         RageState state = ACTIVE_RAGES.get(playerId);
         if (state == null) return false;
-        if (state.isExpired(System.currentTimeMillis())) {
-            ACTIVE_RAGES.remove(playerId);
-            return false;
-        }
-        return true;
+        return !state.isExpired(System.currentTimeMillis());
     }
 
     public static RageState getRageState(UUID playerId) {
@@ -97,11 +94,18 @@ public final class RageSystem {
             return true;
         }
 
+        if (data.isOnCooldown("barbarian_rage_fatigue")) {
+            player.displayClientMessage(
+                    Component.literal("You are too fatigued to rage.")
+                            .withStyle(s -> s.withColor(0xFF5555)), true);
+            return false;
+        }
+
         if (data.isOnCooldown("barbarian_rage")) {
             int remaining = data.getCooldownRemaining("barbarian_rage");
             int seconds = remaining / 20;
             player.displayClientMessage(
-                    Component.literal("Rage is on cooldown! " + seconds + "s remaining.")
+                    Component.literal("Rage is not ready. " + seconds + " seconds remaining.")
                             .withStyle(s -> s.withColor(0xFF5555)), true);
             return false;
         }
@@ -111,8 +115,10 @@ public final class RageSystem {
 
         ACTIVE_RAGES.put(playerId, new RageState(System.currentTimeMillis(), durationMillis, tier));
 
+        applyRageHpBonus(player, barbLevel);
+
         player.displayClientMessage(
-                Component.literal("RAGE! (" + tier.name() + " - " + (durationMillis / 1000) + "s)")
+                Component.literal("You fly into a rage! (" + tier.name() + " - " + (durationMillis / 1000) + "s)")
                         .withStyle(s -> s.withColor(0xFF4444).withBold(true)), true);
 
         return true;
@@ -123,27 +129,38 @@ public final class RageSystem {
         RageState state = ACTIVE_RAGES.remove(playerId);
         if (state == null) return;
 
+        removeRageHpBonus(player);
+
         DnDPlayerData data = PlayerDataHelper.get(player);
         int barbLevel = data.getClassLevel(DnDClass.BARBARIAN);
 
-        player.displayClientMessage(
-                Component.literal("Rage ended.")
-                        .withStyle(s -> s.withColor(0xAAAAAA)), true);
+        if (!fromDeath) {
+            player.displayClientMessage(
+                    Component.literal("Rage ended.")
+                            .withStyle(s -> s.withColor(0xAAAAAA)), true);
+        }
 
         if (!fromDeath && barbLevel < 17) {
             int fatigueTicks = 30 * 20; // 30 seconds
             data.startCooldown("barbarian_rage_fatigue", fatigueTicks);
         }
 
-        int cooldownTicks = getRageCooldownTicks(barbLevel, data);
+        int cooldownTicks = (int) (getRageCooldownBaseTicks(barbLevel) * data.getRageCooldownMultiplier());
         data.startCooldown("barbarian_rage", cooldownTicks);
 
         PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
     }
 
+    /** Bloodlust Surge: extend an active rage (millis) on a killing blow. */
+    public static void extendRage(ServerPlayer player, long millis) {
+        RageState state = ACTIVE_RAGES.get(player.getUUID());
+        if (state != null && !state.isExpired(System.currentTimeMillis())) {
+            state.extend(millis);
+        }
+    }
+
     public static void tickPlayer(ServerPlayer player) {
-        UUID playerId = player.getUUID();
-        RageState state = ACTIVE_RAGES.get(playerId);
+        RageState state = ACTIVE_RAGES.get(player.getUUID());
         if (state == null) return;
 
         if (state.isExpired(System.currentTimeMillis())) {
@@ -160,6 +177,31 @@ public final class RageSystem {
         return data.isOnCooldown("barbarian_rage_fatigue");
     }
 
+    // Rage HP bonus: +2 x Barbarian level as a transient MAX_HEALTH modifier.
+    // Heal the delta on apply; on removal clamp current health down to the new
+    // max so it never exceeds it (vanilla would clamp lazily on a later tick).
+    private static void applyRageHpBonus(ServerPlayer player, int barbLevel) {
+        AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHealth == null) return;
+
+        double bonus = 2.0 * barbLevel;
+        maxHealth.removeModifier(RAGE_MAX_HP_ID);
+        maxHealth.addTransientModifier(new AttributeModifier(
+                RAGE_MAX_HP_ID, bonus, AttributeModifier.Operation.ADD_VALUE));
+        player.heal((float) bonus);
+    }
+
+    private static void removeRageHpBonus(ServerPlayer player) {
+        AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHealth == null) return;
+
+        maxHealth.removeModifier(RAGE_MAX_HP_ID);
+        float newMax = player.getMaxHealth();
+        if (player.getHealth() > newMax) {
+            player.setHealth(Math.max(1.0f, newMax));
+        }
+    }
+
     private static long getRageDuration(int barbarianLevel) {
         if (barbarianLevel >= 20) return 30_000L;
         if (barbarianLevel >= 15) return 25_000L;
@@ -168,27 +210,14 @@ public final class RageSystem {
         return 10_000L;
     }
 
-    private static int getRageCooldownTicks(int barbarianLevel, DnDPlayerData data) {
-        int baseSeconds;
-        if (barbarianLevel >= 17) baseSeconds = 60;
-        else if (barbarianLevel >= 11) baseSeconds = 90;
-        else if (barbarianLevel >= 5) baseSeconds = 120;
-        else baseSeconds = 180;
-
-        int extraRageCount = countFeatOccurrences(data, "extra_rage");
-        float multiplier = 1.0f;
-        for (int i = 0; i < extraRageCount; i++) {
-            multiplier *= 0.8f;
-        }
-
-        return (int) (baseSeconds * 20 * multiplier);
-    }
-
-    private static int countFeatOccurrences(DnDPlayerData data, String featId) {
-        int count = 0;
-        for (String feat : data.getGrantedFeats()) {
-            if (feat.equals(featId)) count++;
-        }
-        return count;
+    // Spec cooldown table (base, before the Extra Rage multiplier):
+    // L1-3 5:00, L4-7 4:30, L8-11 4:00, L12-15 3:00, L16-19 2:00, L20 1:00.
+    private static int getRageCooldownBaseTicks(int barbarianLevel) {
+        if (barbarianLevel >= 20) return 60 * 20;
+        if (barbarianLevel >= 16) return 120 * 20;
+        if (barbarianLevel >= 12) return 180 * 20;
+        if (barbarianLevel >= 8) return 240 * 20;
+        if (barbarianLevel >= 4) return 270 * 20;
+        return 300 * 20;
     }
 }

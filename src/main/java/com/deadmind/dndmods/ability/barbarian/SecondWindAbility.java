@@ -15,7 +15,7 @@ public class SecondWindAbility extends Ability {
 
     public SecondWindAbility() {
         super("barbarian_second_wind", "Second Wind",
-                "Once per Rage, heal for 25% of max HP when below 25% HP. Requires Rage.",
+                "Once per Rage, heal for 20% of max HP when below 25% HP. Requires Rage.",
                 DnDClass.BARBARIAN, 10, 0, 0, ClickBehavior.CONSUMES_CLICK);
     }
 
@@ -61,7 +61,7 @@ public class SecondWindAbility extends Ability {
 
         state.setUsedSecondWind(true);
 
-        int healAmount = data.getMaxHp() / 4;
+        int healAmount = data.getMaxHp() / 5;
         data.setCurrentHp(Math.min(data.getMaxHp(), data.getCurrentHp() + healAmount));
 
         PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

@@ -48,12 +48,6 @@ public final class BarbarianPassives {
         return data.getClassLevel(DnDClass.BARBARIAN) >= 14;
     }
 
-    public static int getIndomitableWillBonus(DnDPlayerData data) {
-        if (!hasIndomitableWill(data)) return 0;
-        if (!RageSystem.isRaging(null)) return 0; // caller must check raging state
-        return 4;
-    }
-
     public static int getIndomitableWillBonus(DnDPlayerData data, ServerPlayer player) {
         if (data.getClassLevel(DnDClass.BARBARIAN) < 14) return 0;
         if (!RageSystem.isRaging(player.getUUID())) return 0;
@@ -68,16 +62,22 @@ public final class BarbarianPassives {
         return data.getClassLevel(DnDClass.BARBARIAN) >= 20;
     }
 
-    public static void applyBloodlustSurge(ServerPlayer player, DnDPlayerData data) {
-        int barbLevel = data.getClassLevel(DnDClass.BARBARIAN);
-        if (barbLevel < 12) return;
+    /**
+     * Bloodlust Surge (level 12): on landing a killing blow while raging,
+     * extend the active rage by 5 seconds and heal 10% of max HP.
+     */
+    public static void onKillWhileRaging(ServerPlayer player, DnDPlayerData data) {
+        if (data.getClassLevel(DnDClass.BARBARIAN) < 12) return;
         if (!RageSystem.isRaging(player.getUUID())) return;
 
-        float hpPercent = (float) data.getCurrentHp() / data.getMaxHp();
-        if (hpPercent > 0.25f) return;
-
-        int healAmount = 2 + data.getAbilityScores().getConMod();
+        RageSystem.extendRage(player, 5_000L);
+        int healAmount = Math.max(1, data.getMaxHp() / 10);
         data.setCurrentHp(Math.min(data.getMaxHp(), data.getCurrentHp() + healAmount));
+        player.heal(player.getMaxHealth() * 0.1f);
+
+        player.displayClientMessage(
+                net.minecraft.network.chat.Component.literal("Bloodlust Surge! Rage extended.")
+                        .withStyle(s -> s.withColor(0xFF2222)), true);
     }
 
     public static void applyFastMovement(ServerPlayer player, DnDPlayerData data) {
