@@ -26,8 +26,7 @@ public final class BarbarianPassives {
 
     public static int getTrapSenseBonus(DnDPlayerData data) {
         int level = data.getClassLevel(DnDClass.BARBARIAN);
-        if (level < 3) return 0;
-        return (level - 1) / 3; // +1 at 3, +2 at 6, +3 at 9, etc.
+        return Math.min(6, level / 3); // +1 at 3, +2 at 6, ... +6 at 18
     }
 
     public static boolean hasImprovedUncannyDodge(DnDPlayerData data) {

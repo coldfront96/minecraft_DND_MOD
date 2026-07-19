@@ -50,14 +50,26 @@ public class FeatSelectionScreen extends Screen {
     private static final int TEXT_PLACEHOLDER = 0xFF606060;
 
     private final boolean isRacialBonusSlot;
+    private final boolean isRogueSpecialFeatSlot;
     private FeatCategory selectedCategory = FeatCategory.GENERAL;
     @Nullable
     private Feat selectedFeat = null;
     private int scrollOffset = 0;
 
     public FeatSelectionScreen(boolean isRacialBonusSlot) {
+        this(isRacialBonusSlot, false);
+    }
+
+    /**
+     * isRogueSpecialFeatSlot: spending a Rogue special ability slot (earned at
+     * Rogue 10/13/16/19) on a general bonus feat — the full unrestricted feat
+     * pool, consuming rogueSpecialAbilitySlotsAvailable instead of a normal
+     * feat slot.
+     */
+    public FeatSelectionScreen(boolean isRacialBonusSlot, boolean isRogueSpecialFeatSlot) {
         super(Component.literal("Feat Selection"));
         this.isRacialBonusSlot = isRacialBonusSlot;
+        this.isRogueSpecialFeatSlot = isRogueSpecialFeatSlot;
     }
 
     @Nullable
@@ -77,7 +89,8 @@ public class FeatSelectionScreen extends Screen {
         graphics.fill(left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, COLOR_BG);
         renderBorder(graphics, left, top, PANEL_WIDTH, PANEL_HEIGHT, COLOR_BORDER);
 
-        String title = isRacialBonusSlot ? "Racial Bonus Feat" : "Feat Selection";
+        String title = isRogueSpecialFeatSlot ? "Rogue Bonus Feat"
+                : isRacialBonusSlot ? "Racial Bonus Feat" : "Feat Selection";
         int tw = this.font.width(title);
         graphics.drawString(this.font, title, left + (PANEL_WIDTH - tw) / 2, top + 4, TEXT_WHITE, false);
 
@@ -337,7 +350,8 @@ public class FeatSelectionScreen extends Screen {
         int btnY = panelTop + PANEL_HEIGHT - 28;
 
         if (mouseX >= btnX && mouseX < btnX + btnW && mouseY >= btnY && mouseY < btnY + btnH) {
-            PacketDistributor.sendToServer(new SelectFeatPayload(selectedFeat.getFeatId(), isRacialBonusSlot));
+            PacketDistributor.sendToServer(new SelectFeatPayload(
+                    selectedFeat.getFeatId(), isRacialBonusSlot, isRogueSpecialFeatSlot));
             this.onClose();
             return true;
         }

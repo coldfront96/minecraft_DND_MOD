@@ -91,6 +91,12 @@ public class ModNetwork {
                 SelectFeatPayload.STREAM_CODEC,
                 SelectFeatPayload::handle
         );
+
+        registrar.playToServer(
+                SelectRogueSpecialAbilityPayload.TYPE,
+                SelectRogueSpecialAbilityPayload.STREAM_CODEC,
+                SelectRogueSpecialAbilityPayload::handle
+        );
     }
 
     public static ResourceLocation id(String path) {

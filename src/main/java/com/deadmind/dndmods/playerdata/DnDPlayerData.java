@@ -90,6 +90,12 @@ public class DnDPlayerData {
     private int orderForgedCharges = 0;
     private int bloodyFuryBonus = 0;
     private int ironHeartSurgeCooldown = 0;
+    private int rogueSneakAttackDice = 0;
+    private boolean rogueEvasionUnlocked = false;
+    private int rogueTrapSenseBonus = 0;
+    private int rogueSpecialAbilitySlotsAvailable = 0;
+    private int rogueCripplingStrikeStacks = 0;
+    private long defensiveRollLastUsed = -1L;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -569,6 +575,33 @@ public class DnDPlayerData {
     public int getIronHeartSurgeCooldown() { return ironHeartSurgeCooldown; }
     public void setIronHeartSurgeCooldown(int ticks) { this.ironHeartSurgeCooldown = Math.max(0, ticks); }
 
+    // --- Rogue class progression ---
+
+    // Sneak Attack dice (1d6 each): 1 at Rogue 1, +1 every odd level to 10 at 19.
+    public int getRogueSneakAttackDice() { return rogueSneakAttackDice; }
+    public void setRogueSneakAttackDice(int dice) { this.rogueSneakAttackDice = Math.max(0, dice); }
+
+    // Evasion (Rogue 2): Reflex save negates area damage in light/no armor.
+    public boolean isRogueEvasionUnlocked() { return rogueEvasionUnlocked; }
+    public void setRogueEvasionUnlocked(boolean unlocked) { this.rogueEvasionUnlocked = unlocked; }
+
+    // Trap Sense (Rogue 3): +1 per 3 Rogue levels to Reflex saves, stacks
+    // additively with the Barbarian version (separate field).
+    public int getRogueTrapSenseBonus() { return rogueTrapSenseBonus; }
+    public void setRogueTrapSenseBonus(int bonus) { this.rogueTrapSenseBonus = Math.max(0, bonus); }
+
+    // Special ability picks earned at Rogue levels 10/13/16/19.
+    public int getRogueSpecialAbilitySlotsAvailable() { return rogueSpecialAbilitySlotsAvailable; }
+    public void setRogueSpecialAbilitySlotsAvailable(int slots) { this.rogueSpecialAbilitySlotsAvailable = Math.max(0, slots); }
+
+    // Crippling Strike stacks (the one repeatable special ability).
+    public int getRogueCripplingStrikeStacks() { return rogueCripplingStrikeStacks; }
+    public void setRogueCripplingStrikeStacks(int stacks) { this.rogueCripplingStrikeStacks = Math.max(0, stacks); }
+
+    // Defensive Roll: once per real-world day, epoch millis of last use.
+    public long getDefensiveRollLastUsed() { return defensiveRollLastUsed; }
+    public void setDefensiveRollLastUsed(long time) { this.defensiveRollLastUsed = time; }
+
     // --- Achievement flags ---
 
     public void setAchievementFlag(String key, boolean value) {
@@ -746,6 +779,15 @@ public class DnDPlayerData {
         featTag.put("Granted", featList);
         tag.put("Feats", featTag);
 
+        CompoundTag rogueTag = new CompoundTag();
+        rogueTag.putInt("SneakAttackDice", rogueSneakAttackDice);
+        rogueTag.putBoolean("EvasionUnlocked", rogueEvasionUnlocked);
+        rogueTag.putInt("TrapSenseBonus", rogueTrapSenseBonus);
+        rogueTag.putInt("SpecialSlots", rogueSpecialAbilitySlotsAvailable);
+        rogueTag.putInt("CripplingStacks", rogueCripplingStrikeStacks);
+        rogueTag.putLong("DefensiveRollLastUsed", defensiveRollLastUsed);
+        tag.put("Rogue", rogueTag);
+
         return tag;
     }
 
@@ -882,6 +924,23 @@ public class DnDPlayerData {
             for (int i = 0; i < featList.size(); i++) {
                 grantedFeats.add(featList.getString(i));
             }
+            if (tag.contains("Rogue")) {
+                CompoundTag rogueTag = tag.getCompound("Rogue");
+                rogueSneakAttackDice = rogueTag.getInt("SneakAttackDice");
+                rogueEvasionUnlocked = rogueTag.getBoolean("EvasionUnlocked");
+                rogueTrapSenseBonus = rogueTag.getInt("TrapSenseBonus");
+                rogueSpecialAbilitySlotsAvailable = rogueTag.getInt("SpecialSlots");
+                rogueCripplingStrikeStacks = rogueTag.getInt("CripplingStacks");
+                defensiveRollLastUsed = rogueTag.contains("DefensiveRollLastUsed")
+                        ? rogueTag.getLong("DefensiveRollLastUsed") : -1L;
+            } else {
+                rogueSneakAttackDice = 0;
+                rogueEvasionUnlocked = false;
+                rogueTrapSenseBonus = 0;
+                rogueSpecialAbilitySlotsAvailable = 0;
+                rogueCripplingStrikeStacks = 0;
+                defensiveRollLastUsed = -1L;
+            }
         } else {
             featSlotsAvailable = 0;
             featAcBonus = 0;
@@ -944,6 +1003,12 @@ public class DnDPlayerData {
             orderForgedCharges = 0;
             bloodyFuryBonus = 0;
             ironHeartSurgeCooldown = 0;
+            rogueSneakAttackDice = 0;
+            rogueEvasionUnlocked = false;
+            rogueTrapSenseBonus = 0;
+            rogueSpecialAbilitySlotsAvailable = 0;
+            rogueCripplingStrikeStacks = 0;
+            defensiveRollLastUsed = -1L;
         }
     }
 
@@ -1033,5 +1098,11 @@ public class DnDPlayerData {
         this.orderForgedCharges = other.orderForgedCharges;
         this.bloodyFuryBonus = other.bloodyFuryBonus;
         this.ironHeartSurgeCooldown = other.ironHeartSurgeCooldown;
+        this.rogueSneakAttackDice = other.rogueSneakAttackDice;
+        this.rogueEvasionUnlocked = other.rogueEvasionUnlocked;
+        this.rogueTrapSenseBonus = other.rogueTrapSenseBonus;
+        this.rogueSpecialAbilitySlotsAvailable = other.rogueSpecialAbilitySlotsAvailable;
+        this.rogueCripplingStrikeStacks = other.rogueCripplingStrikeStacks;
+        this.defensiveRollLastUsed = other.defensiveRollLastUsed;
     }
 }

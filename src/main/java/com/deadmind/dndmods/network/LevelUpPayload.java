@@ -129,6 +129,14 @@ public record LevelUpPayload(
                     }
                 }
 
+                // Rogue special ability picks at Rogue class levels 10/13/16/19.
+                if (advancing.getDnDClass() == DnDClass.ROGUE
+                        && (newLevel == 10 || newLevel == 13 || newLevel == 16 || newLevel == 19)) {
+                    data.setRogueSpecialAbilitySlotsAvailable(data.getRogueSpecialAbilitySlotsAvailable() + 1);
+                    LOGGER.info("Player {} earned a Rogue special ability slot at Rogue level {}",
+                            player.getName().getString(), newLevel);
+                }
+
                 int totalLevel = data.getTotalLevel();
                 int[] featLevels = {1, 3, 6, 9, 12, 15, 18, 20};
                 for (int fl : featLevels) {
@@ -220,6 +228,10 @@ public record LevelUpPayload(
             if (data.hasFeat("concentration_of_might")) {
                 data.setConcentrationMightBonus(data.getAbilityScores().getIntMod());
             }
+
+            // Rogue level-derived fields (Sneak Attack dice, Evasion, Trap
+            // Sense, Uncanny Dodge flags) reconcile from the new class level.
+            com.deadmind.dndmods.ability.passive.RoguePassives.reconcile(data);
 
             data.getAbilityHotbar().validateAndClean(data);
 

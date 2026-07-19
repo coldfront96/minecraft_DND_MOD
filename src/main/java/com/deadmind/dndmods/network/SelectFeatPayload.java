@@ -15,7 +15,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public record SelectFeatPayload(String featId, boolean isRacialBonusSlot) implements CustomPacketPayload {
+public record SelectFeatPayload(String featId, boolean isRacialBonusSlot,
+                                boolean isRogueSpecialSlot) implements CustomPacketPayload {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("DnDMods/FeatSelect");
 
@@ -26,12 +27,13 @@ public record SelectFeatPayload(String featId, boolean isRacialBonusSlot) implem
             StreamCodec.of(SelectFeatPayload::write, SelectFeatPayload::read);
 
     private static SelectFeatPayload read(FriendlyByteBuf buf) {
-        return new SelectFeatPayload(buf.readUtf(64), buf.readBoolean());
+        return new SelectFeatPayload(buf.readUtf(64), buf.readBoolean(), buf.readBoolean());
     }
 
     private static void write(FriendlyByteBuf buf, SelectFeatPayload payload) {
         buf.writeUtf(payload.featId, 64);
         buf.writeBoolean(payload.isRacialBonusSlot);
+        buf.writeBoolean(payload.isRogueSpecialSlot);
     }
 
     public void handle(IPayloadContext context) {
@@ -62,7 +64,15 @@ public record SelectFeatPayload(String featId, boolean isRacialBonusSlot) implem
                 return;
             }
 
-            if (isRacialBonusSlot) {
+            if (isRogueSpecialSlot) {
+                // Rogue special ability slot spent on a general bonus feat —
+                // the full feat pool applies, no category restriction per RAW.
+                if (data.getRogueSpecialAbilitySlotsAvailable() <= 0) {
+                    LOGGER.warn("Player {} has no Rogue special ability slots", player.getName().getString());
+                    return;
+                }
+                data.setRogueSpecialAbilitySlotsAvailable(data.getRogueSpecialAbilitySlotsAvailable() - 1);
+            } else if (isRacialBonusSlot) {
                 if (!data.isHumanBonusFeatAvailable()) {
                     LOGGER.warn("Player {} does not have racial bonus feat slot", player.getName().getString());
                     return;

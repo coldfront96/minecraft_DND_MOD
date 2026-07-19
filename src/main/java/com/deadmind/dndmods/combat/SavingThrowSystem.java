@@ -38,13 +38,16 @@ public final class SavingThrowSystem {
         DnDRace race = data.getRace();
         int racialAll = RacialSaveBonus.getAllSavesBonus(race);
 
-        int trapSense = BarbarianPassives.getTrapSenseBonus(data);
+        // Trap Sense stacks additively across classes (separate fields), plus
+        // Practiced Professional's flat +2 Reflex.
+        int trapSense = BarbarianPassives.getTrapSenseBonus(data) + data.getRogueTrapSenseBonus();
+        int practicedProfessional = data.getAchievementFlag("practiced_professional_unlocked") ? 2 : 0;
 
         return switch (saveType) {
             case FORTITUDE -> scores.getConMod() + (level / 3) + racialAll
                     + RacialSaveBonus.getFearBonus(race) + data.getFeatFortBonus();
             case REFLEX -> getReflexAbilityMod(data, scores) + (level / 4) + racialAll
-                    + data.getFeatRefBonus() + trapSense;
+                    + data.getFeatRefBonus() + trapSense + practicedProfessional;
             case WILL -> {
                 int base = scores.getWisMod() + (level / 3) + racialAll
                         + RacialSaveBonus.getEnchantmentBonus(race)
@@ -120,6 +123,14 @@ public final class SavingThrowSystem {
             LOGGER.debug("[DnDMods] Save: {} rolled {} + {} = {} vs DC {} — {}",
                     target.getName().getString(), roll, saveBonus, total, dc,
                     success ? "SAVED" : "FAILED");
+        }
+
+        // Slippery Mind (Rogue special ability): a failed Will save gets one
+        // automatic delayed reroll at the same DC, handled in RogueCombatHandler.
+        if (!success && saveType == SaveType.WILL
+                && target instanceof ServerPlayer failedPlayer
+                && PlayerDataHelper.get(failedPlayer).getAchievementFlag("slippery_mind_rogue_unlocked")) {
+            RogueCombatHandler.scheduleSlipperyMindReroll(failedPlayer, dc);
         }
 
         return success;

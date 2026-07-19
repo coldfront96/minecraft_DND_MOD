@@ -65,6 +65,7 @@ public class LevelUpScreen extends Screen {
     private int panelHeight;
 
     private int featBtnX, featBtnY, featBtnW, featBtnH;
+    private int rogueBtnX, rogueBtnY, rogueBtnW, rogueBtnH;
 
     public LevelUpScreen() {
         super(Component.literal("Level Up"));
@@ -325,9 +326,32 @@ public class LevelUpScreen extends Screen {
         if (featRequired) {
             y += 2;
             renderFeatStub(gui, x, y, panelW);
+            y += 60;
         } else if (data.getFeatSlotsAvailable() > 0) {
             y += 2;
             renderExistingFeatSlots(gui, x, y, panelW);
+            y += 34;
+        }
+
+        // Rogue special ability section (slots earned at Rogue 10/13/16/19)
+        rogueBtnW = 0;
+        if (data.getRogueSpecialAbilitySlotsAvailable() > 0) {
+            y += 2;
+            gui.drawString(this.font, "Rogue Special Ability Available: "
+                    + data.getRogueSpecialAbilitySlotsAvailable(), x, y, 0xFFBB55FF);
+            y += 12;
+
+            int btnW = Math.min(panelW, 150);
+            int btnH = 16;
+            rogueBtnX = x;
+            rogueBtnY = y;
+            rogueBtnW = btnW;
+            rogueBtnH = btnH;
+
+            gui.fill(x, y, x + btnW, y + btnH, 0xFF2A1A3A);
+            drawBorder(gui, x, y, btnW, btnH, 0xFFBB55FF);
+            String btnText = "Choose Special Ability";
+            gui.drawString(this.font, btnText, x + (btnW - this.font.width(btnText)) / 2, y + 4, WHITE);
         }
     }
 
@@ -615,6 +639,15 @@ public class LevelUpScreen extends Screen {
             if (mouseX >= featBtnX && mouseX < featBtnX + featBtnW
                     && mouseY >= featBtnY && mouseY < featBtnY + featBtnH) {
                 Minecraft.getInstance().setScreen(new FeatSelectionScreen(false));
+                return true;
+            }
+        }
+
+        // Rogue special ability button click
+        if (rogueBtnW > 0) {
+            if (mouseX >= rogueBtnX && mouseX < rogueBtnX + rogueBtnW
+                    && mouseY >= rogueBtnY && mouseY < rogueBtnY + rogueBtnH) {
+                Minecraft.getInstance().setScreen(new RogueSpecialAbilityScreen());
                 return true;
             }
         }
