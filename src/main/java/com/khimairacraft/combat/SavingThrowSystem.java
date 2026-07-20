@@ -120,7 +120,7 @@ public final class SavingThrowSystem {
         boolean success = total >= dc;
 
         if (attacker != null) {
-            LOGGER.debug("[DnDMods] Save: {} rolled {} + {} = {} vs DC {} — {}",
+            LOGGER.debug("[KhimairaCraft] Save: {} rolled {} + {} = {} vs DC {} — {}",
                     target.getName().getString(), roll, saveBonus, total, dc,
                     success ? "SAVED" : "FAILED");
         }

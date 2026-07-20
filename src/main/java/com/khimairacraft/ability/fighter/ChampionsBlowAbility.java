@@ -30,7 +30,7 @@ public class ChampionsBlowAbility extends FighterAbility {
         for (Entity entity : player.level().getEntities(player, player.getBoundingBox().inflate(4.0))) {
             if (!(entity instanceof LivingEntity living)) continue;
             if (!isValidHostileTarget(player, living)) continue;
-            Vec3 toEntity = entity.position().subtract(eye).normalize();
+            Vec3 toEntity = entity.getEyePosition().subtract(eye).normalize();
             if (look.dot(toEntity) < 0.5) continue;
             double dist = entity.distanceTo(player);
             if (dist < closest) {

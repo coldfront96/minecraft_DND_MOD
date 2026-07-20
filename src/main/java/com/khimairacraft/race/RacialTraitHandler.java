@@ -176,7 +176,7 @@ public class RacialTraitHandler {
         if (race == DnDRace.ELF || race == DnDRace.HALF_ELF) {
             event.setProblem(Player.BedSleepingProblem.OTHER_PROBLEM);
             player.displayClientMessage(
-                    Component.literal("§6[DnDMods] §eElves do not sleep — you enter a meditative trance instead."),
+                    Component.literal("§6[KhimairaCraft] §eElves do not sleep — you enter a meditative trance instead."),
                     false);
         }
     }
@@ -200,7 +200,7 @@ public class RacialTraitHandler {
         player.setHealth(1.0f);
         data.setUndyingResolveLastUsed(now);
         player.displayClientMessage(
-                Component.literal("§6[DnDMods] §cUndying Resolve — you refuse to fall."),
+                Component.literal("§6[KhimairaCraft] §cUndying Resolve — you refuse to fall."),
                 false);
     }
 
@@ -376,7 +376,7 @@ public class RacialTraitHandler {
                             negativeEnergyHealActive = false;
                         }
                         player.displayClientMessage(
-                                Component.literal("§6[DnDMods] §aNecrotic energy courses through you, restoring " + (int) totalHeal + " health."),
+                                Component.literal("§6[KhimairaCraft] §aNecrotic energy courses through you, restoring " + (int) totalHeal + " health."),
                                 true);
                     }
                 }

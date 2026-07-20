@@ -96,10 +96,10 @@ public class ArcanePhylacteryBlock extends BaseEntityBlock {
             phylactery.setStoredXp(0);
             level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 1.0f, 1.0f);
             serverPlayer.sendSystemMessage(Component.literal(
-                    "§6[DnDMods] §eExtracted §f" + stored + "§e XP from the Arcane Phylactery."));
+                    "§6[KhimairaCraft] §eExtracted §f" + stored + "§e XP from the Arcane Phylactery."));
         } else {
             serverPlayer.sendSystemMessage(Component.literal(
-                    "§6[DnDMods] §eThe Phylactery has no stored XP."));
+                    "§6[KhimairaCraft] §eThe Phylactery has no stored XP."));
         }
 
         return InteractionResult.CONSUME;
@@ -134,7 +134,7 @@ public class ArcanePhylacteryBlock extends BaseEntityBlock {
             level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 1.0f, 1.0f);
         } else {
             player.sendSystemMessage(Component.literal(
-                    "§6[DnDMods] §eNot enough stored XP to fill a bottle. Needs at least 50 XP."));
+                    "§6[KhimairaCraft] §eNot enough stored XP to fill a bottle. Needs at least 50 XP."));
         }
         return ItemInteractionResult.CONSUME;
     }
@@ -145,7 +145,7 @@ public class ArcanePhylacteryBlock extends BaseEntityBlock {
         int currentTier = phylactery.getTier();
         if (currentTier >= 4) {
             player.sendSystemMessage(Component.literal(
-                    "§6[DnDMods] §eThis Phylactery is already at maximum tier."));
+                    "§6[KhimairaCraft] §eThis Phylactery is already at maximum tier."));
             return ItemInteractionResult.CONSUME;
         }
 
@@ -155,7 +155,7 @@ public class ArcanePhylacteryBlock extends BaseEntityBlock {
         if (dustTier != requiredDustTier) {
             String needed = getDustTierName(requiredDustTier);
             player.sendSystemMessage(Component.literal(
-                    "§6[DnDMods] §eUpgrade requires 4x " + needed + " Arcane Dust."));
+                    "§6[KhimairaCraft] §eUpgrade requires 4x " + needed + " Arcane Dust."));
             return ItemInteractionResult.CONSUME;
         }
 
@@ -163,7 +163,7 @@ public class ArcanePhylacteryBlock extends BaseEntityBlock {
         if (totalDust < 4) {
             String needed = getDustTierName(requiredDustTier);
             player.sendSystemMessage(Component.literal(
-                    "§6[DnDMods] §eNeed 4x " + needed + " Arcane Dust (have " + totalDust + ")."));
+                    "§6[KhimairaCraft] §eNeed 4x " + needed + " Arcane Dust (have " + totalDust + ")."));
             return ItemInteractionResult.CONSUME;
         }
 
@@ -173,7 +173,7 @@ public class ArcanePhylacteryBlock extends BaseEntityBlock {
         level.setBlock(pos, state.setValue(TIER, newTier), 3);
         level.playSound(null, pos, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
         player.sendSystemMessage(Component.literal(
-                "§6[DnDMods] §ePhylactery upgraded to Tier " + newTier + "!"));
+                "§6[KhimairaCraft] §ePhylactery upgraded to Tier " + newTier + "!"));
 
         return ItemInteractionResult.CONSUME;
     }

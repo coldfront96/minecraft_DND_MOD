@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PartyManager {
 
-    private static final String PREFIX = "§6[DnDMods] ";
+    private static final String PREFIX = "§6[KhimairaCraft] ";
     /** Invites expire 60 seconds after being sent. */
     private static final long INVITE_EXPIRY_MS = 60_000L;
     /** A displaced leader may auto-reclaim within 5 minutes of logging back in. */

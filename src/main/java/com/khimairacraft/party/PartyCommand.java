@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @EventBusSubscriber(modid = DnDMods.MOD_ID)
 public class PartyCommand {
 
-    private static final String PREFIX = "§6[DnDMods] ";
+    private static final String PREFIX = "§6[KhimairaCraft] ";
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
@@ -208,7 +208,7 @@ public class PartyCommand {
             source.sendSystemMessage(Component.literal(PREFIX + "§eThere are no active parties."));
             return 1;
         }
-        source.sendSystemMessage(Component.literal("§6[DnDMods] §eActive parties (" + parties.size() + "):"));
+        source.sendSystemMessage(Component.literal("§6[KhimairaCraft] §eActive parties (" + parties.size() + "):"));
         for (Party party : parties) {
             UUID leader = party.getLeader();
             String leaderName = leader != null ? manager.nameOf(leader, server) : "None";

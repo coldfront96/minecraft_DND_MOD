@@ -581,7 +581,7 @@ public class FeatEffectHandler {
         player.setHealth(1.0f);
         player.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 1, false, true));
         data.setHalfOrcFerocityAvailable(false);
-        player.sendSystemMessage(Component.literal("§6[DnDMods] §cFerocity — you fight on through death!"));
+        player.sendSystemMessage(Component.literal("§6[KhimairaCraft] §cFerocity — you fight on through death!"));
         return true;
     }
 
@@ -598,7 +598,7 @@ public class FeatEffectHandler {
         float heal = Math.max(1.0f, data.getAbilityScores().getWisMod() * 3.0f);
         player.setHealth(heal);
         data.setZealousSurgeCharges(data.getZealousSurgeCharges() - 1);
-        player.sendSystemMessage(Component.literal("§6[DnDMods] §aZealous Surge — divine power restores you!"));
+        player.sendSystemMessage(Component.literal("§6[KhimairaCraft] §aZealous Surge — divine power restores you!"));
     }
 
     /**

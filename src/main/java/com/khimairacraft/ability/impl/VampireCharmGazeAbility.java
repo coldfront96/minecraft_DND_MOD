@@ -56,7 +56,7 @@ public class VampireCharmGazeAbility extends Ability {
             if (!(entity instanceof Mob mob)) continue;
             if (mob.getTarget() != player) continue;
 
-            Vec3 toEntity = entity.position().subtract(eyePos).normalize();
+            Vec3 toEntity = entity.getEyePosition().subtract(eyePos).normalize();
             double dot = look.normalize().dot(toEntity);
             if (dot < 0.5) continue;
 

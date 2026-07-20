@@ -21,6 +21,6 @@ public class UnbreakableAbility extends FighterAbility {
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
         PerPlayerCombatState.get(player.getUUID()).setUnbreakable(120);
-        player.sendSystemMessage(Component.literal("§6[DnDMods] §eYou brace — Unbreakable!"));
+        player.sendSystemMessage(Component.literal("§6[KhimairaCraft] §eYou brace — Unbreakable!"));
     }
 }

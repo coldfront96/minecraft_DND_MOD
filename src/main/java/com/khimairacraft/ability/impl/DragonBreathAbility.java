@@ -66,7 +66,7 @@ public class DragonBreathAbility extends Ability {
         for (Entity entity : player.level().getEntities(player, area)) {
             if (!(entity instanceof LivingEntity living)) continue;
 
-            Vec3 toEntity = entity.position().subtract(eyePos).normalize();
+            Vec3 toEntity = entity.getEyePosition().subtract(eyePos).normalize();
             double dot = look.normalize().dot(toEntity);
             if (dot < 0.707) continue;
 

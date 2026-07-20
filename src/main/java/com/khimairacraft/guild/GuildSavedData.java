@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GuildSavedData extends SavedData {
 
     private static final String DATA_ID = "khimairacraft_guilds";
-    private static final String PREFIX = "§6[DnDMods] ";
+    private static final String PREFIX = "§6[KhimairaCraft] ";
     private static final long INVITE_EXPIRY_MS = 60_000L;
 
     public static GuildSavedData get(MinecraftServer server) {

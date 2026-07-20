@@ -9,7 +9,7 @@ import com.khimairacraft.playerdata.DnDPlayerData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Enemy;
 
 /**
  * Base class for Fighter active abilities. Unlike the generic {@link Ability},
@@ -35,7 +35,7 @@ public abstract class FighterAbility extends Ability {
     @Override
     public void execute(ServerPlayer player, DnDPlayerData data) {
         if (!data.trySpendStamina(getResourceCost())) {
-            player.sendSystemMessage(Component.literal("§c[DnDMods] Not enough Stamina."));
+            player.sendSystemMessage(Component.literal("§c[KhimairaCraft] Not enough Stamina."));
             return;
         }
         AbilityCooldownManager.setCooldown(player, this, getCooldownTicks());
@@ -56,7 +56,7 @@ public abstract class FighterAbility extends Ability {
 
     /** Shared hostile-target filter: hostile mob or player, not friendly, in line of sight. */
     protected static boolean isValidHostileTarget(ServerPlayer caster, LivingEntity living) {
-        if (!(living instanceof Monster) && !(living instanceof ServerPlayer)) return false;
+        if (!(living instanceof Enemy) && !(living instanceof ServerPlayer)) return false;
         if (FriendlyFireChecker.isFriendly(caster, living)) return false;
         return caster.hasLineOfSight(living);
     }

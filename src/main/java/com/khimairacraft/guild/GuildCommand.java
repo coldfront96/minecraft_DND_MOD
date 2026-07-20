@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @EventBusSubscriber(modid = DnDMods.MOD_ID)
 public class GuildCommand {
 
-    private static final String PREFIX = "§6[DnDMods] ";
+    private static final String PREFIX = "§6[KhimairaCraft] ";
 
     private static final SuggestionProvider<CommandSourceStack> ZONE_SUGGESTIONS = (ctx, builder) ->
             SharedSuggestionProvider.suggest(
@@ -204,7 +204,7 @@ public class GuildCommand {
         Guild myGuild = GuildManager.getGuildOf(player.getUUID(), server);
         UUID myGuildId = myGuild != null ? myGuild.getGuildId() : null;
 
-        player.sendSystemMessage(Component.literal("§6[DnDMods] §eChunk map around you (§a█§e=yours §c█§e=other §7░§e=free §e☆§e=here):"));
+        player.sendSystemMessage(Component.literal("§6[KhimairaCraft] §eChunk map around you (§a█§e=yours §c█§e=other §7░§e=free §e☆§e=here):"));
         for (int dz = -4; dz <= 4; dz++) {
             StringBuilder row = new StringBuilder();
             for (int dx = -4; dx <= 4; dx++) {
@@ -236,7 +236,7 @@ public class GuildCommand {
             source.sendSystemMessage(Component.literal(PREFIX + "§eThere are no guilds yet."));
             return 1;
         }
-        source.sendSystemMessage(Component.literal("§6[DnDMods] §eGuilds (" + guilds.size() + "):"));
+        source.sendSystemMessage(Component.literal("§6[KhimairaCraft] §eGuilds (" + guilds.size() + "):"));
         for (Guild guild : guilds) {
             source.sendSystemMessage(Component.literal("§e- " + guild.getGuildName()
                     + " §7[" + guild.getGuildTag() + "] (" + guild.size() + " members)"));

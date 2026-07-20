@@ -50,7 +50,7 @@ public class VanillaXpHandler {
 
         if (!wasAvailable && data.isLevelUpAvailable()) {
             killer.sendSystemMessage(Component.literal(
-                    "§6[DnDMods] §eYou have enough experience to level up! Press L to open the level up menu."));
+                    "§6[KhimairaCraft] §eYou have enough experience to level up! Press L to open the level up menu."));
         }
 
         PacketDistributor.sendToPlayer(killer, SyncPlayerDataPayload.fromPlayer(data));
@@ -65,7 +65,7 @@ public class VanillaXpHandler {
 
         if (!wasAvailable && data.isLevelUpAvailable()) {
             player.sendSystemMessage(Component.literal(
-                    "§6[DnDMods] §eYou have enough experience to level up! Press L to open the level up menu."));
+                    "§6[KhimairaCraft] §eYou have enough experience to level up! Press L to open the level up menu."));
         }
 
         PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));

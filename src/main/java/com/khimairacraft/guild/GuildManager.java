@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class GuildManager {
 
-    private static final String PREFIX = "§6[DnDMods] ";
+    private static final String PREFIX = "§6[KhimairaCraft] ";
     private static final int MIN_FOUNDER_LEVEL = 5;
     private static final long INVITE_EXPIRY_MS = 60_000L;
     /** Guild hall teleport cooldown: 5 minutes. Session-only, never persisted. */

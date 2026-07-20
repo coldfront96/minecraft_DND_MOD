@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.SleepFinishedTimeEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -90,10 +91,13 @@ public final class StaminaSystem {
         int fighterLevel = data.getClassLevel(DnDClass.FIGHTER);
         if (fighterLevel <= 0) return;
 
-        // Keep max in sync (covers CON changes that bypass level-up).
+        // Keep max in sync (covers CON changes that bypass level-up). Sync the
+        // client immediately when max changes — even at full stamina — so the
+        // HUD never shows a stale max (setMaxStamina clamps current for us).
         int expectedMax = computeMaxStamina(data);
         if (data.getMaxStamina() != expectedMax) {
             data.setMaxStamina(expectedMax);
+            PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
         }
         if (data.getCurrentStamina() >= data.getMaxStamina()) return;
 
@@ -139,5 +143,11 @@ public final class StaminaSystem {
             data.setCurrentStamina(data.getMaxStamina());
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
         }
+    }
+
+    /** Drop the fractional-regen carry on logout so the static map doesn't grow unbounded. */
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        REGEN_ACCUMULATOR.remove(event.getEntity().getUUID());
     }
 }

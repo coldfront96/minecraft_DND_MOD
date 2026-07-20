@@ -42,6 +42,6 @@ public class ClientPacketHandler {
         data.getAbilityHotbar().clearSlot(slotIndex);
 
         mc.player.displayClientMessage(
-                Component.literal("§c[DnDMods] " + reason), false);
+                Component.literal("§c[KhimairaCraft] " + reason), false);
     }
 }

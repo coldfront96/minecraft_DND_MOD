@@ -11,7 +11,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.phys.Vec3;
 
 public class HuntersMark extends Ability {
@@ -30,10 +30,10 @@ public class HuntersMark extends Ability {
 
         for (Entity entity : player.level().getEntities(player, player.getBoundingBox().inflate(20.0))) {
             if (!(entity instanceof LivingEntity living)) continue;
-            if (!(living instanceof Monster) && !(living instanceof ServerPlayer)) continue;
+            if (!(living instanceof Enemy) && !(living instanceof ServerPlayer)) continue;
             if (FriendlyFireChecker.isFriendly(player, living)) continue;
             if (!player.hasLineOfSight(living)) continue;
-            Vec3 toEntity = entity.position().subtract(eyePos).normalize();
+            Vec3 toEntity = entity.getEyePosition().subtract(eyePos).normalize();
             if (look.dot(toEntity) > 0.8) {
                 double dist = entity.distanceTo(player);
                 if (dist < closestDist) {

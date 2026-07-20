@@ -42,10 +42,10 @@ public class WarlordsPresenceAbility extends FighterAbility {
                 if (member.level() != player.level()) continue;
                 if (member.distanceTo(player) > 20.0) continue;
                 PerPlayerCombatState.get(memberId).setWarlordsPresence(duration);
-                member.sendSystemMessage(Component.literal("§6[DnDMods] §e" + player.getName().getString()
+                member.sendSystemMessage(Component.literal("§6[KhimairaCraft] §e" + player.getName().getString()
                         + "'s Warlord's Presence empowers you!"));
             }
         }
-        player.sendSystemMessage(Component.literal("§6[DnDMods] §eWarlord's Presence!"));
+        player.sendSystemMessage(Component.literal("§6[KhimairaCraft] §eWarlord's Presence!"));
     }
 }

@@ -51,14 +51,14 @@ public class GuildChunkProtection {
         if (guild == null) return false; // unclaimed land is unrestricted
 
         if (!guild.isMember(player.getUUID())) {
-            player.sendSystemMessage(Component.literal("§c[DnDMods] This land belongs to "
+            player.sendSystemMessage(Component.literal("§c[KhimairaCraft] This land belongs to "
                     + guild.getGuildName() + ". You cannot " + action + " here."));
             return true;
         }
 
         if (guild.getZoneType(chunk) == GuildZoneType.RESTRICTED
                 && guild.getRank(player.getUUID()) == GuildRank.MEMBER) {
-            player.sendSystemMessage(Component.literal("§c[DnDMods] This is a restricted zone. "
+            player.sendSystemMessage(Component.literal("§c[KhimairaCraft] This is a restricted zone. "
                     + "Only officers and the guild master may build here."));
             return true;
         }

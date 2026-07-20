@@ -20,6 +20,6 @@ public class BattleCryAbility extends FighterAbility {
     @Override
     protected void onUse(ServerPlayer player, DnDPlayerData data) {
         PerPlayerCombatState.get(player.getUUID()).setBattleCry(200);
-        player.sendSystemMessage(Component.literal("§6[DnDMods] §eBattle Cry! Your strikes are emboldened."));
+        player.sendSystemMessage(Component.literal("§6[KhimairaCraft] §eBattle Cry! Your strikes are emboldened."));
     }
 }
