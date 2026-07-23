@@ -57,6 +57,8 @@ public record LevelUpPayload(
 
             DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
 
+            boolean promptCombatStyle = false;
+
             if (!data.isLevelUpAvailable()) {
                 LOGGER.warn("Player {} attempted level up without it being available", player.getName().getString());
                 return;
@@ -100,6 +102,12 @@ public record LevelUpPayload(
                     data.addFighterBonusFeatSlot();
                 }
 
+                // Multiclassing into Ranger grants the level-1 Favored Enemy pick
+                // (Track / level flags are reconciled at the end of this handler).
+                if (newClass == DnDClass.RANGER) {
+                    data.addFavoredEnemySlot();
+                }
+
                 data.clearLevelUpAvailable();
 
                 LOGGER.info("Player {} added secondary class: {}", player.getName().getString(), newClass.getDisplayName());
@@ -140,6 +148,22 @@ public record LevelUpPayload(
                     data.setRogueSpecialAbilitySlotsAvailable(data.getRogueSpecialAbilitySlotsAvailable() + 1);
                     LOGGER.info("Player {} earned a Rogue special ability slot at Rogue level {}",
                             player.getName().getString(), newLevel);
+                }
+
+                // Ranger Favored Enemy picks at Ranger class levels 5/10/15/20
+                // (the level-1 pick is granted at class selection / multiclass).
+                if (advancing.getDnDClass() == DnDClass.RANGER
+                        && (newLevel == 5 || newLevel == 10 || newLevel == 15 || newLevel == 20)) {
+                    data.addFavoredEnemySlot();
+                    LOGGER.info("Player {} earned a Favored Enemy slot at Ranger level {}",
+                            player.getName().getString(), newLevel);
+                }
+
+                // Ranger Combat Style: a one-time permanent choice prompted the
+                // moment the Ranger reaches level 2 with no style chosen yet.
+                if (advancing.getDnDClass() == DnDClass.RANGER && newLevel == 2
+                        && data.getRangerCombatStyle() == DnDPlayerData.RangerCombatStyle.NONE) {
+                    promptCombatStyle = true;
                 }
 
                 int totalLevel = data.getTotalLevel();
@@ -247,11 +271,21 @@ public record LevelUpPayload(
 
             // Rogue level-derived fields (Sneak Attack dice, Evasion, Trap
             // Sense, Uncanny Dodge flags) reconcile from the new class level.
-            com.deadmind.dndmods.ability.passive.RoguePassives.reconcile(data);
+            com.khimairacraft.ability.passive.RoguePassives.reconcile(data);
+
+            // Ranger level-derived flags and bonus feats (Track, Endurance,
+            // Woodland Stride, Swift Tracker, Camouflage, Hide in Plain Sight).
+            com.khimairacraft.ability.passive.RangerPassives.reconcile(data);
 
             data.getAbilityHotbar().validateAndClean(data);
 
             PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
+
+            // Prompt the one-time Combat Style choice after the data sync so the
+            // client screen sees the up-to-date Ranger level.
+            if (promptCombatStyle) {
+                PacketDistributor.sendToPlayer(player, new OpenRangerCombatStylePayload());
+            }
         });
     }
 

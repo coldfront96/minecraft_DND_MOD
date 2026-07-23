@@ -97,6 +97,24 @@ public class ModNetwork {
                 SelectRogueSpecialAbilityPayload.STREAM_CODEC,
                 SelectRogueSpecialAbilityPayload::handle
         );
+
+        registrar.playToClient(
+                OpenRangerCombatStylePayload.TYPE,
+                OpenRangerCombatStylePayload.STREAM_CODEC,
+                OpenRangerCombatStylePayload::handle
+        );
+
+        registrar.playToServer(
+                SelectRangerCombatStylePayload.TYPE,
+                SelectRangerCombatStylePayload.STREAM_CODEC,
+                SelectRangerCombatStylePayload::handle
+        );
+
+        registrar.playToServer(
+                SelectFavoredEnemyPayload.TYPE,
+                SelectFavoredEnemyPayload.STREAM_CODEC,
+                SelectFavoredEnemyPayload::handle
+        );
     }
 
     public static ResourceLocation id(String path) {

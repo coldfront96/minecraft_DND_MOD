@@ -67,6 +67,8 @@ public class LevelUpScreen extends Screen {
     private int featBtnX, featBtnY, featBtnW, featBtnH;
     private int rogueBtnX, rogueBtnY, rogueBtnW, rogueBtnH;
     private int fighterBtnX, fighterBtnY, fighterBtnW, fighterBtnH;
+    private int rangerStyleBtnX, rangerStyleBtnY, rangerStyleBtnW, rangerStyleBtnH;
+    private int favoredBtnX, favoredBtnY, favoredBtnW, favoredBtnH;
 
     public LevelUpScreen() {
         super(Component.literal("Level Up"));
@@ -352,6 +354,39 @@ public class LevelUpScreen extends Screen {
             gui.fill(x, y, x + btnW, y + btnH, 0xFF2A1A3A);
             drawBorder(gui, x, y, btnW, btnH, 0xFFBB55FF);
             String btnText = "Choose Special Ability";
+            gui.drawString(this.font, btnText, x + (btnW - this.font.width(btnText)) / 2, y + 4, WHITE);
+        }
+
+        // Ranger Combat Style prompt (level 2, one-time permanent choice).
+        rangerStyleBtnW = 0;
+        if (data.getClassLevel(DnDClass.RANGER) >= 2
+                && data.getRangerCombatStyle() == DnDPlayerData.RangerCombatStyle.NONE) {
+            y += 6;
+            gui.drawString(this.font, "Combat Style: choose your path!", x, y, 0xFF55FF55);
+            y += 12;
+            int btnW = Math.min(panelW, 150);
+            int btnH = 16;
+            rangerStyleBtnX = x; rangerStyleBtnY = y; rangerStyleBtnW = btnW; rangerStyleBtnH = btnH;
+            gui.fill(x, y, x + btnW, y + btnH, 0xFF1A3A1A);
+            drawBorder(gui, x, y, btnW, btnH, 0xFF55FF55);
+            String btnText = "Choose Combat Style";
+            gui.drawString(this.font, btnText, x + (btnW - this.font.width(btnText)) / 2, y + 4, WHITE);
+            y += btnH + 4;
+        }
+
+        // Ranger Favored Enemy picks (levels 1/5/10/15/20).
+        favoredBtnW = 0;
+        if (data.getFavoredEnemySlotsAvailable() > 0) {
+            y += 6;
+            gui.drawString(this.font, "Favored Enemy Available: "
+                    + data.getFavoredEnemySlotsAvailable(), x, y, 0xFF88FF88);
+            y += 12;
+            int btnW = Math.min(panelW, 150);
+            int btnH = 16;
+            favoredBtnX = x; favoredBtnY = y; favoredBtnW = btnW; favoredBtnH = btnH;
+            gui.fill(x, y, x + btnW, y + btnH, 0xFF1A2A1A);
+            drawBorder(gui, x, y, btnW, btnH, 0xFF55AA55);
+            String btnText = "Choose Favored Enemy";
             gui.drawString(this.font, btnText, x + (btnW - this.font.width(btnText)) / 2, y + 4, WHITE);
         }
     }
@@ -666,6 +701,24 @@ public class LevelUpScreen extends Screen {
             if (mouseX >= rogueBtnX && mouseX < rogueBtnX + rogueBtnW
                     && mouseY >= rogueBtnY && mouseY < rogueBtnY + rogueBtnH) {
                 Minecraft.getInstance().setScreen(new RogueSpecialAbilityScreen());
+                return true;
+            }
+        }
+
+        // Ranger Combat Style button click
+        if (rangerStyleBtnW > 0) {
+            if (mouseX >= rangerStyleBtnX && mouseX < rangerStyleBtnX + rangerStyleBtnW
+                    && mouseY >= rangerStyleBtnY && mouseY < rangerStyleBtnY + rangerStyleBtnH) {
+                Minecraft.getInstance().setScreen(new RangerCombatStyleScreen());
+                return true;
+            }
+        }
+
+        // Ranger Favored Enemy button click
+        if (favoredBtnW > 0) {
+            if (mouseX >= favoredBtnX && mouseX < favoredBtnX + favoredBtnW
+                    && mouseY >= favoredBtnY && mouseY < favoredBtnY + favoredBtnH) {
+                Minecraft.getInstance().setScreen(new FavoredEnemySelectionScreen());
                 return true;
             }
         }

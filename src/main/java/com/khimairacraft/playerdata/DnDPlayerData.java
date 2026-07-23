@@ -5,6 +5,7 @@ import com.khimairacraft.classes.PrestigeClass;
 import com.khimairacraft.player.AbilityHotbar;
 import com.khimairacraft.race.AbilityScoreModifiers;
 import com.khimairacraft.race.DnDRace;
+import com.khimairacraft.ranger.FavoredEnemyType;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +13,9 @@ import java.util.*;
 
 public class DnDPlayerData {
     public static final int MAX_LEVEL = 20;
+
+    /** Ranger Combat Style (level 2): a one-time, permanent path choice. */
+    public enum RangerCombatStyle { NONE, ARCHERY, TWO_WEAPON }
 
     private ClassEntry primary = new ClassEntry(DnDClass.NONE, 1);
     @Nullable
@@ -105,6 +109,12 @@ public class DnDPlayerData {
     private int fighterWeaponAttackBonus = 0;
     private int fighterWeaponDamageBonus = 0;
     private int fighterDamageReduction = 0;
+    // --- Ranger class ability content pass (Part 1) ---
+    private RangerCombatStyle rangerCombatStyle = RangerCombatStyle.NONE;
+    /** Favored Enemy category -> accumulated bonus (base 2, +2 per re-pick). */
+    private final Map<FavoredEnemyType, Integer> favoredEnemies = new EnumMap<>(FavoredEnemyType.class);
+    /** Unspent Favored Enemy picks (earned at Ranger 1/5/10/15/20). */
+    private int favoredEnemySlotsAvailable = 0;
 
     public DnDPlayerData() {
         this.currentHp = primary.getMaxHp();
@@ -244,6 +254,38 @@ public class DnDPlayerData {
 
     public int getFighterDamageReduction() { return fighterDamageReduction; }
     public void setFighterDamageReduction(int reduction) { this.fighterDamageReduction = Math.max(0, reduction); }
+
+    // --- Ranger class ability content pass (Part 1) ---
+
+    public RangerCombatStyle getRangerCombatStyle() { return rangerCombatStyle; }
+    public void setRangerCombatStyle(RangerCombatStyle style) {
+        this.rangerCombatStyle = style == null ? RangerCombatStyle.NONE : style;
+    }
+
+    public int getFavoredEnemySlotsAvailable() { return favoredEnemySlotsAvailable; }
+    public void setFavoredEnemySlotsAvailable(int slots) { this.favoredEnemySlotsAvailable = Math.max(0, slots); }
+    public void addFavoredEnemySlot() { this.favoredEnemySlotsAvailable++; }
+    public void spendFavoredEnemySlot() {
+        if (favoredEnemySlotsAvailable > 0) favoredEnemySlotsAvailable--;
+    }
+
+    /** Read-only view of the Ranger's chosen favored enemies and their bonuses. */
+    public Map<FavoredEnemyType, Integer> getFavoredEnemies() { return favoredEnemies; }
+
+    /** Current bonus for a category (0 if not selected). */
+    public int getFavoredEnemyBonusFor(FavoredEnemyType type) {
+        return favoredEnemies.getOrDefault(type, 0);
+    }
+
+    /**
+     * Selects a favored enemy: a brand-new category starts at +2, an already
+     * chosen one gains +2 more. Per RAW the categories never stack against a
+     * single target — the damage hook takes the highest matching bonus.
+     */
+    public void selectFavoredEnemy(FavoredEnemyType type) {
+        if (type == null) return;
+        favoredEnemies.merge(type, 2, Integer::sum);
+    }
 
     public boolean isUnifiedPool() {
         return prestigeClass.unifiesPools() && secondary != null;
@@ -876,6 +918,14 @@ public class DnDPlayerData {
         rogueTag.putLong("DefensiveRollLastUsed", defensiveRollLastUsed);
         tag.put("Rogue", rogueTag);
 
+        CompoundTag rangerTag = new CompoundTag();
+        rangerTag.putString("CombatStyle", rangerCombatStyle.name());
+        rangerTag.putInt("FavoredEnemySlots", favoredEnemySlotsAvailable);
+        CompoundTag favoredTag = new CompoundTag();
+        favoredEnemies.forEach((type, bonus) -> favoredTag.putInt(type.name(), bonus));
+        rangerTag.put("FavoredEnemies", favoredTag);
+        tag.put("Ranger", rangerTag);
+
         return tag;
     }
 
@@ -1056,6 +1106,27 @@ public class DnDPlayerData {
                 rogueCripplingStrikeStacks = 0;
                 defensiveRollLastUsed = -1L;
             }
+
+            favoredEnemies.clear();
+            if (tag.contains("Ranger")) {
+                CompoundTag rangerTag = tag.getCompound("Ranger");
+                try {
+                    rangerCombatStyle = RangerCombatStyle.valueOf(rangerTag.getString("CombatStyle"));
+                } catch (IllegalArgumentException e) {
+                    rangerCombatStyle = RangerCombatStyle.NONE;
+                }
+                favoredEnemySlotsAvailable = rangerTag.getInt("FavoredEnemySlots");
+                if (rangerTag.contains("FavoredEnemies")) {
+                    CompoundTag favoredTag = rangerTag.getCompound("FavoredEnemies");
+                    for (String key : favoredTag.getAllKeys()) {
+                        FavoredEnemyType type = FavoredEnemyType.byName(key);
+                        if (type != null) favoredEnemies.put(type, favoredTag.getInt(key));
+                    }
+                }
+            } else {
+                rangerCombatStyle = RangerCombatStyle.NONE;
+                favoredEnemySlotsAvailable = 0;
+            }
         } else {
             featSlotsAvailable = 0;
             featAcBonus = 0;
@@ -1130,6 +1201,9 @@ public class DnDPlayerData {
             fighterWeaponAttackBonus = 0;
             fighterWeaponDamageBonus = 0;
             fighterDamageReduction = 0;
+            rangerCombatStyle = RangerCombatStyle.NONE;
+            favoredEnemies.clear();
+            favoredEnemySlotsAvailable = 0;
         }
     }
 
@@ -1233,5 +1307,9 @@ public class DnDPlayerData {
         this.fighterWeaponAttackBonus = other.fighterWeaponAttackBonus;
         this.fighterWeaponDamageBonus = other.fighterWeaponDamageBonus;
         this.fighterDamageReduction = other.fighterDamageReduction;
+        this.rangerCombatStyle = other.rangerCombatStyle;
+        this.favoredEnemies.clear();
+        this.favoredEnemies.putAll(other.favoredEnemies);
+        this.favoredEnemySlotsAvailable = other.favoredEnemySlotsAvailable;
     }
 }
