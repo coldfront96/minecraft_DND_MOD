@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "khimairacraft:blaze_arcane_dust" },
+    { "item": "minecraft:ghast_tear" },
+    { "item": "minecraft:ghast_tear" },
+    { "item": "minecraft:ghast_tear" },
+    { "item": "minecraft:ghast_tear" }
+  ],
+  "result": {
+    "id": "khimairacraft:ghast_arcane_dust",
+    "count": 1
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "khimairacraft:gold_arcane_dust" },
+    { "item": "minecraft:emerald" },
+    { "item": "minecraft:emerald" },
+    { "item": "minecraft:emerald" },
+    { "item": "minecraft:emerald" }
+  ],
+  "result": {
+    "id": "khimairacraft:emerald_arcane_dust",
+    "count": 1
+  }
+}

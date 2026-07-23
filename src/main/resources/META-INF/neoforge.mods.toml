@@ -3,23 +3,23 @@ loaderVersion = "[4,)"
 license = "All Rights Reserved"
 
 [[mods]]
-modId = "${mod_id}"
-version = "${mod_version}"
-displayName = "${mod_name}"
-authors = "${mod_authors}"
-description = '''${mod_description}'''
+modId = "khimairacraft"
+version = "0.1.0"
+displayName = "KhimairaCraft"
+authors = "DeadMind"
+description = '''A D&D-inspired action-RPG for Minecraft. Class-based progression, races, feats, guilds, and an endgame Tarrasque awaits.'''
 
 [[accessTransformers]]
 file = "META-INF/accesstransformer.cfg"
 
-[[dependencies.dndmods]]
+[[dependencies.khimairacraft]]
 modId = "neoforge"
 type = "required"
 versionRange = "[21.0,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.dndmods]]
+[[dependencies.khimairacraft]]
 modId = "minecraft"
 type = "required"
 versionRange = "[1.21,1.22)"

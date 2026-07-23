@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "tier=1": { "model": "khimairacraft:block/arcane_phylactery" },
+    "tier=2": { "model": "khimairacraft:block/arcane_phylactery" },
+    "tier=3": { "model": "khimairacraft:block/arcane_phylactery" },
+    "tier=4": { "model": "khimairacraft:block/arcane_phylactery" }
+  }
+}
