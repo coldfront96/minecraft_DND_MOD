@@ -62,6 +62,18 @@ public class ModKeyBindings {
                 mc.setScreen(new com.khimairacraft.client.screen.LevelUpScreen());
                 return;
             }
+            // Fallbacks so Ranger picks stay reachable outside a pending level-up
+            // (e.g. an unspent slot at level 20, or a still-NONE combat style):
+            int rangerLevel = data.getClassLevel(com.khimairacraft.classes.DnDClass.RANGER);
+            if (rangerLevel >= 2
+                    && data.getRangerCombatStyle() == DnDPlayerData.RangerCombatStyle.NONE) {
+                mc.setScreen(new com.khimairacraft.client.screen.RangerCombatStyleScreen());
+                return;
+            }
+            if (data.getFavoredEnemySlotsAvailable() > 0) {
+                mc.setScreen(new com.khimairacraft.client.screen.FavoredEnemySelectionScreen());
+                return;
+            }
         }
 
         long window = mc.getWindow().getWindow();

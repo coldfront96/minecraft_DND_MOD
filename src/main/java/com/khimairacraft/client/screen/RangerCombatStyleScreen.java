@@ -83,7 +83,7 @@ public class RangerCombatStyleScreen extends Screen {
                     hovered ? 0xFF1A3A1A : 0xFF1A1A2A);
             drawBorder(graphics, cardX, cardY, cardW, cardH, hovered ? 0xFF55FF55 : 0xFF555577);
 
-            graphics.drawCenteredString(this.font, OPTIONS[i].name(),
+            graphics.drawCenteredString(this.font, "[" + (i + 1) + "] " + OPTIONS[i].name(),
                     cardX + cardW / 2, cardY + 8, 0xFFFFFFFF);
 
             int ty = cardY + 28;
@@ -112,16 +112,30 @@ public class RangerCombatStyleScreen extends Screen {
             int cardX = left + 10 + i * (cardW + 10);
             if (mouseX >= cardX && mouseX < cardX + cardW
                     && mouseY >= cardY && mouseY < cardY + cardH) {
-                PacketDistributor.sendToServer(
-                        new SelectRangerCombatStylePayload(OPTIONS[i].style().name()));
-                // Keep the screen open until the server sync flips the field
-                // (render() auto-closes then). This avoids a stuck-closed screen
-                // if the packet is rejected. Block further clicks meanwhile.
-                sent = true;
+                sendChoice(i);
                 return true;
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // Keyboard access for the mandatory choice: 1 = Archery, 2 = Two-Weapon.
+        if (!sent) {
+            if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_1) { sendChoice(0); return true; }
+            if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_2) { sendChoice(1); return true; }
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    private void sendChoice(int index) {
+        PacketDistributor.sendToServer(
+                new SelectRangerCombatStylePayload(OPTIONS[index].style().name()));
+        // Keep the screen open until the server sync flips the field (render()
+        // auto-closes then). This avoids a stuck-closed screen if the packet is
+        // rejected. Block further input meanwhile.
+        sent = true;
     }
 
     private void drawBorder(GuiGraphics graphics, int x, int y, int w, int h, int color) {

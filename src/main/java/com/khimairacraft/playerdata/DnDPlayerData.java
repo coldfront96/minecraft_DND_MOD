@@ -1126,8 +1126,13 @@ public class DnDPlayerData {
                     }
                 }
             } else {
+                // Migration: a save predating the Ranger compound derives its
+                // Favored Enemy entitlement from the current Ranger level (none
+                // could have been spent yet, since the feature did not exist).
                 rangerCombatStyle = RangerCombatStyle.NONE;
-                favoredEnemySlotsAvailable = 0;
+                favoredEnemySlotsAvailable =
+                        com.khimairacraft.ability.passive.RangerPassives.favoredEnemySlotsForLevel(
+                                getClassLevel(DnDClass.RANGER));
             }
         } else {
             featSlotsAvailable = 0;

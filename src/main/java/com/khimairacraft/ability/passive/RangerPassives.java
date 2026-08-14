@@ -64,6 +64,26 @@ public final class RangerPassives {
         return getRangerLevel(data) > 0;
     }
 
+    /** Favored Enemy picks earned by a given Ranger level (thresholds 1/5/10/15/20). */
+    public static int favoredEnemySlotsForLevel(int rangerLevel) {
+        int slots = 0;
+        for (int t : new int[]{1, 5, 10, 15, 20}) {
+            if (rangerLevel >= t) slots++;
+        }
+        return slots;
+    }
+
+    /**
+     * Grants the level-1 Ranger features (first Favored Enemy pick + Track and
+     * the reconciled level flags). Shared by every class-selection entry point
+     * so picking Ranger via the screen or the {@code /dndclass} command behaves
+     * identically.
+     */
+    public static void grantInitialRangerFeatures(DnDPlayerData data) {
+        data.addFavoredEnemySlot();
+        reconcile(data);
+    }
+
     // ------------------------------------------------------------------
     // Reconcile — self-healing level-derived flags and bonus feats
     // ------------------------------------------------------------------
@@ -196,6 +216,11 @@ public final class RangerPassives {
             if (entry.getValue() > best && entry.getKey().matches(target)) {
                 best = entry.getValue();
             }
+        }
+        // Improved Favored Enemy feat (Complete Adventurer) adds its stacked
+        // bonus on top, but only when a category actually matched the target.
+        if (best > 0) {
+            best += data.getFavoredEnemyBonus();
         }
         return best;
     }

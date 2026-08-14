@@ -18,6 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -66,6 +67,7 @@ public class RangerCombatHandler {
 
     private static final double SWIFT_TRACKER_RANGE = 20.0;
     private static final int GLOW_DURATION_TICKS = 50; // > 40-tick refresh
+    private static final double CAMOUFLAGE_SCAN_RANGE = 64.0;
 
     // Per-Ranger set of non-player scoreboard names that Ranger has assigned to a
     // glow team. Keyed by Ranger UUID so concurrent Rangers don't clobber each
@@ -116,10 +118,12 @@ public class RangerCombatHandler {
 
         // Counteract the block's movement penalty with a short, invisible speed
         // boost so natural vines / berry bushes / soul sand don't slow the Ranger.
+        // Duration is kept at 3 ticks (re-applied every tick while inside the
+        // block) so it expires almost immediately on leaving rather than lingering.
         // (Cobweb's stuck-multiplier is applied and cleared inside the move step
-        // before this Post tick, so the boost only partially offsets it — the
-        // closest negation achievable without a movement mixin.)
-        player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 10, 2, false, false, false));
+        // before this Post tick, so the boost only partially offsets that one —
+        // the closest negation achievable without a movement mixin.)
+        player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 3, 2, false, false, false));
     }
 
     private static boolean isInSlowingTerrain(ServerPlayer player) {
@@ -194,9 +198,11 @@ public class RangerCombatHandler {
 
         ItemStack held = event.getItemStack();
         if (held.isEmpty()) return;
-        // Only trigger on the animal's taming food (bones for wolves, the
-        // species' food otherwise) so ordinary right-clicks don't tame.
-        boolean isTamingItem = held.is(Items.BONE) || animal.isFood(held);
+        // Only trigger on the species' actual taming input, so a bonus roll can't
+        // tame with a non-taming item. Wolves tame with bones (their isFood is
+        // meat, which does NOT tame); cats and parrots tame with the same items
+        // that are their food, so isFood is correct for them and other tamables.
+        boolean isTamingItem = (animal instanceof Wolf) ? held.is(Items.BONE) : animal.isFood(held);
         if (!isTamingItem) return;
 
         double bonus = RangerPassives.getWildEmpathyBonus(data);
@@ -243,14 +249,20 @@ public class RangerCombatHandler {
                     GLOW_DURATION_TICKS, 0, false, false, false));
 
             // Recolor only non-player entities (mobs/pets); recoloring a player
-            // would hijack their real team assignment.
+            // would hijack their real team assignment. Likewise, skip any entity
+            // already on a non-Ranger (datapack/command) team so we never clobber
+            // and fail to restore a team it legitimately belongs to.
             if (!(living instanceof ServerPlayer)) {
-                PlayerTeam target = friend ? friendly : hostile;
                 String name = living.getScoreboardName();
-                if (scoreboard.getPlayersTeam(name) != target) {
-                    scoreboard.addPlayerToTeam(name, target);
+                PlayerTeam existing = scoreboard.getPlayersTeam(name);
+                boolean ours = existing == friendly || existing == hostile;
+                if (existing == null || ours) {
+                    PlayerTeam target = friend ? friendly : hostile;
+                    if (existing != target) {
+                        scoreboard.addPlayerToTeam(name, target);
+                    }
+                    stillManaged.add(name);
                 }
-                stillManaged.add(name);
             }
         }
 
@@ -337,7 +349,10 @@ public class RangerCombatHandler {
 
         boolean evenWhileObserved = data.getAchievementFlag("ranger_hide_in_plain_sight");
 
-        for (Entity entity : level.getEntities(ranger, ranger.getBoundingBox().inflate(32.0))) {
+        // Query wide enough to cover mobs whose follow range exceeds the default
+        // (a 64-block box handles ordinary large-follow-range mobs; extreme
+        // outliers such as the Warden aren't fully covered and are left as-is).
+        for (Entity entity : level.getEntities(ranger, ranger.getBoundingBox().inflate(CAMOUFLAGE_SCAN_RANGE))) {
             if (!(entity instanceof Mob mob)) continue;
             if (mob.getTarget() != ranger) continue;
 
