@@ -51,6 +51,13 @@ public record SelectClassPayload(String className) implements CustomPacketPayloa
                 }
 
                 data.setDnDClass(chosen);
+
+                // Ranger level-1 grants: first Favored Enemy pick, and Track /
+                // the other level-derived flags (shared with the /dndclass path).
+                if (chosen == DnDClass.RANGER) {
+                    com.khimairacraft.ability.passive.RangerPassives.grantInitialRangerFeatures(data);
+                }
+
                 PacketDistributor.sendToPlayer(serverPlayer, SyncPlayerDataPayload.fromPlayer(data));
                 DnDMods.LOGGER.info("{} selected class {}", serverPlayer.getName().getString(), chosen);
             }

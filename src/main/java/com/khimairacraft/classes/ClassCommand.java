@@ -74,6 +74,13 @@ public class ClassCommand {
             return 0;
         }
         data.setDnDClass(dndClass);
+
+        // Match the class-selection screen's Ranger initialization so /dndclass
+        // grants the level-1 Favored Enemy pick and Track / reconciled flags.
+        if (dndClass == DnDClass.RANGER) {
+            com.khimairacraft.ability.passive.RangerPassives.grantInitialRangerFeatures(data);
+        }
+
         PacketDistributor.sendToPlayer(player, SyncPlayerDataPayload.fromPlayer(data));
 
         player.sendSystemMessage(Component.literal("You are now a " + dndClass.getDisplayName() + "!"));

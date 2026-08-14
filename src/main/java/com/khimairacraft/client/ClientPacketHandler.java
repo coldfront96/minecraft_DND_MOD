@@ -26,6 +26,14 @@ public class ClientPacketHandler {
         }
     }
 
+    public static void openRangerCombatStyle() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null
+                && !(mc.screen instanceof com.khimairacraft.client.screen.RangerCombatStyleScreen)) {
+            mc.setScreen(new com.khimairacraft.client.screen.RangerCombatStyleScreen());
+        }
+    }
+
     public static void handleSyncPlayerData(CompoundTag data) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
