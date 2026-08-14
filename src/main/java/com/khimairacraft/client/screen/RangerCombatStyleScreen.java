@@ -27,6 +27,9 @@ public class RangerCombatStyleScreen extends Screen {
 
     private record Option(RangerCombatStyle style, String name, String[] tiers) {}
 
+    /** True once a choice has been sent; blocks further clicks until the sync resolves. */
+    private boolean sent = false;
+
     private static final Option[] OPTIONS = {
             new Option(RangerCombatStyle.ARCHERY, "Archery", new String[]{
                     "Lv 2: Rapid Shot", "Lv 6: Manyshot", "Lv 11: Improved Precise Shot"}),
@@ -65,8 +68,9 @@ public class RangerCombatStyleScreen extends Screen {
 
         graphics.drawCenteredString(this.font, "Ranger Combat Style",
                 left + PANEL_WIDTH / 2, top + 10, 0xFFFFD700);
-        graphics.drawCenteredString(this.font, "This choice is permanent.",
-                left + PANEL_WIDTH / 2, top + 24, 0xFFAAAAAA);
+        graphics.drawCenteredString(this.font,
+                sent ? "Confirming…" : "This choice is permanent.",
+                left + PANEL_WIDTH / 2, top + 24, sent ? 0xFF55FF55 : 0xFFAAAAAA);
 
         int cardW = (PANEL_WIDTH - 30) / 2;
         int cardH = 130;
@@ -96,7 +100,7 @@ public class RangerCombatStyleScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button != 0) return super.mouseClicked(mouseX, mouseY, button);
+        if (button != 0 || sent) return super.mouseClicked(mouseX, mouseY, button);
 
         int left = (this.width - PANEL_WIDTH) / 2;
         int top = (this.height - PANEL_HEIGHT) / 2;
@@ -110,7 +114,10 @@ public class RangerCombatStyleScreen extends Screen {
                     && mouseY >= cardY && mouseY < cardY + cardH) {
                 PacketDistributor.sendToServer(
                         new SelectRangerCombatStylePayload(OPTIONS[i].style().name()));
-                onClose();
+                // Keep the screen open until the server sync flips the field
+                // (render() auto-closes then). This avoids a stuck-closed screen
+                // if the packet is rejected. Block further clicks meanwhile.
+                sent = true;
                 return true;
             }
         }

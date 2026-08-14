@@ -1,5 +1,6 @@
 package com.khimairacraft.network;
 
+import com.khimairacraft.classes.DnDClass;
 import com.khimairacraft.playerdata.DnDPlayerData;
 import com.khimairacraft.playerdata.ModAttachments;
 import com.khimairacraft.ranger.FavoredEnemyType;
@@ -42,6 +43,11 @@ public record SelectFavoredEnemyPayload(String categoryName) implements CustomPa
 
             DnDPlayerData data = player.getData(ModAttachments.PLAYER_DATA);
             if (data == null) return;
+
+            if (data.getClassLevel(DnDClass.RANGER) <= 0) {
+                LOGGER.warn("Non-Ranger {} tried to select a Favored Enemy", player.getName().getString());
+                return;
+            }
 
             if (data.getFavoredEnemySlotsAvailable() <= 0) {
                 LOGGER.warn("Player {} has no Favored Enemy slots", player.getName().getString());

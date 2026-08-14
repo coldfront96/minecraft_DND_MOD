@@ -33,8 +33,11 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -64,9 +67,11 @@ public class RangerCombatHandler {
     private static final double SWIFT_TRACKER_RANGE = 20.0;
     private static final int GLOW_DURATION_TICKS = 50; // > 40-tick refresh
 
-    // Scoreboard names of non-player entities we've assigned to a glow team,
-    // so we can remove stale ones each scan and keep team membership tidy.
-    private static final Set<String> GLOW_MANAGED = new HashSet<>();
+    // Per-Ranger set of non-player scoreboard names that Ranger has assigned to a
+    // glow team. Keyed by Ranger UUID so concurrent Rangers don't clobber each
+    // other's tracking; an entity is only released from its glow team once no
+    // Ranger still manages it (union across all Rangers).
+    private static final Map<UUID, Set<String>> GLOW_MANAGED_BY_RANGER = new HashMap<>();
 
     // ------------------------------------------------------------------
     // Server tick: reconcile, combat-style flags, swift tracker, camouflage
@@ -249,16 +254,50 @@ public class RangerCombatHandler {
             }
         }
 
-        // Drop entities that left range from the glow teams.
-        for (String name : new HashSet<>(GLOW_MANAGED)) {
+        // Drop entities this Ranger no longer manages — but only release one from
+        // its glow team if no OTHER Ranger still manages it.
+        Set<String> previous = GLOW_MANAGED_BY_RANGER.getOrDefault(ranger.getUUID(), Set.of());
+        for (String name : previous) {
             if (stillManaged.contains(name)) continue;
+            if (isManagedByOtherRanger(name, ranger.getUUID())) continue;
             PlayerTeam current = scoreboard.getPlayersTeam(name);
             if (current == friendly || current == hostile) {
                 scoreboard.removePlayerFromTeam(name, current);
             }
         }
-        GLOW_MANAGED.clear();
-        GLOW_MANAGED.addAll(stillManaged);
+        if (stillManaged.isEmpty()) {
+            GLOW_MANAGED_BY_RANGER.remove(ranger.getUUID());
+        } else {
+            GLOW_MANAGED_BY_RANGER.put(ranger.getUUID(), stillManaged);
+        }
+    }
+
+    private static boolean isManagedByOtherRanger(String name, UUID except) {
+        for (Map.Entry<UUID, Set<String>> entry : GLOW_MANAGED_BY_RANGER.entrySet()) {
+            if (entry.getKey().equals(except)) continue;
+            if (entry.getValue().contains(name)) return true;
+        }
+        return false;
+    }
+
+    /** Release a logged-out Ranger's glow assignments not still held by another Ranger. */
+    @SubscribeEvent
+    public static void onPlayerLogout(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        Set<String> managed = GLOW_MANAGED_BY_RANGER.remove(player.getUUID());
+        if (managed == null || managed.isEmpty()) return;
+        if (!(player.level() instanceof ServerLevel level)) return;
+
+        Scoreboard scoreboard = level.getScoreboard();
+        PlayerTeam friendly = scoreboard.getPlayerTeam(TEAM_FRIENDLY);
+        PlayerTeam hostile = scoreboard.getPlayerTeam(TEAM_HOSTILE);
+        for (String name : managed) {
+            if (isManagedByOtherRanger(name, player.getUUID())) continue;
+            PlayerTeam current = scoreboard.getPlayersTeam(name);
+            if (current != null && (current == friendly || current == hostile)) {
+                scoreboard.removePlayerFromTeam(name, current);
+            }
+        }
     }
 
     private static PlayerTeam ensureTeam(Scoreboard scoreboard, String name, ChatFormatting color) {

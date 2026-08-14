@@ -270,7 +270,9 @@ public class DnDPlayerData {
     }
 
     /** Read-only view of the Ranger's chosen favored enemies and their bonuses. */
-    public Map<FavoredEnemyType, Integer> getFavoredEnemies() { return favoredEnemies; }
+    public Map<FavoredEnemyType, Integer> getFavoredEnemies() {
+        return Collections.unmodifiableMap(favoredEnemies);
+    }
 
     /** Current bonus for a category (0 if not selected). */
     public int getFavoredEnemyBonusFor(FavoredEnemyType type) {
